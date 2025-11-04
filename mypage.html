@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マイページ</title>
+</head>
+<body>
+    <h1>ようこそ、マイページへ！</h1>
+    <p id="user-info">ユーザー情報を読み込み中...</p>
+
+    <button id="logout-btn">ログアウト</button>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        
+        // あなたのウェブアプリのFirebase設定 (index.html と同じ設定)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
+            authDomain: "goto6234.firebaseapp.com",
+            projectId: "goto6234",
+            storageBucket: "goto6234.firebasestorage.app",
+            messagingSenderId: "730149609843",
+            appId: "1:730149609843:web:d11237de52723fc45b2506",
+            measurementId: "G-FDRB7H8MRR"
+        };
+
+        // Firebaseの初期化
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // 認証状態の監視
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // ログイン済みの場合：ユーザー情報を表示
+                document.getElementById('user-info').textContent = 
+                    `ログイン中: ${user.email || 'Googleユーザー'} (UID: ${user.uid})`;
+            } else {
+                // 未ログインの場合：ログインページへリダイレクト
+                alert('ログインが必要です。ログインページに戻ります。');
+                window.location.href = 'index.html';
+            }
+        });
+
+        // ログアウトボタンのイベントリスナー
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            try {
+                await signOut(auth); // ログアウト処理
+                // ログアウトに成功したら logout.html へリダイレクト
+                window.location.href = 'logout.html'; 
+            } catch (error) {
+                console.error("ログアウトエラー:", error);
+                alert("ログアウト中にエラーが発生しました。");
+            }
+        });
+    </script>
+</body>
+</html>
