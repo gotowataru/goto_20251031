@@ -30,9 +30,9 @@
             createUserWithEmailAndPassword, 
             signInWithEmailAndPassword, 
             onAuthStateChanged,
-            linkWithCredential, // ★ アカウントリンク用に追加
-            EmailAuthProvider, // ★ 再認証用に追加
-            reauthenticateWithCredential // ★ 再認証用に追加
+            linkWithCredential, 
+            EmailAuthProvider, 
+            reauthenticateWithCredential 
         } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
         // あなたのウェブアプリのFirebase設定
@@ -54,8 +54,10 @@
         const reauthSection = document.getElementById('reauth-section');
         const reauthEmailInput = document.getElementById('reauth-email-input');
         const reauthPasswordInput = document.getElementById('reauth-password-input');
+        const loginFormMain = document.getElementById('login-form-main');
         
-        let pendingCredential = null; // リンク待ちの認証情報を保持するグローバル変数
+        // リンク待ちの認証情報を保持するグローバル変数
+        let pendingCredential = null; 
 
         // ログイン成功時にマイページへ遷移させる関数
         const handleLoginSuccess = (message) => {
@@ -76,21 +78,23 @@
                 const email = error.customData.email;
                 
                 // リンク待ちの認証情報を取得・保存
-                pendingCredential = provider.credentialFromResult(error);
+                // provider.credentialFromResult(error) を使うには、providerオブジェクトのコンストラクタが必要です。
+                // 実際は、エラーオブジェクトから直接クレデンシャルを取得するのが一般的です。
+                pendingCredential = error.credential; 
 
                 // ユーザーに状況を説明
-                alert(`このメールアドレス (${email}) は、すでに別のアカウントで登録されています。先にそのアカウント（Googleやメール/パスワードなど）でログインし、GitHubアカウントをリンクします。`);
+                alert(`このメールアドレス (${email}) は、すでに別のアカウントで登録されています。\n先にそのアカウント（メール/パスワード等）でログインし、GitHub/Googleアカウントをリンクします。`);
                 
                 // 既存アカウントのメールアドレスを再認証フォームに表示
                 reauthEmailInput.value = email;
                 // 再認証フォームを表示し、他のフォームを非表示に
-                document.getElementById('login-form-main').style.display = 'none';
+                loginFormMain.style.display = 'none';
                 reauthSection.style.display = 'block';
 
             } else {
                 // その他の一般的なログインエラー
-                console.error(`${provider.providerId} ログインエラー:`, error);
-                alert(`${provider.providerId} ログインに失敗しました: ` + error.message);
+                console.error(`ソーシャルログインエラー:`, error);
+                alert(`ログインに失敗しました: ` + error.message);
             }
         };
 
@@ -102,7 +106,6 @@
                 await signInWithPopup(auth, googleProvider);
                 handleLoginSuccess('Googleアカウントでログインしました！');
             } catch (error) {
-                // Google Providerはオブジェクトを直接渡せないので、プロバイダIDで判断
                 handleSocialLoginError(error, GoogleAuthProvider);
             }
         });
@@ -113,7 +116,6 @@
                 await signInWithPopup(auth, githubProvider);
                 handleLoginSuccess('GitHubアカウントでログインしました！');
             } catch (error) {
-                // GitHub Providerはオブジェクトを直接渡せないので、プロバイダIDで判断
                 handleSocialLoginError(error, GithubAuthProvider);
             }
         });
@@ -158,25 +160,27 @@
             const password = reauthPasswordInput.value;
             if (!email || !password) return alert('メールアドレスとパスワードを入力してください。');
 
-            if (!pendingCredential || !auth.currentUser) {
-                alert('エラー: リンク対象の認証情報が見つかりません。最初からやり直してください。');
-                window.location.reload();
+            if (!pendingCredential) {
+                // リンク対象の認証情報が失われている場合にリロードしてリトライを促す
+                alert('エラー: リンク対象の認証情報が見つかりませんでした。お手数ですが、もう一度ソーシャルログインからやり直してください。');
+                window.location.reload(); 
                 return;
             }
-
+            
             try {
-                // 1. 既存の認証情報で再ログインし、現在のユーザーセッションをリフレッシュ
-                const credential = EmailAuthProvider.credential(email, password);
-                await reauthenticateWithCredential(auth.currentUser, credential);
-                
+                // 1. 既存のEmail/Password情報でサインインし、アカウントを取得
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
                 // 2. 新しいプロバイダ（GitHub/Google）の認証情報を既存アカウントにリンク
-                await linkWithCredential(auth.currentUser, pendingCredential);
+                await linkWithCredential(user, pendingCredential);
                 
                 // 成功
                 alert('アカウントのリンクが完了しました！');
                 handleLoginSuccess('複数の方法でログインできるようになりました！');
 
             } catch (error) {
+                // 再認証/リンク失敗。signInWithEmailAndPassword または linkWithCredential のエラー
                 console.error("アカウントリンク/再認証エラー:", error);
                 alert("アカウントのリンクに失敗しました。正しいメールアドレスとパスワードを入力したか確認してください: " + error.message);
             }
@@ -209,7 +213,7 @@
         <div id="reauth-section">
             <h2>🤝 アカウントリンク</h2>
             <p><strong>このメールアドレスは既存アカウントに登録されています。</strong><br>
-                既存アカウントの認証情報（メールアドレスとパスワード）を入力して、新しいプロバイダをリンクしてください。</p>
+                既存アカウントの認証情報（メールアドレスとパスワード）を入力してリンクしてください。</p>
             <div>
                 <input type="email" id="reauth-email-input" placeholder="既存アカウントのメールアドレス" required readonly>
                 <input type="password" id="reauth-password-input" placeholder="既存アカウントのパスワード" required>
