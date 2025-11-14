@@ -3,29 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ログイン/サインアップ</title>
+    <title>マイページ</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; background-color: #f44336; color: white; margin-top: 20px; }
+    </style>
 </head>
 <body>
-    <h1>Firebase認証テストページ</h1>
-    <p id="user-status">認証状態をチェック中...</p>
-
-    <div id="login-section">
-        <h2>ログイン / アカウント作成</h2>
-        <button id="google-login-btn">Googleでログイン</button>
-        <hr>
-        <div>
-            <input type="email" id="email-input" placeholder="メールアドレス">
-            <input type="password" id="password-input" placeholder="パスワード">
-            <button id="email-signup-btn">Emailでサインアップ</button>
-            <button id="email-login-btn">Emailでログイン</button>
-        </div>
-    </div>
+    <h1>ようこそ、マイページへ！</h1>
+    <p id="user-info">ログインユーザー情報がここに表示されます。</p>
+    <button id="logout-btn">ログアウト</button>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-        
-        // あなたのウェブアプリのFirebase設定 (前回と同じ設定を仮に使用)
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
             authDomain: "goto6234.firebaseapp.com",
@@ -36,64 +28,28 @@
             measurementId: "G-FDRB7H8MRR"
         };
 
-        // Firebaseの初期化
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const googleProvider = new GoogleAuthProvider();
+        const userInfoElement = document.getElementById('user-info');
+        const logoutButton = document.getElementById('logout-btn');
 
-        // HTML要素への参照を取得
-        const userStatusDiv = document.getElementById('user-status');
-        const loginSection = document.getElementById('login-section');
-        loginSection.style.display = 'none'; // 初期状態は非表示にしてチラつきを防止
-
-        // 認証状態の監視
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // ログイン済みの場合：マイページへリダイレクト
-                userStatusDiv.textContent = 'ログイン済み。マイページへ移動します...';
-                window.location.href = 'mypage.html';
+                userInfoElement.textContent = `ログイン中: ${user.displayName || user.email} (UID: ${user.uid})`;
             } else {
-                // 未ログインの場合
-                userStatusDiv.textContent = '未ログイン';
-                loginSection.style.display = 'block'; // フォームを表示
+                alert("未ログインです。ログインページへ戻ります。");
+                window.location.href = 'index.html'; // 未ログインならログインページへリダイレクト
             }
         });
 
-        // --- 認証イベントリスナー（前回と同じロジック） ---
-
-        document.getElementById('google-login-btn').addEventListener('click', async () => {
+        logoutButton.addEventListener('click', async () => {
             try {
-                await signInWithPopup(auth, googleProvider);
-                // 成功後、onAuthStateChanged が検知してリダイレクト
+                await signOut(auth);
+                alert("ログアウトしました。");
+                window.location.href = 'index.html'; // ログアウト後、ログインページへリダイレクト
             } catch (error) {
-                console.error("Googleログインエラー:", error);
-                alert("Googleログインに失敗しました: " + error.message);
-            }
-        });
-
-        document.getElementById('email-signup-btn').addEventListener('click', async () => {
-            const email = document.getElementById('email-input').value;
-            const password = document.getElementById('password-input').value;
-            if (!email || !password) return alert('メールアドレスとパスワードを入力してください。');
-            try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                // 成功後、onAuthStateChanged が検知してリダイレクト
-            } catch (error) {
-                console.error("Emailサインアップエラー:", error);
-                alert("Emailサインアップに失敗しました: " + error.message);
-            }
-        });
-
-        document.getElementById('email-login-btn').addEventListener('click', async () => {
-            const email = document.getElementById('email-input').value;
-            const password = document.getElementById('password-input').value;
-            if (!email || !password) return alert('メールアドレスとパスワードを入力してください。');
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                // 成功後、onAuthStateChanged が検知してリダイレクト
-            } catch (error) {
-                console.error("Emailログインエラー:", error);
-                alert("Emailログインに失敗しました: " + error.message);
+                console.error("ログアウトエラー:", error);
+                alert("ログアウトに失敗しました: " + error.message);
             }
         });
     </script>
