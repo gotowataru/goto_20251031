@@ -5,19 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>マイページ</title>
     <style>
-        body { font-family: sans-serif; margin: 20px; }
-        button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; background-color: #f44336; color: white; margin-top: 20px; }
+        body { font-family: sans-serif; margin: 30px; background-color: #e6f7ff; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #1e88e5; text-align: center; }
+        #user-info { 
+            padding: 15px; 
+            border: 1px solid #bbdefb; 
+            border-left: 5px solid #1e88e5; 
+            background-color: #f0f8ff; 
+            border-radius: 4px; 
+            margin-top: 20px;
+            word-break: break-all;
+        }
+        #logout-btn { 
+            display: block;
+            width: 100%;
+            padding: 12px 15px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            background-color: #f44336; 
+            color: white; 
+            margin-top: 30px; 
+            font-weight: bold;
+        }
     </style>
-</head>
-<body>
-    <h1>ようこそ、マイページへ！</h1>
-    <p id="user-info">ログインユーザー情報がここに表示されます。</p>
-    <button id="logout-btn">ログアウト</button>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
+        // あなたのウェブアプリのFirebase設定 (index.htmlと共通)
         const firebaseConfig = {
             apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
             authDomain: "goto6234.firebaseapp.com",
@@ -33,26 +50,41 @@
         const userInfoElement = document.getElementById('user-info');
         const logoutButton = document.getElementById('logout-btn');
 
+        // 認証状態の監視
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 // ログイン済みの場合はユーザー情報を表示
-                userInfoElement.textContent = `ログイン中: ${user.displayName || user.email} (UID: ${user.uid})`;
+                userInfoElement.innerHTML = `
+                    **✅ ログイン成功!**<br>
+                    **表示名/Email:** ${user.displayName || user.email}<br>
+                    **UID:** ${user.uid}<br>
+                    **プロバイダ:** ${user.providerData[0] ? user.providerData[0].providerId : 'Email/Password'}
+                `;
             } else {
-                // 未ログインの場合はアラートを出さずに、直接ログインページへリダイレクト
-                window.location.href = 'index.html';
+                // 未ログインの場合はログインページへリダイレクト
+                alert("未ログインです。ログインページへ戻ります。");
+                window.location.href = 'index.html'; 
             }
         });
 
+        // ログアウト処理
         logoutButton.addEventListener('click', async () => {
             try {
                 await signOut(auth);
                 alert("ログアウトしました。");
-                window.location.href = 'index.html'; // ログアウト後、ログインページへリダイレクト
+                window.location.href = 'logout.html'; // ★ ログアウト後、logout.htmlへリダイレクト
             } catch (error) {
                 console.error("ログアウトエラー:", error);
                 alert("ログアウトに失敗しました: " + error.message);
             }
         });
     </script>
+</head>
+<body>
+    <div class="container">
+        <h1>ようこそ、マイページへ！🎉</h1>
+        <p id="user-info">ユーザー情報を読み込み中です...</p>
+        <button id="logout-btn">ログアウト</button>
+    </div>
 </body>
 </html>
