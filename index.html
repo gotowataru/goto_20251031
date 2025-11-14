@@ -3,55 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>マイページ</title>
-    <style>
-        body { font-family: sans-serif; margin: 20px; }
-        button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; background-color: #f44336; color: white; margin-top: 20px; }
-    </style>
-</head>
-<body>
-    <h1>ようこそ、マイページへ！</h1>
-    <p id="user-info">ログインユーザー情報がここに表示されます。</p>
-    <button id="logout-btn">ログアウト</button>
-
+    <title>Firebase認証テスト</title>
+    <!-- Firebase SDKの読み込み -->
+    <!-- v9 JavaScript SDK (モジュール形式) -->
     <script type="module">
+        // Firebase App SDKのインポート
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        // Firebase Authentication SDKのインポート
+        import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        // Firebase Analytics SDKのインポート (任意、不要なら削除しても可)
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js";
 
+        // あなたのウェブアプリのFirebase設定
         const firebaseConfig = {
-            apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
-            authDomain: "goto6234.firebaseapp.com",
-            projectId: "goto6234",
-            storageBucket: "goto6234.firebasestorage.app",
-            messagingSenderId: "730149609843",
-            appId: "1:730149609843:web:d11237de52723fc45b2506",
-            measurementId: "G-FDRB7H8MRR"
+          apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
+          authDomain: "goto6234.firebaseapp.com",
+          projectId: "goto6234",
+          storageBucket: "goto6234.firebasestorage.app",
+          messagingSenderId: "730149609843",
+          appId: "1:730149609843:web:d11237de52723fc45b2506",
+          measurementId: "G-FDRB7H8MRR"
         };
 
+        // Firebaseの初期化
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const userInfoElement = document.getElementById('user-info');
-        const logoutButton = document.getElementById('logout-btn');
+        const auth = getAuth(app); // Authenticationサービスを取得
+        const analytics = getAnalytics(app); // Analyticsサービスを取得 (必要なければ削除)
+        const googleProvider = new GoogleAuthProvider(); // Google認証プロバイダを初期化
 
+        // HTML要素への参照を取得
+        const userStatusDiv = document.getElementById('user-status');
+        const loginSection = document.getElementById('login-section');
+        const loggedInSection = document.getElementById('logged-in-section');
+
+        // 認証状態の監視
+        // ユーザーがログインまたはログアウトするたびに呼び出される
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                userInfoElement.textContent = `ログイン中: ${user.displayName || user.email} (UID: ${user.uid})`;
+                // ユーザーがログインしている場合
+                userStatusDiv.textContent = `ログイン中: ${user.email} (UID: ${user.uid})`;
+                loginSection.style.display = 'none'; // ログインフォームを非表示
+                loggedInSection.style.display = 'block'; // ログアウトボタン等を表示
             } else {
-                alert("未ログインです。ログインページへ戻ります。");
-                window.location.href = 'index.html'; // 未ログインならログインページへリダイレクト
+                // ユーザーがログアウトしている場合
+                userStatusDiv.textContent = '未ログイン';
+                loginSection.style.display = 'block'; // ログインフォームを表示
+                loggedInSection.style.display = 'none'; // ログアウトボタン等を非表示
             }
         });
 
-        logoutButton.addEventListener('click', async () => {
+        // Googleログインボタンのイベントリスナー
+        document.getElementById('google-login-btn').addEventListener('click', async () => {
             try {
-                await signOut(auth);
-                alert("ログアウトしました。");
-                window.location.href = 'index.html'; // ログアウト後、ログインページへリダイレクト
+                await signInWithPopup(auth, googleProvider); // Googleポップアップでサインイン
+                alert('Googleアカウントでログインしました！');
+            } catch (error) {
+                console.error("Googleログインエラー:", error);
+                alert("Googleログインに失敗しました: " + error.message);
+            }
+        });
+
+        // Email/Passwordサインアップボタンのイベントリスナー
+        document.getElementById('email-signup-btn').addEventListener('click', async () => {
+            const email = document.getElementById('email-input').value;
+            const password = document.getElementById('password-input').value;
+            if (!email || !password) {
+                alert('メールアドレスとパスワードを入力してください。');
+                return;
+            }
+            try {
+                await createUserWithEmailAndPassword(auth, email, password); // メールアドレスとパスワードでユーザー作成
+                alert('アカウントを作成しました！');
+            } catch (error) {
+                console.error("Emailサインアップエラー:", error);
+                alert("Emailサインアップに失敗しました: " + error.message);
+            }
+        });
+
+        // Email/Passwordログインボタンのイベントリスナー
+        document.getElementById('email-login-btn').addEventListener('click', async () => {
+            const email = document.getElementById('email-input').value;
+            const password = document.getElementById('password-input').value;
+            if (!email || !password) {
+                alert('メールアドレスとパスワードを入力してください。');
+                return;
+            }
+            try {
+                await signInWithEmailAndPassword(auth, email, password); // メールアドレスとパスワードでログイン
+                alert('ログインしました！');
+            } catch (error) {
+                console.error("Emailログインエラー:", error);
+                alert("Emailログインに失敗しました: " + error.message);
+            }
+        });
+
+        // ログアウトボタンのイベントリスナー
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            try {
+                await signOut(auth); // ログアウト処理
+                alert('ログアウトしました。');
             } catch (error) {
                 console.error("ログアウトエラー:", error);
-                alert("ログアウトに失敗しました: " + error.message);
             }
         });
     </script>
+</head>
+<body>
+    <h1>Firebase認証テストページ</h1>
+    <p id="user-status">未ログイン</p>
+
+    <div id="login-section">
+        <h2>ログイン / アカウント作成</h2>
+        <button id="google-login-btn">Googleでログイン</button>
+        <hr>
+        <div>
+            <input type="email" id="email-input" placeholder="メールアドレス">
+            <input type="password" id="password-input" placeholder="パスワード">
+            <button id="email-signup-btn">Emailでサインアップ</button>
+            <button id="email-login-btn">Emailでログイン</button>
+        </div>
+    </div>
+
+    <div id="logged-in-section" style="display: none;">
+        <h2>ようこそ！</h2>
+        <p>ログインに成功しました。</p>
+        <button id="logout-btn">ログアウト</button>
+    </div>
 </body>
 </html>
