@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ログイン / サインアップ</title>
+    <title>ログイン / サインアップ (アカウントリンク対応)</title>
     <style>
         body { font-family: sans-serif; margin: 30px; background-color: #f4f7f6; }
         .container { max-width: 400px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -14,22 +14,25 @@
         .auth-buttons button {
             width: 100%; padding: 12px; margin-bottom: 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold;
         }
-        #email-signup-btn, #email-login-btn { background-color: #4CAF50; } /* Green */
-        #google-login-btn { background-color: #DB4437; } /* Red */
-        #github-login-btn { background-color: #333; } /* Dark Gray/Black */
+        #email-signup-btn, #email-login-btn { background-color: #4CAF50; }
+        #google-login-btn { background-color: #DB4437; }
+        #github-login-btn { background-color: #333; }
+        #reauth-section { display: none; margin-top: 20px; padding: 15px; border: 1px solid #ffcc80; background-color: #fff3e0; border-radius: 4px; }
         hr { margin: 20px 0; border: 0; border-top: 1px solid #eee; }
     </style>
     <script type="module">
-        // Firebase SDKのインポート
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { 
             getAuth, 
             GoogleAuthProvider, 
-            GithubAuthProvider, // ★ GitHub Providerを追加
+            GithubAuthProvider,
             signInWithPopup, 
             createUserWithEmailAndPassword, 
             signInWithEmailAndPassword, 
-            onAuthStateChanged 
+            onAuthStateChanged,
+            linkWithCredential, // ★ アカウントリンク用に追加
+            EmailAuthProvider, // ★ 再認証用に追加
+            reauthenticateWithCredential // ★ 再認証用に追加
         } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
         // あなたのウェブアプリのFirebase設定
@@ -43,24 +46,52 @@
             measurementId: "G-FDRB7H8MRR"
         };
 
-        // Firebaseの初期化
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app); 
         const googleProvider = new GoogleAuthProvider();
-        const githubProvider = new GithubAuthProvider(); // ★ GitHubプロバイダを初期化
+        const githubProvider = new GithubAuthProvider();
 
-        // 認証状態の監視 (ログイン済みならマイページへリダイレクト)
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // ログイン済みならマイページへ即時リダイレクト
-                window.location.href = 'mypage.html';
-            }
-        });
+        const reauthSection = document.getElementById('reauth-section');
+        const reauthEmailInput = document.getElementById('reauth-email-input');
+        const reauthPasswordInput = document.getElementById('reauth-password-input');
+        
+        let pendingCredential = null; // リンク待ちの認証情報を保持するグローバル変数
 
         // ログイン成功時にマイページへ遷移させる関数
         const handleLoginSuccess = (message) => {
             alert(message);
             window.location.href = 'mypage.html';
+        };
+
+        // 認証状態の監視 (ログイン済みならマイページへ即時リダイレクト)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.location.href = 'mypage.html';
+            }
+        });
+
+        // --- 共通のエラーハンドリング関数 ---
+        const handleSocialLoginError = async (error, provider) => {
+            if (error.code === 'auth/account-exists-with-different-credential') {
+                const email = error.customData.email;
+                
+                // リンク待ちの認証情報を取得・保存
+                pendingCredential = provider.credentialFromResult(error);
+
+                // ユーザーに状況を説明
+                alert(`このメールアドレス (${email}) は、すでに別のアカウントで登録されています。先にそのアカウント（Googleやメール/パスワードなど）でログインし、GitHubアカウントをリンクします。`);
+                
+                // 既存アカウントのメールアドレスを再認証フォームに表示
+                reauthEmailInput.value = email;
+                // 再認証フォームを表示し、他のフォームを非表示に
+                document.getElementById('login-form-main').style.display = 'none';
+                reauthSection.style.display = 'block';
+
+            } else {
+                // その他の一般的なログインエラー
+                console.error(`${provider.providerId} ログインエラー:`, error);
+                alert(`${provider.providerId} ログインに失敗しました: ` + error.message);
+            }
         };
 
         // --- ソーシャルログイン処理 ---
@@ -71,19 +102,19 @@
                 await signInWithPopup(auth, googleProvider);
                 handleLoginSuccess('Googleアカウントでログインしました！');
             } catch (error) {
-                console.error("Googleログインエラー:", error);
-                alert("Googleログインに失敗しました: " + error.message);
+                // Google Providerはオブジェクトを直接渡せないので、プロバイダIDで判断
+                handleSocialLoginError(error, GoogleAuthProvider);
             }
         });
 
-        // ★ GitHubログイン
+        // GitHubログイン
         document.getElementById('github-login-btn').addEventListener('click', async () => {
             try {
                 await signInWithPopup(auth, githubProvider);
                 handleLoginSuccess('GitHubアカウントでログインしました！');
             } catch (error) {
-                console.error("GitHubログインエラー:", error);
-                alert("GitHubログインに失敗しました: " + error.message);
+                // GitHub Providerはオブジェクトを直接渡せないので、プロバイダIDで判断
+                handleSocialLoginError(error, GithubAuthProvider);
             }
         });
 
@@ -91,14 +122,11 @@
         const emailInput = document.getElementById('email-input');
         const passwordInput = document.getElementById('password-input');
 
-        // Emailでサインアップ
+        // Emailでサインアップ (成功時にマイページへ)
         document.getElementById('email-signup-btn').addEventListener('click', async () => {
             const email = emailInput.value;
             const password = passwordInput.value;
-            if (!email || !password) {
-                alert('メールアドレスとパスワードを入力してください。');
-                return;
-            }
+            if (!email || !password) return alert('メールアドレスとパスワードを入力してください。');
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
                 handleLoginSuccess('アカウントを作成しました！');
@@ -108,14 +136,11 @@
             }
         });
 
-        // Emailでログイン
+        // Emailでログイン (成功時にマイページへ)
         document.getElementById('email-login-btn').addEventListener('click', async () => {
             const email = emailInput.value;
             const password = passwordInput.value;
-            if (!email || !password) {
-                alert('メールアドレスとパスワードを入力してください。');
-                return;
-            }
+            if (!email || !password) return alert('メールアドレスとパスワードを入力してください。');
             try {
                 await signInWithEmailAndPassword(auth, email, password);
                 handleLoginSuccess('ログインしました！');
@@ -124,27 +149,73 @@
                 alert("Emailログインに失敗しました: " + error.message);
             }
         });
+        
+        // --- アカウントリンク処理 ---
 
+        // 再認証ログインボタンのイベントリスナー
+        document.getElementById('reauth-login-btn').addEventListener('click', async () => {
+            const email = reauthEmailInput.value;
+            const password = reauthPasswordInput.value;
+            if (!email || !password) return alert('メールアドレスとパスワードを入力してください。');
+
+            if (!pendingCredential || !auth.currentUser) {
+                alert('エラー: リンク対象の認証情報が見つかりません。最初からやり直してください。');
+                window.location.reload();
+                return;
+            }
+
+            try {
+                // 1. 既存の認証情報で再ログインし、現在のユーザーセッションをリフレッシュ
+                const credential = EmailAuthProvider.credential(email, password);
+                await reauthenticateWithCredential(auth.currentUser, credential);
+                
+                // 2. 新しいプロバイダ（GitHub/Google）の認証情報を既存アカウントにリンク
+                await linkWithCredential(auth.currentUser, pendingCredential);
+                
+                // 成功
+                alert('アカウントのリンクが完了しました！');
+                handleLoginSuccess('複数の方法でログインできるようになりました！');
+
+            } catch (error) {
+                console.error("アカウントリンク/再認証エラー:", error);
+                alert("アカウントのリンクに失敗しました。正しいメールアドレスとパスワードを入力したか確認してください: " + error.message);
+            }
+        });
     </script>
 </head>
 <body>
     <div class="container">
-        <h1>🔐 ログイン / アカウント作成</h1>
-        
-        <div class="auth-buttons">
-            <button id="google-login-btn">Googleでログイン</button>
-            <button id="github-login-btn">GitHubでログイン</button>
+        <h1>🔐 認証テストページ</h1>
+        <div id="login-form-main">
+            <h2>ソーシャルログイン</h2>
+            <div class="auth-buttons">
+                <button id="google-login-btn">Googleでログイン</button>
+                <button id="github-login-btn">GitHubでログイン</button>
+            </div>
+
+            <hr>
+
+            <h2>メールアドレスで認証</h2>
+            <div>
+                <input type="email" id="email-input" placeholder="メールアドレス" required>
+                <input type="password" id="password-input" placeholder="パスワード" required>
+                <div class="auth-buttons">
+                    <button id="email-signup-btn">サインアップ (アカウント作成)</button>
+                    <button id="email-login-btn">ログイン</button>
+                </div>
+            </div>
         </div>
 
-        <hr>
-
-        <h2>メールアドレスで認証</h2>
-        <div>
-            <input type="email" id="email-input" placeholder="メールアドレス" required>
-            <input type="password" id="password-input" placeholder="パスワード" required>
-            <div class="auth-buttons">
-                <button id="email-signup-btn">サインアップ (アカウント作成)</button>
-                <button id="email-login-btn">ログイン</button>
+        <div id="reauth-section">
+            <h2>🤝 アカウントリンク</h2>
+            <p><strong>このメールアドレスは既存アカウントに登録されています。</strong><br>
+                既存アカウントの認証情報（メールアドレスとパスワード）を入力して、新しいプロバイダをリンクしてください。</p>
+            <div>
+                <input type="email" id="reauth-email-input" placeholder="既存アカウントのメールアドレス" required readonly>
+                <input type="password" id="reauth-password-input" placeholder="既存アカウントのパスワード" required>
+                <div class="auth-buttons">
+                    <button id="reauth-login-btn">リンクを完了してログイン</button>
+                </div>
             </div>
         </div>
     </div>
