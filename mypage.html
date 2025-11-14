@@ -16,6 +16,7 @@
             border-radius: 4px; 
             margin-top: 20px;
             word-break: break-all;
+            min-height: 50px; /* ローディングメッセージが表示されるように高さを確保 */
         }
         #logout-btn { 
             display: block;
@@ -61,9 +62,17 @@
                     **プロバイダ:** ${user.providerData[0] ? user.providerData[0].providerId : 'Email/Password'}
                 `;
             } else {
-                // 未ログインの場合はログインページへリダイレクト
-                alert("未ログインです。ログインページへ戻ります。");
-                window.location.href = 'index.html'; 
+                // 未ログインが確定した場合の処理（リダイレクトを遅延させる）
+                userInfoElement.innerHTML = `
+                    **🚫 未ログイン状態を検出しました。**<br>
+                    セッションを再確認中です。しばらくお待ちください。
+                `;
+                
+                // 3秒後にリダイレクトを実行（即座の誤リダイレクトを防ぐ）
+                setTimeout(() => {
+                    alert("未ログインです。ログインページへ戻ります。");
+                    window.location.href = 'index.html'; 
+                }, 3000); // 3秒後にリダイレクト
             }
         });
 
@@ -72,7 +81,7 @@
             try {
                 await signOut(auth);
                 alert("ログアウトしました。");
-                window.location.href = 'logout.html'; // ★ ログアウト後、logout.htmlへリダイレクト
+                window.location.href = 'logout.html'; // ログアウト後、logout.htmlへリダイレクト
             } catch (error) {
                 console.error("ログアウトエラー:", error);
                 alert("ログアウトに失敗しました: " + error.message);
@@ -83,7 +92,7 @@
 <body>
     <div class="container">
         <h1>ようこそ、マイページへ！🎉</h1>
-        <p id="user-info">ユーザー情報を読み込み中です...</p>
+        <p id="user-info">ユーザー情報を確認中です...</p>
         <button id="logout-btn">ログアウト</button>
     </div>
 </body>
