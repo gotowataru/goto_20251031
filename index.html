@@ -21,7 +21,9 @@
         hr { margin: 20px 0; border: 0; border-top: 1px solid #eee; }
     </style>
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { 
+            initializeApp 
+        } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { 
             getAuth, 
             GoogleAuthProvider, 
@@ -32,7 +34,8 @@
             onAuthStateChanged,
             linkWithCredential, 
             EmailAuthProvider, 
-            reauthenticateWithCredential 
+            setPersistence, // ★ 追加
+            browserSessionPersistence // ★ 追加
         } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
         // あなたのウェブアプリのFirebase設定
@@ -48,6 +51,18 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app); 
+        
+        // ★★★ Firefox対策: 永続性設定をSessionに変更 ★★★
+        // これにより、ブラウザを閉じるとログアウトしますが、セキュリティ設定による問題が回避されます。
+        setPersistence(auth, browserSessionPersistence)
+            .then(() => {
+                console.log("Firebase Persistence set to Session. Ready for authentication.");
+            })
+            .catch((error) => {
+                console.error("Failed to set persistence:", error);
+            });
+        // ★★★ 永続性設定 ここまで ★★★
+
         const googleProvider = new GoogleAuthProvider();
         const githubProvider = new GithubAuthProvider();
 
@@ -73,13 +88,11 @@
         });
 
         // --- 共通のエラーハンドリング関数 ---
-        const handleSocialLoginError = async (error, provider) => {
+        const handleSocialLoginError = async (error) => {
             if (error.code === 'auth/account-exists-with-different-credential') {
                 const email = error.customData.email;
                 
                 // リンク待ちの認証情報を取得・保存
-                // provider.credentialFromResult(error) を使うには、providerオブジェクトのコンストラクタが必要です。
-                // 実際は、エラーオブジェクトから直接クレデンシャルを取得するのが一般的です。
                 pendingCredential = error.credential; 
 
                 // ユーザーに状況を説明
@@ -106,7 +119,7 @@
                 await signInWithPopup(auth, googleProvider);
                 handleLoginSuccess('Googleアカウントでログインしました！');
             } catch (error) {
-                handleSocialLoginError(error, GoogleAuthProvider);
+                handleSocialLoginError(error);
             }
         });
 
@@ -116,7 +129,7 @@
                 await signInWithPopup(auth, githubProvider);
                 handleLoginSuccess('GitHubアカウントでログインしました！');
             } catch (error) {
-                handleSocialLoginError(error, GithubAuthProvider);
+                handleSocialLoginError(error);
             }
         });
 
@@ -180,7 +193,7 @@
                 handleLoginSuccess('複数の方法でログインできるようになりました！');
 
             } catch (error) {
-                // 再認証/リンク失敗。signInWithEmailAndPassword または linkWithCredential のエラー
+                // 再認証/リンク失敗
                 console.error("アカウントリンク/再認証エラー:", error);
                 alert("アカウントのリンクに失敗しました。正しいメールアドレスとパスワードを入力したか確認してください: " + error.message);
             }
