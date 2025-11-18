@@ -1,4 +1,3 @@
-<!--mypage.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -9,6 +8,7 @@
         body { font-family: sans-serif; margin: 30px; background-color: #e6f7ff; }
         .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         h1 { color: #1e88e5; text-align: center; }
+        h2 { border-bottom: 2px solid #bbdefb; padding-bottom: 5px; margin-top: 30px; color: #1e88e5; }
         #user-info { 
             padding: 15px; 
             border: 1px solid #bbdefb; 
@@ -17,7 +17,7 @@
             border-radius: 4px; 
             margin-top: 20px;
             word-break: break-all;
-            min-height: 50px; /* ローディングメッセージが表示されるように高さを確保 */
+            min-height: 50px;
         }
         #logout-btn { 
             display: block;
@@ -30,11 +30,35 @@
             color: white; 
             margin-top: 30px; 
             font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        #logout-btn:hover { background-color: #d32f2f; }
+        
+        /* お気に入りリストのスタイル */
+        #favorites-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        #favorites-list li {
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        #favorites-list li:last-child {
+            border-bottom: none;
+        }
+        #favorites-list strong {
+            color: #333;
+            font-size: 16px;
+        }
+        #favorites-list small {
+            display: block;
+            color: #777;
         }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"; // ★ Firestore関連を追加
 
         // あなたのウェブアプリのFirebase設定 (index.htmlと共通)
         const firebaseConfig = {
@@ -49,35 +73,93 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app); // ★ Firestoreの初期化
+
         const userInfoElement = document.getElementById('user-info');
         const logoutButton = document.getElementById('logout-btn');
+        const favoritesListElement = document.getElementById('favorites-list');
 
-        // 認証状態の監視
+        // --- Firestore データ処理 ---
+
+        /**
+         * ユーザーのお気に入りイベントを取得し、表示する
+         */
+        const displayFavoriteEvents = async (user) => {
+            favoritesListElement.innerHTML = 'お気に入りイベントを読み込み中...';
+            
+            try {
+                // 1. ユーザーのfavorites配列を取得
+                const userRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (!userSnap.exists() || !userSnap.data().favorites || userSnap.data().favorites.length === 0) {
+                    favoritesListElement.innerHTML = '<p>まだお気に入りに登録したイベントはありません。イベント一覧から追加してください。</p>';
+                    return;
+                }
+
+                const favoriteEventIds = userSnap.data().favorites;
+
+                // 2. favorites配列に含まれるIDのイベント情報をまとめて取得
+                const eventsRef = collection(db, 'events');
+                // where('__name__', 'in', ...) を使用して、ドキュメントIDがリストに含まれるものをフィルタリング
+                const q = query(eventsRef, where('__name__', 'in', favoriteEventIds)); 
+                const eventSnaps = await getDocs(q);
+
+                let html = '<ul>';
+                if (eventSnaps.empty) {
+                    html = '<p>お気に入りに登録されていたイベントが現在見つかりません。</p>';
+                } else {
+                    eventSnaps.forEach(eventDoc => {
+                        const eventData = eventDoc.data();
+                        html += `
+                            <li>
+                                <strong>${eventData.name}</strong> (${eventData.date})<br>
+                                <small>${eventData.description}</small>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                }
+                
+                favoritesListElement.innerHTML = html;
+
+            } catch (error) {
+                console.error("お気に入りイベントの読み込みエラー:", error);
+                favoritesListElement.innerHTML = '<p>お気に入りイベントの読み込み中にエラーが発生しました。</p>';
+            }
+        };
+
+        // --- 認証状態の監視 ---
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 // ログイン済みの場合はユーザー情報を表示
                 userInfoElement.innerHTML = `
-                    **✅ ログイン成功!**<br>
-                    **表示名/Email:** ${user.displayName || user.email}<br>
-                    **UID:** ${user.uid}<br>
-                    **プロバイダ:** ${user.providerData[0] ? user.providerData[0].providerId : 'Email/Password'}
-                `;
-            } else {
-                // 未ログインが確定した場合の処理（リダイレクトを遅延させる）
-                userInfoElement.innerHTML = `
-                    **🚫 未ログイン状態を検出しました。**<br>
-                    セッションを再確認中です。しばらくお待ちください。
+                    <strong>✅ ログインユーザー情報</strong><br>
+                    <strong>表示名/Email:</strong> ${user.displayName || user.email}<br>
+                    <strong>UID:</strong> ${user.uid}<br>
+                    <strong>プロバイダ:</strong> ${user.providerData[0] ? user.providerData[0].providerId : 'Email/Password'}
                 `;
                 
-                // 3秒後にリダイレクトを実行（即座の誤リダイレクトを防ぐ）
+                // お気に入りイベントの表示をキック
+                displayFavoriteEvents(user);
+
+            } else {
+                // 未ログインが確定した場合の処理
+                userInfoElement.innerHTML = `
+                    <strong>🚫 未ログイン状態を検出しました。</strong><br>
+                    ログインページへ自動的に戻ります...
+                `;
+                
+                // 3秒後にリダイレクトを実行
                 setTimeout(() => {
                     alert("未ログインです。ログインページへ戻ります。");
                     window.location.href = 'index.html'; 
-                }, 3000); // 3秒後にリダイレクト
+                }, 3000); 
             }
         });
 
-        // ログアウト処理
+        // --- ログアウト処理 ---
         logoutButton.addEventListener('click', async () => {
             try {
                 await signOut(auth);
@@ -94,7 +176,15 @@
     <div class="container">
         <h1>ようこそ、マイページへ！🎉</h1>
         <p id="user-info">ユーザー情報を確認中です...</p>
+
+        <hr>
+        
+        <h2>❤️ お気に入りイベント</h2>
+        <div id="favorites-list">
+            </div>
+
         <button id="logout-btn">ログアウト</button>
+        <p style="text-align: center; margin-top: 15px;"><a href="index.html">イベント一覧に戻る</a></p>
     </div>
 </body>
 </html>
