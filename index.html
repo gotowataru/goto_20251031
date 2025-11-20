@@ -7,6 +7,19 @@
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script> <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
+            authDomain: "goto6234.firebaseapp.com",
+            projectId: "goto6234",
+            storageBucket: "goto6234.firebasestorage.app",
+            messagingSenderId: "730149609843",
+            appId: "1:730149609843:web:d11237de52723fc45b2506",
+            measurementId: "G-FDRB7H8MRR"
+        };
+        // グローバルな 'firebase' オブジェクトを使って初期化
+        firebase.initializeApp(firebaseConfig);
+    </script>
     
     <script src="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.js"></script>
     <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.css" />
@@ -130,26 +143,16 @@
         }
     </style>
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        // ★★★ 修正点2: AnonymousAuthProvider のインポートを削除 ★★★
+        // ★★★ 修正点2: initializeApp のインポートを削除 ★★★
         import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, EmailAuthProvider, GithubAuthProvider } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        // ★★★ 修正点2: initializeApp のインポートを削除 ★★★
         import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-        // あなたのウェブアプリのFirebase設定 (前回と同じ)
-        const firebaseConfig = {
-            apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
-            authDomain: "goto6234.firebaseapp.com",
-            projectId: "goto6234",
-            storageBucket: "goto6234.firebasestorage.app",
-            messagingSenderId: "730149609843",
-            appId: "1:730149609843:web:d11237de52723fc45b2506",
-            measurementId: "G-FDRB7H8MRR"
-        };
+        // ★★★ 修正点3: firebaseConfig の定義と initializeApp() の呼び出しを削除 (グローバルスコープで行ったため) ★★★
 
-        // モジュールSDKの初期化 (getAuthなどの関数呼び出しに使います)
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        // モジュールSDKの初期化 (引数なしで呼び出し、デフォルトのアプリインスタンスを使用)
+        const auth = getAuth(); 
+        const db = getFirestore(); 
 
         const eventsGrid = document.getElementById('events-grid');
         const authStatusElement = document.getElementById('auth-status');
@@ -166,7 +169,7 @@
 
         // --- FirebaseUI の設定と初期化 ---
         
-        // ★★★ 修正点3: FirebaseUIの初期化にグローバルな `firebase.auth()` を使用 ★★★
+        // FirebaseUIの初期化にグローバルな 'firebase' オブジェクトを使用
         if (typeof firebaseui !== 'undefined' && typeof firebase !== 'undefined') {
             // グローバルな auth インスタンスを取得 (互換性SDKによって提供される)
             const globalAuth = firebase.auth(); 
@@ -177,7 +180,7 @@
             const uiConfig = {
                 signInSuccessUrl: 'index.html',
                 signInOptions: [
-                    // ★ 修正点4: グローバルな firebase オブジェクトからプロバイダIDを参照する ★
+                    // グローバルな firebase オブジェクトからプロバイダIDを参照する
                     firebase.auth.GoogleAuthProvider.PROVIDER_ID,
                     firebase.auth.EmailAuthProvider.PROVIDER_ID,
                     firebase.auth.GithubAuthProvider.PROVIDER_ID,
@@ -244,6 +247,7 @@
                         userFavorites = userSnap.data().favorites;
                     } else {
                         if (!userSnap.exists()) {
+                            // Firestore Rulesで書き込み権限を制御していない場合、ここでエラーになる可能性あり
                             await updateDoc(userRef, { favorites: [] }, { merge: true });
                         }
                         userFavorites = [];
