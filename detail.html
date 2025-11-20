@@ -5,118 +5,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="page-title">イベント詳細</title>
     <style>
-        body { font-family: sans-serif; margin: 0; background-color: #f4f7f6; color: #333; }
-        .container { 
-            max-width: 800px; 
-            margin: 50px auto; 
-            padding: 30px; 
-            background: white; 
-            border-radius: 12px; 
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1); 
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
+        .container { max-width: 900px; margin: 40px auto; padding: 30px; background: white; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        h1 { color: #5e35b1; font-size: 2.4em; margin-bottom: 20px; text-align: center; }
+        .detail-image { width: 100%; max-height: 420px; object-fit: cover; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .info-box { background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%); padding: 20px; border-radius: 12px; margin: 25px 0; border-left: 6px solid #5e35b1; }
+        .info-box p { margin: 12px 0; font-size: 1.1em; }
+        .info-box strong { color: #1a237e; font-weight: 600; }
+
+        /* お気に入りボタン（超カッコよく） */
+        #detail-favorite-btn {
+            display: block; margin: 30px auto; padding: 16px 40px; font-size: 18px; font-weight: bold;
+            border: none; border-radius: 50px; cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
         }
-        h1 { color: #1e88e5; border-bottom: 3px solid #e1f5fe; padding-bottom: 10px; }
-        .detail-image {
-            width: 100%;
-            max-height: 400px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        #detail-favorite-btn:not(.is-favorite) {
+            background: #ffd740; color: #333;
         }
-        .info-box {
-            background-color: #e3f2fd;
-            padding: 15px;
-            border-left: 5px solid #1e88e5;
-            border-radius: 4px;
-            margin-bottom: 20px;
+        #detail-favorite-btn.is-favorite {
+            background: #ff5252; color: white; animation: pulse 1.5s infinite;
         }
-        .info-box p { margin: 5px 0; font-size: 16px; }
-        .info-box strong { color: #0d47a1; margin-right: 10px; }
-        #loading { text-align: center; padding: 50px; }
+        #detail-favorite-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 20px rgba(0,0,0,0.3); }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255,82,82,0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255,82,82,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,82,82,0); }
+        }
+
+        .back-links { text-align: center; margin-top: 40px; }
+        .back-links a { margin: 0 15px; color: #5e35b1; font-weight: bold; text-decoration: none; }
+        .back-links a:hover { text-decoration: underline; }
     </style>
+</head>
+<body>
+    <div class="container">
+        <div id="event-detail-container">
+            <p style="text-align:center; padding:60px; font-size:1.3em; color:#777;">読み込み中...</p>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-        // あなたのウェブアプリのFirebase設定 (index.htmlと共通)
         const firebaseConfig = {
             apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
             authDomain: "goto6234.firebaseapp.com",
             projectId: "goto6234",
             storageBucket: "goto6234.firebasestorage.app",
             messagingSenderId: "730149609843",
-            appId: "1:730149609843:web:d11237de52723fc45b2506",
-            measurementId: "G-FDRB7H8MRR"
+            appId: "1:730149609843:web:d11237de52723fc45b2506"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
+        const auth = getAuth(app);
         const container = document.getElementById('event-detail-container');
         const pageTitle = document.getElementById('page-title');
 
-        /**
-         * URLからクエリパラメータ（Event ID）を取得する
-         * @returns {string | null} イベントID または null
-         */
-        const getEventIdFromUrl = () => {
-            const params = new URLSearchParams(window.location.search);
-            return params.get('id');
-        };
+        let currentUser = null;
+        let isFavorite = false;
+        let eventId = null;
 
-        /**
-         * イベントIDに基づいてFirestoreから詳細データを取得し表示する
-         */
-        const loadEventDetail = async () => {
-            const eventId = getEventIdFromUrl();
-            
-            if (!eventId) {
-                container.innerHTML = '<p style="color: red; text-align: center;">エラー: イベントIDが指定されていません。</p>';
+        onAuthStateChanged(auth, user => {
+            currentUser = user;
+            if (eventId) loadEventDetail(); // ログイン状態が変わったら再描画
+        });
+
+        const toggleFavorite = async () => {
+            if (!currentUser) {
+                if (confirm('ログインが必要です。ログインしますか？')) window.location.href = 'index.html';
                 return;
             }
 
+            const userRef = doc(db, 'users', currentUser.uid);
             try {
-                const eventRef = doc(db, 'events', eventId);
-                const eventSnap = await getDoc(eventRef);
-
-                if (eventSnap.exists()) {
-                    const data = eventSnap.data();
-                    const timeDisplay = (data.startTime && data.endTime) 
-                                        ? `${data.startTime} 〜 ${data.endTime}` 
-                                        : '終日';
-                    const imageHtml = data.imageUrl 
-                                      ? `<img src="${data.imageUrl}" alt="${data.name}" class="detail-image" onerror="this.onerror=null;this.style.display='none';">` 
-                                      : '';
-
-                    // タイトルと詳細コンテンツの描画
-                    pageTitle.textContent = `${data.name} | イベント詳細`;
-                    container.innerHTML = `
-                        <h1>${data.name}</h1>
-                        ${imageHtml}
-                        <div class="info-box">
-                            <p><strong>日付:</strong> ${data.date}</p>
-                            <p><strong>時刻:</strong> ${timeDisplay}</p>
-                        </div>
-                        <h2>イベント概要</h2>
-                        <p>${data.description}</p>
-                        <p style="margin-top: 30px;"><a href="index.html">イベント一覧に戻る</a></p>
-                    `;
+                if (isFavorite) {
+                    await updateDoc(userRef, { favorites: arrayRemove(eventId) });
                 } else {
-                    container.innerHTML = '<p style="color: red; text-align: center;">指定されたイベントは見つかりませんでした。</p>';
+                    await updateDoc(userRef, { favorites: arrayUnion(eventId) });
+                    const snap = await getDoc(userRef);
+                    if (!snap.exists()) await setDoc(userRef, { favorites: [eventId] });
                 }
-            } catch (error) {
-                console.error("イベント詳細の読み込みエラー:", error);
-                container.innerHTML = `<p style="color: red; text-align: center;">データの読み込み中にエラーが発生しました: ${error.message}</p>`;
-            }
+                isFavorite = !isFavorite;
+                document.getElementById('detail-favorite-btn').classList.toggle('is-favorite');
+                document.getElementById('detail-favorite-btn').textContent = isFavorite ? '❤️ お気に入り解除' : '⭐ お気に入りに追加';
+            } catch (e) { alert('処理に失敗しました'); console.error(e); }
+        };
+
+        const loadEventDetail = async () => {
+            eventId = new URLSearchParams(location.search).get('id');
+            if (!eventId) { container.innerHTML = '<p style="text-align:center;color:red;">イベントIDがありません</p>'; return; }
+
+            const snap = await getDoc(doc(db, 'events', eventId));
+            if (!snap.exists()) { container.innerHTML = '<p style="text-align:center;color:red;">イベントが見つかりません</p>'; return; }
+
+            const data = snap.data();
+            isFavorite = currentUser ? (await getDoc(doc(db, 'users', currentUser.uid))).data()?.favorites?.includes(eventId) || false : false;
+
+            const timeDisplay = data.startTime && data.endTime ? `${data.startTime} 〜 ${data.endTime}` : '終日';
+            const imageHtml = data.imageUrl ? `<img src="${data.imageUrl}" class="detail-image">` : '';
+
+            container.innerHTML = `
+                <h1>${data.name}</h1>
+                ${imageHtml}
+                <div class="info-box">
+                    <p><strong>日付：</strong> ${data.date}</p>
+                    <p><strong>時刻：</strong> ${timeDisplay}</p>
+                </div>
+                <h2>イベント概要</h2>
+                <p style="line-height:1.8; font-size:1.1em;">${data.description.replace(/\n/g, '<br>')}</p>
+
+                <button id="detail-favorite-btn" class="${isFavorite ? 'is-favorite' : ''}">
+                    ${isFavorite ? '❤️ お気に入り解除' : '⭐ お気に入りに追加'}
+                </button>
+
+                <div class="back-links">
+                    <a href="index.html">← イベント一覧に戻る</a> | 
+                    <a href="mypage.html">マイページへ</a>
+                </div>
+            `;
+
+            document.getElementById('detail-favorite-btn')?.addEventListener('click', toggleFavorite);
+            pageTitle.textContent = `${data.name} | イベント詳細`;
         };
 
         loadEventDetail();
     </script>
-</head>
-<body>
-    <div class="container">
-        <div id="event-detail-container">
-            <div id="loading">イベント詳細を読み込み中...</div>
-        </div>
-    </div>
 </body>
 </html>
