@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script> 
     
     <script>
-        // グローバル初期化に必要な設定を定義
         const firebaseConfig = {
             apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
             authDomain: "goto6234.firebaseapp.com",
@@ -28,7 +27,7 @@
     <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.css" />
 
     <style>
-        /* (スタイルは変更なし) */
+        /* (スタイルは省略) */
         body { font-family: sans-serif; margin: 0; background-color: #f4f7f6; color: #333; }
         .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         h1 { color: #1e88e5; text-align: center; margin-bottom: 30px; }
@@ -58,7 +57,7 @@
         import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, EmailAuthProvider, GithubAuthProvider } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-        // ★★★ 修正点2: config定義をモジュール内に復元 ★★★
+        // モジュールスコープで再定義 (getAuth/getFirestore の初期化に使用)
         const firebaseConfig = {
             apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
             authDomain: "goto6234.firebaseapp.com",
@@ -69,9 +68,8 @@
             measurementId: "G-FDRB7H8MRR"
         };
 
-        // ★★★ 修正点3: モジュールSDKの初期化を復元 ★★★
+        // モジュールSDKの初期化
         const app = initializeApp(firebaseConfig); 
-        // ★★★ 修正点4: app インスタンスを引数として渡す ★★★
         const auth = getAuth(app); 
         const db = getFirestore(app); 
 
@@ -89,8 +87,8 @@
 
         // --- FirebaseUI の設定と初期化 ---
         
-        // FirebaseUIの初期化にグローバルな 'firebase' オブジェクトを使用
-        if (typeof firebaseui !== 'undefined' && typeof firebase !== 'undefined') {
+        // ★★★ 修正点1: グローバルな firebase.auth() が存在するかどうかをチェックする ★★★
+        if (typeof firebaseui !== 'undefined' && typeof firebase !== 'undefined' && typeof firebase.auth === 'function') {
             const globalAuth = firebase.auth(); 
             const ui = new firebaseui.auth.AuthUI(globalAuth);
             
@@ -131,7 +129,7 @@
 
 
         // --- 認証状態とイベントデータの読み込み ---
-
+        // (ロジックは変更なし)
         const updateAuthUI = async (user) => {
             currentUser = user;
             if (user) {
@@ -154,7 +152,9 @@
                         userFavorites = [];
                     }
                 } catch (error) {
-                    console.error("お気に入りリストの読み込みエラー:", error);
+                    // Firestore Rules で読み取り権限がない場合、ここに到達する可能性があります。
+                    // エラーメッセージから、Firestoreのルールを確認してください。
+                    console.error("お気に入りリストの読み込みエラー:", error); 
                     userFavorites = [];
                 }
 
@@ -171,8 +171,9 @@
             eventsGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 50px;">イベントを読み込み中...</div>';
 
             try {
-                const querySnapshot = await getDocs(collection(db, 'events'));
-                
+                // Firestoreからイベントを読み込む
+                const querySnapshot = await getDocs(collection(db, 'events')); // image_dfea3f.png から 'events' コレクションの存在を確認
+
                 if (querySnapshot.empty) {
                     eventsGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 50px;">開催中のイベントはありません。</div>';
                     return;
@@ -218,7 +219,9 @@
                 eventsGrid.innerHTML = html;
 
             } catch (error) {
-                console.error("イベントの読み込みエラー:", error);
+                // Firestore Rulesで読み取り権限がない場合、ここに到達する可能性があります。
+                // エラーメッセージから、Firestoreのルールを確認してください。
+                console.error("イベントの読み込みエラー:", error); 
                 eventsGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 50px; color: red;">イベントの読み込み中にエラーが発生しました。</div>';
             }
         };
@@ -228,14 +231,12 @@
                 alert("お気に入り機能を使うには、ログインが必要です。");
                 return;
             }
-
+            // (お気に入りロジックは省略)
             const button = event.target.closest('.favorite-btn');
             if (!button) return;
-
             const eventId = button.dataset.eventId;
             const isFavorite = button.classList.contains('is-favorite');
             const userRef = doc(db, 'users', currentUser.uid);
-
             try {
                 if (isFavorite) {
                     await updateDoc(userRef, { favorites: arrayRemove(eventId) });
@@ -246,10 +247,8 @@
                     userFavorites.push(eventId);
                     alert("お気に入りに登録しました！");
                 }
-                
                 button.classList.toggle('is-favorite');
                 button.textContent = isFavorite ? '⭐ お気に入りに追加' : '❤️ お気に入り解除';
-
             } catch (error) {
                 console.error("お気に入り操作エラー:", error);
                 alert(`お気に入り操作に失敗しました: ${error.message}`);
