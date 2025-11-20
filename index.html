@@ -1,63 +1,142 @@
+<!--index.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>イベント一覧</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script> 
-    
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
-            authDomain: "goto6234.firebaseapp.com",
-            projectId: "goto6234",
-            storageBucket: "goto6234.firebasestorage.app",
-            messagingSenderId: "730149609843",
-            appId: "1:730149609843:web:d11237de52723fc45b2506",
-            measurementId: "G-FDRB7H8MRR"
-        };
-        // グローバルな 'firebase' オブジェクトを使って初期化
-        firebase.initializeApp(firebaseConfig); 
-    </script>
-    
-    <script src="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.js"></script>
-    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.css" />
-
+    <title>イベント一覧 | お気に入り機能付き</title>
     <style>
-        /* (スタイルは省略) */
+        /* --- 基本レイアウトとリセット --- */
         body { font-family: sans-serif; margin: 0; background-color: #f4f7f6; color: #333; }
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        h1 { color: #1e88e5; text-align: center; margin-bottom: 30px; }
-        #auth-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        #auth-status span { margin-right: 15px; font-weight: bold; }
-        .login-btn, .logout-btn, .mypage-btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background-color 0.3s; }
-        .login-btn { background-color: #1e88e5; color: white; }
-        .login-btn:hover { background-color: #1565c0; }
-        .logout-btn { background-color: #f44336; color: white; margin-left: 10px; }
-        .logout-btn:hover { background-color: #d32f2f; }
-        .mypage-btn { background-color: #4CAF50; color: white; margin-right: 10px; }
-        .mypage-btn:hover { background-color: #45a049; }
-        #events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .event-card { background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; transition: transform 0.2s; }
-        .event-card:hover { transform: translateY(-5px); }
-        .event-image { width: 100%; height: 200px; object-fit: cover; }
-        .card-content { padding: 15px; }
-        .card-content h2 { margin-top: 0; margin-bottom: 10px; color: #1e88e5; font-size: 20px; text-decoration: none; }
-        .favorite-btn { width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background-color: #fff; color: #555; font-weight: bold; transition: background-color 0.2s, color 0.2s; }
-        .favorite-btn.is-favorite { background-color: #ffcdd2; color: #d32f2f; border-color: #ef9a9a; }
-        #firebaseui-auth-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: none; }
-        #login-modal-content { max-width: 400px; margin: 10vh auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative; }
-        #close-login-modal { position: absolute; top: 10px; right: 10px; background: #eee; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        
+        /* --- ヘッダー（右上のボタン配置用） --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #1e88e5;
+        }
+        .auth-controls button {
+            padding: 8px 15px; /* ボタンのサイズを調整 */
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        #login-btn, #mypage-btn {
+            background-color: #1e88e5;
+            color: white;
+        }
+        #login-btn:hover, #mypage-btn:hover { background-color: #1565c0; }
+
+        /* --- イベント一覧エリア --- */
+        .main-content {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 15px;
+        }
+        .event-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .event-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .event-card h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 20px;
+        }
+        .event-card p {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .favorite-btn {
+            padding: 8px 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            background-color: #f0f0f0;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .favorite-btn.is-favorite {
+            background-color: #ff5252;
+            color: white;
+            border-color: #ff5252;
+        }
+        
+        /* --- モーダル (ログインフォーム表示用) --- */
+        .modal {
+            display: none; /* 初期状態では非表示 */
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5); /* 半透明の背景 */
+        }
+        .modal-content {
+            background-color: white;
+            margin: 15% auto; /* 画面中央に表示 */
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 450px;
+            position: relative;
+        }
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            cursor: pointer;
+        }
+        .close-btn:hover, .close-btn:focus {
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        /* --- 既存のフォームスタイルの適用と調整 --- */
+        input[type="email"], input[type="password"] {
+            width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;
+        }
+        .auth-buttons button {
+            width: 100%; padding: 12px; margin-bottom: 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold;
+        }
+        #email-signup-btn, #email-login-btn { background-color: #4CAF50; }
+        #google-login-btn { background-color: #DB4437; }
+        #github-login-btn { background-color: #333; }
+        #reauth-section { margin-top: 20px; padding: 15px; border: 1px solid #ffcc80; background-color: #fff3e0; border-radius: 4px; }
+        hr { margin: 20px 0; border: 0; border-top: 1px solid #eee; }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, EmailAuthProvider, GithubAuthProvider } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, linkWithCredential, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"; // ★ Firestore追加
 
-        // モジュールスコープで再定義 (getAuth/getFirestore の初期化に使用)
+        // あなたのウェブアプリのFirebase設定
         const firebaseConfig = {
             apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
             authDomain: "goto6234.firebaseapp.com",
@@ -68,238 +147,318 @@
             measurementId: "G-FDRB7H8MRR"
         };
 
-        // モジュールSDKの初期化
-        const app = initializeApp(firebaseConfig); 
-        const auth = getAuth(app); 
-        const db = getFirestore(app); 
-
-        const eventsGrid = document.getElementById('events-grid');
-        const authStatusElement = document.getElementById('auth-status');
-        const authActionsElement = document.getElementById('auth-actions');
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app); // ★ Firestore初期化
         
-        const authContainer = document.getElementById('firebaseui-auth-container');
-        const authWidget = document.getElementById('firebaseui-auth-widget');
-        const closeButton = document.getElementById('close-login-modal');
-
-
+        // グローバル変数
         let currentUser = null;
-        let userFavorites = [];
+        let pendingCredential = null;
+        let favoriteEventIds = []; // ログインユーザーのお気に入りIDを格納する配列
 
-        // --- FirebaseUI の設定と初期化 ---
+        // DOM要素
+        const loginModal = document.getElementById('login-modal');
+        const loginBtnHeader = document.getElementById('login-btn-header');
+        const eventGrid = document.getElementById('event-grid');
+        const reauthSection = document.getElementById('reauth-section');
+        const loginFormMain = document.getElementById('login-form-main');
+
+        // Firebase Auth初期設定
+        setPersistence(auth, browserSessionPersistence)
+            .then(() => console.log("Firebase Persistence set to Session."))
+            .catch((error) => console.error("Failed to set persistence:", error));
+            
+        const googleProvider = new GoogleAuthProvider();
+        const githubProvider = new GithubAuthProvider();
         
-        // ★★★ 修正点1: グローバルな firebase.auth() が存在するかどうかをチェックする ★★★
-        if (typeof firebaseui !== 'undefined' && typeof firebase !== 'undefined' && typeof firebase.auth === 'function') {
-            const globalAuth = firebase.auth(); 
-            const ui = new firebaseui.auth.AuthUI(globalAuth);
-            
-            const uiConfig = {
-                signInSuccessUrl: 'index.html',
-                signInOptions: [
-                    firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-                    firebase.auth.EmailAuthProvider.PROVIDER_ID,
-                    firebase.auth.GithubAuthProvider.PROVIDER_ID,
-                    firebase.auth.AnonymousAuthProvider.PROVIDER_ID 
-                ],
-                callbacks: {
-                    signInSuccessWithAuthResult: function() {
-                        authContainer.style.display = 'none';
-                        return false; 
-                    }
+        // --- データ処理関数 ---
+
+        /**
+         * ログインユーザーのお気に入りリストをFirestoreから読み込む
+         */
+        const loadFavorites = async (uid) => {
+            try {
+                const userRef = doc(db, 'users', uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    favoriteEventIds = userSnap.data().favorites || [];
+                } else {
+                    favoriteEventIds = [];
                 }
-            };
-
-            window.handleLoginClick = () => {
-                if (ui.isStarted()) {
-                    ui.reset();
-                }
-                authContainer.style.display = 'block';
-                ui.start('#firebaseui-auth-widget', uiConfig);
-            };
-
-            closeButton.addEventListener('click', () => {
-                authContainer.style.display = 'none';
-                if (ui.isStarted()) {
-                    ui.reset();
-                }
-            });
-        } else {
-             console.error("FirebaseUIまたは互換性SDKが読み込まれていません。");
-             window.handleLoginClick = () => alert("ログインUIの初期化に失敗しました。");
-        }
-
-
-        // --- 認証状態とイベントデータの読み込み ---
-        // (ロジックは変更なし)
-        const updateAuthUI = async (user) => {
-            currentUser = user;
-            if (user) {
-                const displayName = user.displayName || user.email || `${user.uid.substring(0, 6)}... (${user.isAnonymous ? '匿名' : '登録済み'})`;
-                authStatusElement.innerHTML = `<span>ようこそ、${displayName}様</span>`;
-                authActionsElement.innerHTML = `
-                    <button class="mypage-btn" onclick="window.location.href='mypage.html'">マイページ</button>
-                    <button class="logout-btn" id="logout-btn">ログアウト</button>
-                `;
-
-                try {
-                    const userRef = doc(db, 'users', user.uid);
-                    const userSnap = await getDoc(userRef);
-                    if (userSnap.exists() && userSnap.data().favorites) {
-                        userFavorites = userSnap.data().favorites;
-                    } else {
-                        if (!userSnap.exists()) {
-                            await updateDoc(userRef, { favorites: [] }, { merge: true });
-                        }
-                        userFavorites = [];
-                    }
-                } catch (error) {
-                    // Firestore Rules で読み取り権限がない場合、ここに到達する可能性があります。
-                    // エラーメッセージから、Firestoreのルールを確認してください。
-                    console.error("お気に入りリストの読み込みエラー:", error); 
-                    userFavorites = [];
-                }
-
-            } else {
-                authStatusElement.innerHTML = `<span>未ログイン状態です</span>`;
-                authActionsElement.innerHTML = `<button class="login-btn" id="login-btn">ログイン</button>`;
-                userFavorites = [];
+            } catch (error) {
+                console.error("お気に入りリストの読み込みエラー:", error);
+                favoriteEventIds = [];
             }
-            
-            loadAndRenderEvents();
+            renderEvents(); // 読み込み後にイベントを再描画
         };
 
-        const loadAndRenderEvents = async () => {
-            eventsGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 50px;">イベントを読み込み中...</div>';
-
+        /**
+         * Firestoreからイベント一覧を取得し、表示する
+         */
+        const renderEvents = async () => {
+            eventGrid.innerHTML = 'イベント情報を読み込み中...';
             try {
-                // Firestoreからイベントを読み込む
-                const querySnapshot = await getDocs(collection(db, 'events')); // image_dfea3f.png から 'events' コレクションの存在を確認
-
-                if (querySnapshot.empty) {
-                    eventsGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 50px;">開催中のイベントはありません。</div>';
-                    return;
-                }
-
+                const eventsCol = collection(db, 'events');
+                const eventSnapshot = await getDocs(eventsCol);
+                
                 let html = '';
-                querySnapshot.forEach(doc => {
-                    const eventData = doc.data();
+                eventSnapshot.docs.forEach(doc => {
+                    const data = doc.data();
                     const eventId = doc.id;
-                    const isFavorite = currentUser ? userFavorites.includes(eventId) : false;
-                    
-                    const timeDisplay = (eventData.startTime && eventData.endTime) 
-                                        ? `${eventData.startTime} 〜 ${eventData.endTime}` 
-                                        : '終日';
-                    
-                    const imageHtml = eventData.imageUrl 
-                                      ? `<img src="${eventData.imageUrl}" alt="${eventData.name}" class="event-image" onerror="this.onerror=null;this.style.display='none';">` 
-                                      : '';
+                    const isFavorite = favoriteEventIds.includes(eventId);
 
                     html += `
                         <div class="event-card">
-                            <a href="detail.html?id=${eventId}" style="text-decoration: none; color: inherit;">
-                                ${imageHtml}
-                                <div class="card-content">
-                                    <h2>${eventData.name}</h2>
-                                </div>
-                            </a>
-                            
-                            <div class="card-content" style="padding-top: 0;">
-                                <p>
-                                    <strong>日付:</strong> ${eventData.date}<br>
-                                    <strong>時刻:</strong> ${timeDisplay}
-                                </p>
-                                <p>${eventData.description.substring(0, 50)}...</p>
-                                <button class="favorite-btn ${isFavorite ? 'is-favorite' : ''}" data-event-id="${eventId}" data-is-favorite="${isFavorite}">
-                                    ${isFavorite ? '❤️ お気に入り解除' : '⭐ お気に入りに追加'}
-                                </button>
-                            </div>
+                            <h2>${data.name}</h2>
+                            <p><strong>日付:</strong> ${data.date}</p>
+                            <p>${data.description}</p>
+                            <button class="favorite-btn ${isFavorite ? 'is-favorite' : ''}" data-event-id="${eventId}" data-is-favorite="${isFavorite}">
+                                ${isFavorite ? '❤️ お気に入り解除' : '⭐ お気に入りに追加'}
+                            </button>
                         </div>
                     `;
                 });
-
-                eventsGrid.innerHTML = html;
+                eventGrid.innerHTML = html;
+                
+                // お気に入りボタンにイベントリスナーを設定
+                document.querySelectorAll('.favorite-btn').forEach(btn => {
+                    btn.addEventListener('click', handleFavoriteClick);
+                });
 
             } catch (error) {
-                // Firestore Rulesで読み取り権限がない場合、ここに到達する可能性があります。
-                // エラーメッセージから、Firestoreのルールを確認してください。
-                console.error("イベントの読み込みエラー:", error); 
-                eventsGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 50px; color: red;">イベントの読み込み中にエラーが発生しました。</div>';
+                console.error("イベント一覧の読み込みエラー:", error);
+                eventGrid.innerHTML = '<p>イベントの読み込みに失敗しました。データベース設定を確認してください。</p>';
             }
         };
 
-        const handleFavoriteToggle = async (event) => {
+        // --- 認証状態の監視とUI更新 ---
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user; // ログインユーザーを更新
+            
+            // 1. ヘッダーボタンの表示切り替え
+            if (user) {
+                loginBtnHeader.textContent = `マイページへ (${user.displayName || user.email || 'ユーザー'})`;
+                loginBtnHeader.onclick = () => window.location.href = 'mypage.html'; // ログイン済みならマイページへ
+                loadFavorites(user.uid); // ログイン済みならお気に入りリストを読み込む
+            } else {
+                loginBtnHeader.textContent = 'ログイン / サインアップ';
+                loginBtnHeader.onclick = () => loginModal.style.display = 'block'; // 未ログインならモーダルを表示
+                favoriteEventIds = []; // 未ログインならリストをクリア
+                renderEvents(); // 未ログインの状態でお気に入り情報をクリアしてイベントを再描画
+            }
+            
+            // 2. モーダル表示状態の制御
+            if (!user && loginModal.style.display === 'block') {
+                 // ログインに成功したか、ログアウトしたかを問わず、モーダルを閉じる
+                 loginModal.style.display = 'none';
+            }
+            
+            // ページロード時に一度イベントをレンダリング（未ログイン状態の初期表示）
+            if (!eventGrid.innerHTML || user) {
+                // ログイン済みの場合、loadFavoritesがrenderEventsを呼ぶため、ここでは実行しない
+            } else if (!user) {
+                renderEvents();
+            }
+
+        });
+
+        // --- お気に入り機能のロジック ---
+
+        const handleFavoriteClick = async (event) => {
+            const btn = event.currentTarget;
+            const eventId = btn.dataset.eventId;
+
             if (!currentUser) {
-                alert("お気に入り機能を使うには、ログインが必要です。");
+                // --- 🔒 未ログイン時の処理 ---
+                alert('お気に入り登録にはログインが必要です。');
+                loginModal.style.display = 'block'; // ログインモーダルを表示
                 return;
             }
-            // (お気に入りロジックは省略)
-            const button = event.target.closest('.favorite-btn');
-            if (!button) return;
-            const eventId = button.dataset.eventId;
-            const isFavorite = button.classList.contains('is-favorite');
+
+            const isFavorite = btn.dataset.isFavorite === 'true';
             const userRef = doc(db, 'users', currentUser.uid);
+            
             try {
+                // データの更新
                 if (isFavorite) {
+                    // 解除: arrayRemove
                     await updateDoc(userRef, { favorites: arrayRemove(eventId) });
-                    userFavorites = userFavorites.filter(id => id !== eventId);
-                    alert("お気に入りから解除しました。");
+                    favoriteEventIds = favoriteEventIds.filter(id => id !== eventId);
+                    alert('お気に入りを解除しました。');
                 } else {
+                    // 追加: arrayUnion または setDoc (初回登録時)
                     await updateDoc(userRef, { favorites: arrayUnion(eventId) });
-                    userFavorites.push(eventId);
-                    alert("お気に入りに登録しました！");
+                    favoriteEventIds.push(eventId);
+                    alert('お気に入りに追加しました！');
                 }
-                button.classList.toggle('is-favorite');
-                button.textContent = isFavorite ? '⭐ お気に入りに追加' : '❤️ お気に入り解除';
+                
+                // UIの更新 (ボタンの状態を反転させる)
+                btn.dataset.isFavorite = (!isFavorite).toString();
+                btn.textContent = !isFavorite ? '❤️ お気に入り解除' : '⭐ お気に入りに追加';
+                btn.classList.toggle('is-favorite');
+
             } catch (error) {
-                console.error("お気に入り操作エラー:", error);
-                alert(`お気に入り操作に失敗しました: ${error.message}`);
+                if (error.code === 'not-found' && !isFavorite) {
+                    // 初めてお気に入りを登録するユーザーの場合、ユーザーデータが存在しないため新規作成
+                    await setDoc(userRef, { favorites: [eventId] });
+                    favoriteEventIds = [eventId];
+                    // UIの更新
+                    btn.dataset.isFavorite = 'true';
+                    btn.textContent = '❤️ お気に入り解除';
+                    btn.classList.add('is-favorite');
+                    alert('お気に入りに追加しました！');
+                } else {
+                    console.error("お気に入り登録エラー:", error);
+                    alert("処理に失敗しました: " + error.message);
+                }
             }
         };
 
-        const handleLogout = async () => {
+        // --- ログイン処理（既存ロジック） ---
+
+        const handleLoginSuccess = (message) => {
+            alert(message);
+            // ログイン成功後、モーダルを閉じ、onAuthStateChangedがUIを更新
+            loginModal.style.display = 'none';
+        };
+
+        // ソーシャルログイン処理 (handleSocialLoginError も含め、既存ロジックは変更なしでモーダル制御に合わせる)
+        document.getElementById('google-login-btn').addEventListener('click', async () => {
             try {
-                await signOut(auth);
-                alert("ログアウトしました。");
+                await signInWithPopup(auth, googleProvider);
+                handleLoginSuccess('Googleアカウントでログインしました！');
             } catch (error) {
-                console.error("ログアウトエラー:", error);
-                alert("ログアウトに失敗しました: " + error.message);
-            }
-        };
-
-
-        // --- 初期化とイベントリスナーの設定 ---
-        
-        onAuthStateChanged(auth, updateAuthUI);
-
-        eventsGrid.addEventListener('click', handleFavoriteToggle);
-        
-        authActionsElement.addEventListener('click', (e) => {
-            if (e.target.id === 'login-btn' && typeof window.handleLoginClick === 'function') {
-                window.handleLoginClick();
-            } else if (e.target.id === 'logout-btn') {
-                handleLogout();
+                handleSocialLoginError(error);
             }
         });
-        
+
+        document.getElementById('github-login-btn').addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, githubProvider);
+                handleLoginSuccess('GitHubアカウントでログインしました！');
+            } catch (error) {
+                handleSocialLoginError(error);
+            }
+        });
+
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+
+        document.getElementById('email-signup-btn').addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            if (!email || !password) return alert('メールアドレスとパスワードを入力してください。');
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                handleLoginSuccess('アカウントを作成しました！');
+            } catch (error) {
+                console.error("Emailサインアップエラー:", error);
+                alert("Emailサインアップに失敗しました: " + error.message);
+            }
+        });
+
+        document.getElementById('email-login-btn').addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            if (!email || !password) return alert('メールアドレスとパスワードを入力してください。');
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                handleLoginSuccess('ログインしました！');
+            } catch (error) {
+                console.error("Emailログインエラー:", error);
+                alert("Emailログインに失敗しました: " + error.message);
+            }
+        });
+
+        // アカウントリンク処理（再認証）
+        document.getElementById('reauth-login-btn').addEventListener('click', async () => {
+            const email = document.getElementById('reauth-email-input').value;
+            const password = document.getElementById('reauth-password-input').value;
+            if (!email || !password) return alert('メールアドレスとパスワードを入力してください。');
+            if (!pendingCredential) {
+                alert('エラー: リンク対象の認証情報が見つかりませんでした。リトライしてください。');
+                return;
+            }
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                await linkWithCredential(user, pendingCredential);
+                alert('アカウントのリンクが完了しました！');
+                handleLoginSuccess('複数の方法でログインできるようになりました！');
+            } catch (error) {
+                console.error("アカウントリンク/再認証エラー:", error);
+                alert("アカウントのリンクに失敗しました。正しいメールアドレスとパスワードを入力したか確認してください: " + error.message);
+            }
+        });
+
+        // モーダルを閉じる処理
+        document.querySelector('.close-btn').addEventListener('click', () => {
+            loginModal.style.display = 'none';
+        });
+
+        // モーダル外をクリックで閉じる
+        window.onclick = function(event) {
+            if (event.target == loginModal) {
+                loginModal.style.display = 'none';
+            }
+        }
     </script>
 </head>
 <body>
-    <div class="container">
-        <h1>イベント一覧</h1>
-
-        <div id="auth-header">
-            <div id="auth-status">認証状態を確認中...</div>
-            <div id="auth-actions"></div>
+    <header class="header">
+        <h1>イベント一覧 🗓️</h1>
+        <div class="auth-controls">
+            <button id="login-btn-header">ログイン / サインアップ</button>
         </div>
+    </header>
 
-        <div id="events-grid">
-            </div>
-    </div>
+    <main class="main-content">
+        <h2>開催中のイベント</h2>
+        <div class="event-grid" id="event-grid">
+            <p>イベントを読み込み中です...</p>
+        </div>
+    </main>
     
-    <div id="firebaseui-auth-container">
-        <div id="login-modal-content">
-            <button id="close-login-modal">×</button>
-            <div id="firebaseui-auth-widget">
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <div class="container">
+                <h2 style="text-align: center;">🔐 認証フォーム</h2>
+                
+                <div id="login-form-main">
+                    <h3>ソーシャルログイン</h3>
+                    <div class="auth-buttons">
+                        <button id="google-login-btn">Googleでログイン</button>
+                        <button id="github-login-btn">GitHubでログイン</button>
+                    </div>
+
+                    <hr>
+
+                    <h3>メールアドレスで認証</h3>
+                    <div>
+                        <input type="email" id="email-input" placeholder="メールアドレス" required>
+                        <input type="password" id="password-input" placeholder="パスワード" required>
+                        <div class="auth-buttons">
+                            <button id="email-signup-btn">サインアップ (アカウント作成)</button>
+                            <button id="email-login-btn">ログイン</button>
+                        </div>
+                    </div>
                 </div>
+
+                <div id="reauth-section">
+                    <h2>🤝 アカウントリンク</h2>
+                    <p><strong>このメールアドレスは既存アカウントに登録されています。</strong><br>
+                        既存アカウントの認証情報（メールアドレスとパスワード）を入力してリンクしてください。</p>
+                    <div>
+                        <input type="email" id="reauth-email-input" placeholder="既存アカウントのメールアドレス" required readonly>
+                        <input type="password" id="reauth-password-input" placeholder="既存アカウントのパスワード" required>
+                        <div class="auth-buttons">
+                            <button id="reauth-login-btn">リンクを完了してログイン</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </body>
