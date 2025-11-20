@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>イベント一覧</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.css" />
+
     <style>
+        /* --- 基本レイアウト --- */
         body { font-family: sans-serif; margin: 0; background-color: #f4f7f6; color: #333; }
         .container { 
             max-width: 1200px; 
@@ -33,12 +38,12 @@
             font-weight: bold;
             transition: background-color 0.3s;
         }
-        .login-btn { background-color: #4CAF50; color: white; }
-        .login-btn:hover { background-color: #45a049; }
+        .login-btn { background-color: #1e88e5; color: white; }
+        .login-btn:hover { background-color: #1565c0; }
         .logout-btn { background-color: #f44336; color: white; margin-left: 10px; }
         .logout-btn:hover { background-color: #d32f2f; }
-        .mypage-btn { background-color: #1e88e5; color: white; margin-right: 10px; }
-        .mypage-btn:hover { background-color: #1565c0; }
+        .mypage-btn { background-color: #4CAF50; color: white; margin-right: 10px; }
+        .mypage-btn:hover { background-color: #45a049; }
 
         /* --- イベントカードグリッド --- */
         #events-grid {
@@ -58,7 +63,7 @@
         }
         .event-image {
             width: 100%;
-            height: 200px; /* 画像の高さを固定 */
+            height: 200px;
             object-fit: cover;
         }
         .card-content {
@@ -70,11 +75,6 @@
             color: #1e88e5;
             font-size: 20px;
             text-decoration: none;
-        }
-        .card-content p {
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 8px;
         }
         .favorite-btn {
             width: 100%;
@@ -88,22 +88,46 @@
             font-weight: bold;
             transition: background-color 0.2s, color 0.2s;
         }
-        .favorite-btn:hover {
-            background-color: #e0f7fa;
-        }
         .favorite-btn.is-favorite {
             background-color: #ffcdd2;
             color: #d32f2f;
             border-color: #ef9a9a;
         }
-        .favorite-btn.is-favorite:hover {
-            background-color: #ef9a9a;
-            color: white;
+
+        /* --- モーダル (FirebaseUI用) --- */
+        #firebaseui-auth-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000; /* 最前面に表示 */
+            display: none; /* 初期状態は非表示 */
+        }
+        #login-modal-content {
+            max-width: 400px;
+            margin: 10vh auto; /* 画面上部から10%の位置に配置 */
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        #close-login-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #eee;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
         }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, EmailAuthProvider, GithubAuthProvider, AnonymousAuthProvider } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         // あなたのウェブアプリのFirebase設定 (前回と同じ)
@@ -124,21 +148,84 @@
         const eventsGrid = document.getElementById('events-grid');
         const authStatusElement = document.getElementById('auth-status');
         const authActionsElement = document.getElementById('auth-actions');
+        
+        // ★ FirebaseUIモーダル関連のDOM要素を取得 ★
+        const authContainer = document.getElementById('firebaseui-auth-container');
+        const authWidget = document.getElementById('firebaseui-auth-widget');
+        const closeButton = document.getElementById('close-login-modal');
+
 
         let currentUser = null;
         let userFavorites = [];
+
+        // --- FirebaseUI の設定と初期化 ---
+        // FirebaseUIのライブラリが読み込まれるまで待つ (Windowオブジェクトで確認)
+        if (typeof firebaseui !== 'undefined') {
+            const ui = new firebaseui.auth.AuthUI(auth);
+            
+            // UI設定オブジェクト (有効化しているプロバイダに応じて設定してください)
+            const uiConfig = {
+                signInSuccessUrl: 'index.html', // ログイン成功後のリダイレクト先 (今回はリロードでOK)
+                signInOptions: [
+                    // Firebaseコンソールで有効化しているプロバイダをリストアップ
+                    GoogleAuthProvider.PROVIDER_ID,
+                    EmailAuthProvider.PROVIDER_ID,
+                    GithubAuthProvider.PROVIDER_ID,
+                    AnonymousAuthProvider.PROVIDER_ID // 匿名ログインも選択肢に含める
+                ],
+                // ログイン成功時にカスタム処理を行い、リダイレクトを抑制する
+                callbacks: {
+                    signInSuccessWithAuthResult: function() {
+                        // モーダルを閉じる
+                        authContainer.style.display = 'none';
+                        // onAuthStateChanged でUI更新が自動的に行われる
+                        return false; 
+                    }
+                }
+            };
+
+            /**
+             * ログインUI（FirebaseUIモーダル）を表示
+             */
+            window.handleLoginClick = () => {
+                // 既存のログインセッションを終了（念のため）
+                if (ui.isStarted()) {
+                    ui.reset();
+                }
+                
+                // モーダルを表示
+                authContainer.style.display = 'block';
+
+                // FirebaseUI認証ウィジェットをレンダリング
+                ui.start('#firebaseui-auth-widget', uiConfig);
+            };
+
+            // モーダルを閉じるイベントリスナー
+            closeButton.addEventListener('click', () => {
+                authContainer.style.display = 'none';
+                if (ui.isStarted()) {
+                    ui.reset(); // ウィジェットの状態をリセット
+                }
+            });
+        } else {
+             // FirebaseUIが読み込めなかった場合のフォールバック
+             console.error("FirebaseUIライブラリが読み込まれていません。ネットワーク接続を確認してください。");
+             window.handleLoginClick = () => alert("ログインUIの読み込みに失敗しました。");
+        }
+
 
         // --- 認証状態とイベントデータの読み込み ---
 
         /**
          * ユーザー情報をUIに反映し、お気に入りリストを読み込む
-         * @param {Object} user - Firebase Userオブジェクト
          */
         const updateAuthUI = async (user) => {
             currentUser = user;
             if (user) {
                 // ログイン済み
-                authStatusElement.innerHTML = `<span>ようこそ、${user.uid.substring(0, 6)}...様</span>`;
+                const displayName = user.displayName || user.email || `${user.uid.substring(0, 6)}... (${user.isAnonymous ? '匿名' : '登録済み'})`;
+
+                authStatusElement.innerHTML = `<span>ようこそ、${displayName}様</span>`;
                 authActionsElement.innerHTML = `
                     <button class="mypage-btn" onclick="window.location.href='mypage.html'">マイページ</button>
                     <button class="logout-btn" id="logout-btn">ログアウト</button>
@@ -151,6 +238,11 @@
                     if (userSnap.exists() && userSnap.data().favorites) {
                         userFavorites = userSnap.data().favorites;
                     } else {
+                        // 新しいユーザーの場合はドキュメントを作成
+                        // 匿名ログイン時などに最初に一度だけ実行される
+                        if (!userSnap.exists()) {
+                            await updateDoc(userRef, { favorites: [] }, { merge: true });
+                        }
                         userFavorites = [];
                     }
                 } catch (error) {
@@ -159,10 +251,10 @@
                 }
 
             } else {
-                // 未ログイン状態 (匿名ログインボタンを表示)
+                // 未ログイン状態 
                 authStatusElement.innerHTML = `<span>未ログイン状態です</span>`;
                 authActionsElement.innerHTML = `
-                    <button class="login-btn" id="login-btn">匿名ログイン/体験開始</button>
+                    <button class="login-btn" id="login-btn">ログイン</button>
                 `;
                 userFavorites = [];
             }
@@ -231,13 +323,12 @@
         };
 
         // --- お気に入り操作 ---
-
-        /**
-         * お気に入りボタンのクリックハンドラー
-         */
+        
         const handleFavoriteToggle = async (event) => {
             if (!currentUser) {
-                alert("お気に入り機能を使うには、匿名ログイン（体験開始）または本登録が必要です。");
+                // ログインが必要な場合、ここでログインモーダルを起動しても良い
+                alert("お気に入り機能を使うには、ログインが必要です。");
+                // window.handleLoginClick(); // モーダルを自動起動するならこれを使う
                 return;
             }
 
@@ -250,17 +341,11 @@
 
             try {
                 if (isFavorite) {
-                    // お気に入り解除
-                    await updateDoc(userRef, {
-                        favorites: arrayRemove(eventId)
-                    });
+                    await updateDoc(userRef, { favorites: arrayRemove(eventId) });
                     userFavorites = userFavorites.filter(id => id !== eventId);
                     alert("お気に入りから解除しました。");
                 } else {
-                    // お気に入り登録
-                    await updateDoc(userRef, {
-                        favorites: arrayUnion(eventId)
-                    });
+                    await updateDoc(userRef, { favorites: arrayUnion(eventId) });
                     userFavorites.push(eventId);
                     alert("お気に入りに登録しました！");
                 }
@@ -275,27 +360,13 @@
             }
         };
 
-        // --- ログイン/ログアウト処理 ---
 
-        /**
-         * 匿名ログインを実行する
-         */
-        const handleLogin = async () => {
-             try {
-                await signInAnonymously(auth);
-                // 認証状態の変更は onAuthStateChanged で自動的に処理されます
-             } catch (error) {
-                console.error("匿名ログインエラー:", error);
-                alert("ログインに失敗しました: " + error.message);
-             }
-        };
+        // --- ログアウト処理 ---
         
-        /**
-         * ログアウトを実行する
-         */
         const handleLogout = async () => {
             try {
                 await signOut(auth);
+                alert("ログアウトしました。");
                 // onAuthStateChanged で自動的にUIが更新されます
             } catch (error) {
                 console.error("ログアウトエラー:", error);
@@ -314,8 +385,8 @@
         
         // 3. ログイン/ログアウトボタンのイベントリスナーを設定
         authActionsElement.addEventListener('click', (e) => {
-            if (e.target.id === 'login-btn') {
-                handleLogin();
+            if (e.target.id === 'login-btn' && typeof window.handleLoginClick === 'function') {
+                window.handleLoginClick(); // ログインUI起動
             } else if (e.target.id === 'logout-btn') {
                 handleLogout();
             }
@@ -334,6 +405,14 @@
 
         <div id="events-grid">
             </div>
+    </div>
+    
+    <div id="firebaseui-auth-container">
+        <div id="login-modal-content">
+            <button id="close-login-modal">×</button>
+            <div id="firebaseui-auth-widget">
+                </div>
+        </div>
     </div>
 </body>
 </html>
