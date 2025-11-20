@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>イベント一覧</title>
     
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    
     <script src="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.js"></script>
     <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.css" />
 
     <style>
+        /* (スタイルは変更なし) */
         /* --- 基本レイアウト --- */
         body { font-family: sans-serif; margin: 0; background-color: #f4f7f6; color: #333; }
         .container { 
@@ -102,12 +106,12 @@
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.6);
-            z-index: 1000; /* 最前面に表示 */
-            display: none; /* 初期状態は非表示 */
+            z-index: 1000;
+            display: none;
         }
         #login-modal-content {
             max-width: 400px;
-            margin: 10vh auto; /* 画面上部から10%の位置に配置 */
+            margin: 10vh auto;
             padding: 20px;
             background: white;
             border-radius: 8px;
@@ -127,6 +131,7 @@
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        // ★★★ 修正点2: AnonymousAuthProvider のインポートを削除 ★★★
         import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, EmailAuthProvider, GithubAuthProvider } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
@@ -141,6 +146,7 @@
             measurementId: "G-FDRB7H8MRR"
         };
 
+        // モジュールSDKの初期化 (getAuthなどの関数呼び出しに使います)
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -149,7 +155,7 @@
         const authStatusElement = document.getElementById('auth-status');
         const authActionsElement = document.getElementById('auth-actions');
         
-        // ★ FirebaseUIモーダル関連のDOM要素を取得 ★
+        // FirebaseUIモーダル関連のDOM要素を取得
         const authContainer = document.getElementById('firebaseui-auth-container');
         const authWidget = document.getElementById('firebaseui-auth-widget');
         const closeButton = document.getElementById('close-login-modal');
@@ -159,26 +165,27 @@
         let userFavorites = [];
 
         // --- FirebaseUI の設定と初期化 ---
-        // FirebaseUIのライブラリが読み込まれるまで待つ (Windowオブジェクトで確認)
-        if (typeof firebaseui !== 'undefined') {
-            const ui = new firebaseui.auth.AuthUI(auth);
+        
+        // ★★★ 修正点3: FirebaseUIの初期化にグローバルな `firebase.auth()` を使用 ★★★
+        if (typeof firebaseui !== 'undefined' && typeof firebase !== 'undefined') {
+            // グローバルな auth インスタンスを取得 (互換性SDKによって提供される)
+            const globalAuth = firebase.auth(); 
             
-            // UI設定オブジェクト (有効化しているプロバイダに応じて設定してください)
+            const ui = new firebaseui.auth.AuthUI(globalAuth);
+            
+            // UI設定オブジェクト
             const uiConfig = {
-                signInSuccessUrl: 'index.html', // ログイン成功後のリダイレクト先 (今回はリロードでOK)
+                signInSuccessUrl: 'index.html',
                 signInOptions: [
-                    // Firebaseコンソールで有効化しているプロバイダをリストアップ
-                    GoogleAuthProvider.PROVIDER_ID,
-                    EmailAuthProvider.PROVIDER_ID,
-                    GithubAuthProvider.PROVIDER_ID,
-                    AnonymousAuthProvider.PROVIDER_ID // 匿名ログインも選択肢に含める
+                    // ★ 修正点4: グローバルな firebase オブジェクトからプロバイダIDを参照する ★
+                    firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+                    firebase.auth.EmailAuthProvider.PROVIDER_ID,
+                    firebase.auth.GithubAuthProvider.PROVIDER_ID,
+                    firebase.auth.AnonymousAuthProvider.PROVIDER_ID 
                 ],
-                // ログイン成功時にカスタム処理を行い、リダイレクトを抑制する
                 callbacks: {
                     signInSuccessWithAuthResult: function() {
-                        // モーダルを閉じる
                         authContainer.style.display = 'none';
-                        // onAuthStateChanged でUI更新が自動的に行われる
                         return false; 
                     }
                 }
@@ -188,12 +195,10 @@
              * ログインUI（FirebaseUIモーダル）を表示
              */
             window.handleLoginClick = () => {
-                // 既存のログインセッションを終了（念のため）
                 if (ui.isStarted()) {
                     ui.reset();
                 }
                 
-                // モーダルを表示
                 authContainer.style.display = 'block';
 
                 // FirebaseUI認証ウィジェットをレンダリング
@@ -204,13 +209,13 @@
             closeButton.addEventListener('click', () => {
                 authContainer.style.display = 'none';
                 if (ui.isStarted()) {
-                    ui.reset(); // ウィジェットの状態をリセット
+                    ui.reset();
                 }
             });
         } else {
              // FirebaseUIが読み込めなかった場合のフォールバック
-             console.error("FirebaseUIライブラリが読み込まれていません。ネットワーク接続を確認してください。");
-             window.handleLoginClick = () => alert("ログインUIの読み込みに失敗しました。");
+             console.error("FirebaseUIまたは互換性SDKが読み込まれていません。");
+             window.handleLoginClick = () => alert("ログインUIの初期化に失敗しました。");
         }
 
 
@@ -231,15 +236,13 @@
                     <button class="logout-btn" id="logout-btn">ログアウト</button>
                 `;
 
-                // ユーザーのお気に入りリストを読み込み
+                // ユーザーのお気に入りリストを読み込み (usersコレクションにドキュメントがない場合は作成)
                 try {
                     const userRef = doc(db, 'users', user.uid);
                     const userSnap = await getDoc(userRef);
                     if (userSnap.exists() && userSnap.data().favorites) {
                         userFavorites = userSnap.data().favorites;
                     } else {
-                        // 新しいユーザーの場合はドキュメントを作成
-                        // 匿名ログイン時などに最初に一度だけ実行される
                         if (!userSnap.exists()) {
                             await updateDoc(userRef, { favorites: [] }, { merge: true });
                         }
@@ -326,9 +329,7 @@
         
         const handleFavoriteToggle = async (event) => {
             if (!currentUser) {
-                // ログインが必要な場合、ここでログインモーダルを起動しても良い
                 alert("お気に入り機能を使うには、ログインが必要です。");
-                // window.handleLoginClick(); // モーダルを自動起動するならこれを使う
                 return;
             }
 
@@ -350,7 +351,6 @@
                     alert("お気に入りに登録しました！");
                 }
                 
-                // UIを更新
                 button.classList.toggle('is-favorite');
                 button.textContent = isFavorite ? '⭐ お気に入りに追加' : '❤️ お気に入り解除';
 
@@ -367,7 +367,6 @@
             try {
                 await signOut(auth);
                 alert("ログアウトしました。");
-                // onAuthStateChanged で自動的にUIが更新されます
             } catch (error) {
                 console.error("ログアウトエラー:", error);
                 alert("ログアウトに失敗しました: " + error.message);
