@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">イベント詳細</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; background-color: #f4f7f6; color: #333; }
+        .container { 
+            max-width: 800px; 
+            margin: 50px auto; 
+            padding: 30px; 
+            background: white; 
+            border-radius: 12px; 
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1); 
+        }
+        h1 { color: #1e88e5; border-bottom: 3px solid #e1f5fe; padding-bottom: 10px; }
+        .detail-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-left: 5px solid #1e88e5;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .info-box p { margin: 5px 0; font-size: 16px; }
+        .info-box strong { color: #0d47a1; margin-right: 10px; }
+        #loading { text-align: center; padding: 50px; }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        // あなたのウェブアプリのFirebase設定 (index.htmlと共通)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
+            authDomain: "goto6234.firebaseapp.com",
+            projectId: "goto6234",
+            storageBucket: "goto6234.firebasestorage.app",
+            messagingSenderId: "730149609843",
+            appId: "1:730149609843:web:d11237de52723fc45b2506",
+            measurementId: "G-FDRB7H8MRR"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const container = document.getElementById('event-detail-container');
+        const pageTitle = document.getElementById('page-title');
+
+        /**
+         * URLからクエリパラメータ（Event ID）を取得する
+         * @returns {string | null} イベントID または null
+         */
+        const getEventIdFromUrl = () => {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('id');
+        };
+
+        /**
+         * イベントIDに基づいてFirestoreから詳細データを取得し表示する
+         */
+        const loadEventDetail = async () => {
+            const eventId = getEventIdFromUrl();
+            
+            if (!eventId) {
+                container.innerHTML = '<p style="color: red; text-align: center;">エラー: イベントIDが指定されていません。</p>';
+                return;
+            }
+
+            try {
+                const eventRef = doc(db, 'events', eventId);
+                const eventSnap = await getDoc(eventRef);
+
+                if (eventSnap.exists()) {
+                    const data = eventSnap.data();
+                    const timeDisplay = (data.startTime && data.endTime) 
+                                        ? `${data.startTime} 〜 ${data.endTime}` 
+                                        : '終日';
+                    const imageHtml = data.imageUrl 
+                                      ? `<img src="${data.imageUrl}" alt="${data.name}" class="detail-image" onerror="this.onerror=null;this.style.display='none';">` 
+                                      : '';
+
+                    // タイトルと詳細コンテンツの描画
+                    pageTitle.textContent = `${data.name} | イベント詳細`;
+                    container.innerHTML = `
+                        <h1>${data.name}</h1>
+                        ${imageHtml}
+                        <div class="info-box">
+                            <p><strong>日付:</strong> ${data.date}</p>
+                            <p><strong>時刻:</strong> ${timeDisplay}</p>
+                        </div>
+                        <h2>イベント概要</h2>
+                        <p>${data.description}</p>
+                        <p style="margin-top: 30px;"><a href="index.html">イベント一覧に戻る</a></p>
+                    `;
+                } else {
+                    container.innerHTML = '<p style="color: red; text-align: center;">指定されたイベントは見つかりませんでした。</p>';
+                }
+            } catch (error) {
+                console.error("イベント詳細の読み込みエラー:", error);
+                container.innerHTML = `<p style="color: red; text-align: center;">データの読み込み中にエラーが発生しました: ${error.message}</p>`;
+            }
+        };
+
+        loadEventDetail();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div id="event-detail-container">
+            <div id="loading">イベント詳細を読み込み中...</div>
+        </div>
+    </div>
+</body>
+</html>
