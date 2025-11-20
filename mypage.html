@@ -1,3 +1,4 @@
+<!--mypage.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -54,11 +55,29 @@
             display: block;
             color: #777;
         }
+
+        /* ★ Googleカレンダーボタンのスタイルを追加 ★ */
+        .calendar-btn {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 6px 10px;
+            background-color: #4285F4; /* Google Blue */
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .calendar-btn:hover {
+            background-color: #3367d6;
+        }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"; // ★ Firestore関連を追加
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         // あなたのウェブアプリのFirebase設定 (index.htmlと共通)
         const firebaseConfig = {
@@ -73,11 +92,46 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app); // ★ Firestoreの初期化
+        const db = getFirestore(app);
 
         const userInfoElement = document.getElementById('user-info');
         const logoutButton = document.getElementById('logout-btn');
         const favoritesListElement = document.getElementById('favorites-list');
+
+        // --- ★ Googleカレンダー用ヘルパー関数 ★ ---
+
+        /**
+         * 日付と時刻文字列をGoogleカレンダー用UTC形式に変換する。
+         * @param {string} dateString - 日付 (例: 2025/12/25)
+         * @param {string} startTime - 開始時刻 (例: 10:00)
+         * @param {string} endTime - 終了時刻 (例: 18:00)
+         * @returns {string} - UTC形式の期間文字列 (例: 20251225T010000Z/20251225T090000Z)
+         */
+        const formatToCalendarDate = (dateString, startTime, endTime) => {
+            if (!dateString || !startTime || !endTime) {
+                // 時刻情報がない場合は、終日イベントとして処理することも可能だが、今回は時刻必須とする
+                return null;
+            }
+
+            // 日付と時刻を結合してDateオブジェクトを作成 (日本時間 JSTとして扱う)
+            const startDateTimeStr = `${dateString} ${startTime}:00`;
+            const endDateTimeStr = `${dateString} ${endTime}:00`;
+            
+            // new Date() が JST (UTC+9) として解釈する
+            const startDate = new Date(startDateTimeStr);
+            const endDate = new Date(endDateTimeStr);
+
+            // UTC形式 (YYYYMMDDTHHMMSSZ) に変換するヘルパー
+            const format = (d) => {
+                // ISO文字列からハイフン、コロン、ミリ秒を削除し、Z(UTC)を付与
+                // JSTで作成したDateオブジェクトをtoISOString()でUTCに変換
+                return d.toISOString().replace(/[-:]|\.\d{3}/g, '');
+            };
+            
+            // JSTで作成した時刻がtoISOString()でUTCに変換されるため、
+            // ユーザーは日本のカレンダーで正しい時刻に見えるはず
+            return `${format(startDate)}/${format(endDate)}`;
+        };
 
         // --- Firestore データ処理 ---
 
@@ -99,9 +153,8 @@
 
                 const favoriteEventIds = userSnap.data().favorites;
 
-                // 2. favorites配列に含まれるIDのイベント情報をまとめて取得
+                // 2. favorites配列に含まれるIDのイベント情報をまとめて取得 (IDが10個以下であることを前提)
                 const eventsRef = collection(db, 'events');
-                // where('__name__', 'in', ...) を使用して、ドキュメントIDがリストに含まれるものをフィルタリング
                 const q = query(eventsRef, where('__name__', 'in', favoriteEventIds)); 
                 const eventSnaps = await getDocs(q);
 
@@ -111,11 +164,33 @@
                 } else {
                     eventSnaps.forEach(eventDoc => {
                         const eventData = eventDoc.data();
+                        
+                        const timeDisplay = (eventData.startTime && eventData.endTime) 
+                                            ? `${eventData.startTime} 〜 ${eventData.endTime}` 
+                                            : '（時刻情報なし）';
+
+                        // ★ カレンダーURL生成ロジック ★
+                        const dates = formatToCalendarDate(eventData.date, eventData.startTime, eventData.endTime);
+                        let calUrl = '#';
+                        let calendarButtonHtml = '<span style="color:red; font-size: 14px;">時刻情報不足</span>';
+
+                        if (dates) {
+                            // URLを作成し、各パラメータをエンコード
+                            calUrl = `https://www.google.com/calendar/render?action=TEMPLATE&` +
+                                     `text=${encodeURIComponent(eventData.name)}&` +
+                                     `dates=${dates}&` +
+                                     `details=${encodeURIComponent(eventData.description + '\n\n詳細URLは index.html を参照してください。')}&` +
+                                     `sf=true&output=xml`;
+                            
+                            calendarButtonHtml = `<a href="${calUrl}" target="_blank" class="calendar-btn">🗓️ Googleカレンダーへ追加</a>`;
+                        }
+
                         html += `
                             <li>
-                                <strong>${eventData.name}</strong> (${eventData.date})<br>
+                                <strong>${eventData.name}</strong> (${eventData.date}) - ${timeDisplay}<br>
                                 <small>${eventData.description}</small>
-                            </li>
+                                <br>
+                                ${calendarButtonHtml} </li>
                         `;
                     });
                     html += '</ul>';
@@ -181,7 +256,7 @@
         
         <h2>❤️ お気に入りイベント</h2>
         <div id="favorites-list">
-            </div>
+        </div>
 
         <button id="logout-btn">ログアウト</button>
         <p style="text-align: center; margin-top: 15px;"><a href="index.html">イベント一覧に戻る</a></p>
