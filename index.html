@@ -17,13 +17,8 @@
         .sidebar { height: fit-content; position: sticky; top: 20px; }
 
         .search-container { display: flex; margin-bottom: 20px; }
-        #search-input {
-            flex: 1; padding: 14px; border: 2px solid #ddd; border-right: none; border-radius: 30px 0 0 30px; font-size: 1em;
-            autocomplete: off;
-        }
-        #search-btn {
-            padding: 0 22px; background: var(--primary); color: white; border: none; border-radius: 0 30px 30px 0; cursor: pointer; font-size: 1.1em;
-        }
+        #search-input { flex: 1; padding: 14px; border: 2px solid #ddd; border-right: none; border-radius: 30px 0 0 30px; font-size: 1em; }
+        #search-btn { padding: 0 22px; background: var(--primary); color: white; border: none; border-radius: 0 30px 30px 0; cursor: pointer; font-size: 1.1em; }
         #search-btn:hover { background: #4527a0; }
 
         .filter-group { margin-bottom: 25px; }
@@ -32,29 +27,16 @@
         .tag-btn { padding: 6px 14px; background: #eee; border-radius: 20px; font-size: 0.85em; cursor: pointer; transition: 0.2s; }
         .tag-btn.active { background: var(--primary); color: white; }
 
-        /* ←←← ここからカルーセル用スタイル追加（超オシャレ版） →→→ */
-        .featured { margin-bottom: 40px; overflow: hidden; position: relative; }
-        .featured h2 { 
-            color: var(--primary); 
-            font-size: 2em; 
-            margin-bottom: 20px; 
-            text-align: center;
-            position: relative;
-            z-index: 2;
-        }
-        .carousel-container {
-            overflow: hidden;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-            position: relative;
-        }
-        .carousel-track {
+        /* おすすめカルーセル - 完全レスポンシブ＆ステップ式 */
+        .featured { margin-bottom: 40px; overflow: hidden; }
+        .featured h2 { color: var(--primary); font-size: 2em; margin-bottom: 20px; text-align: center; }
+        .carousel-container { overflow: hidden; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); }
+        .carousel-wrapper {
             display: flex;
-            width: max-content;
-            animation: scroll 35s linear infinite;
+            transition: transform 0.8s ease-in-out;
         }
-        .carousel-track:hover { animation-play-state: paused; }
         .featured-card {
+            flex: 0 0 380px;
             min-width: 380px;
             margin: 0 12px;
             position: relative;
@@ -68,19 +50,26 @@
         .featured-card img { width: 100%; height: 240px; object-fit: cover; }
         .featured-card .content { padding: 20px; }
         .featured-card h3 { margin: 0 0 10px; color: var(--primary); font-size: 1.4em; }
-        .featured-label { 
-            position: absolute; top: 15px; left: 15px; 
-            background: var(--accent); color: white; 
-            padding: 8px 16px; border-radius: 30px; 
+        .featured-label {
+            position: absolute; top: 15px; left: 15px;
+            background: var(--accent); color: white;
+            padding: 8px 16px; border-radius: 30px;
             font-weight: bold; font-size: 0.9em;
-            box-shadow: 0 4px 15px rgba(255,82,82,0.4);
-            z-index: 2;
+            box-shadow: 0 4px 15px rgba(255,82,82,0.4); z-index: 2;
         }
-        @keyframes scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
+
+        /* レスポンシブ対応 */
+        @media (max-width: 900px) {
+            .featured-card { flex: 0 0 320px; min-width: 320px; }
         }
-        /* ←←← ここまで追加 →→→ */
+        @media (max-width: 600px) {
+            .featured-card {
+                flex: 0 0 calc(100vw - 80px);
+                min-width: calc(100vw - 80px);
+                margin: 0 20px;
+            }
+            .featured-card img { height: 200px; }
+        }
 
         .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
         .event-card { position: relative; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.1); transition: all 0.3s; }
@@ -119,13 +108,11 @@
 
     <div class="container">
         <div class="main">
-            <!-- おすすめイベント → カルーセルに変更！ -->
+            <!-- 超高級ステップ式カルーセル -->
             <section class="featured" id="featured-section" style="display:none;">
                 <h2>おすすめイベント</h2>
                 <div class="carousel-container">
-                    <div class="carousel-track" id="featured-track">
-                        <!-- JSで自動生成 -->
-                    </div>
+                    <div class="carousel-wrapper" id="featured-track"></div>
                 </div>
             </section>
 
@@ -135,7 +122,6 @@
             </section>
         </div>
 
-        <!-- サイドバー（完全そのまま） -->
         <aside class="sidebar">
             <div class="filter-group">
                 <h3>検索</h3>
@@ -144,7 +130,6 @@
                     <button id="search-btn">検索</button>
                 </div>
             </div>
-
             <div class="filter-group">
                 <h3>カテゴリ</h3>
                 <label><input type="radio" name="category" value="all" checked> すべて</label>
@@ -156,22 +141,9 @@
                 <label><input type="radio" name="category" value="gourmet"> グルメ</label>
                 <label><input type="radio" name="category" value="exhibition"> 展示・芸術</label>
             </div>
-
-            <div class="filter-group" id="tags-filter" style="display:none;">
-                <h3>タグ</h3>
-                <div class="filter-tags" id="tags-container"></div>
-            </div>
-
-            <div class="filter-group" id="organizer-filter" style="display:none;">
-                <h3>主催者</h3>
-                <div class="filter-tags" id="organizer-container"></div>
-            </div>
-
-            <div class="filter-group" id="venue-filter" style="display:none;">
-                <h3>会場</h3>
-                <div class="filter-tags" id="venue-container"></div>
-            </div>
-
+            <div class="filter-group" id="tags-filter" style="display:none;"><h3>タグ</h3><div class="filter-tags" id="tags-container"></div></div>
+            <div class="filter-group" id="organizer-filter" style="display:none;"><h3>主催者</h3><div class="filter-tags" id="organizer-container"></div></div>
+            <div class="filter-group" id="venue-filter" style="display:none;"><h3>会場</h3><div class="filter-tags" id="venue-container"></div></div>
             <div class="filter-group">
                 <h3>新着イベント</h3>
                 <ul class="new-events" id="new-events-list">読み込み中...</ul>
@@ -179,7 +151,6 @@
         </aside>
     </div>
 
-    <!-- モーダルもそのまま -->
     <div id="login-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn">×</span>
@@ -203,15 +174,7 @@
         import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
-            authDomain: "goto6234.firebaseapp.com",
-            projectId: "goto6234",
-            storageBucket: "goto6234.firebasestorage.app",
-            messagingSenderId: "730149609843",
-            appId: "1:730149609843:web:d11237de52723fc45b2506"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE", authDomain: "goto6234.firebaseapp.com", projectId: "goto6234", storageBucket: "goto6234.firebasestorage.app", messagingSenderId: "730149609843", appId: "1:730149609843:web:d11237de52723fc45b2506" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -244,16 +207,15 @@
         };
 
         const categoryNames = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
-
         let filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
 
-        // ← おすすめカルーセル用関数に完全置き換え！ →
+        // 完全版ステップ式カルーセル
         const loadFeatured = async () => {
             const q = query(collection(db, "events"), where("isFeatured", "==", true));
             const snap = await getDocs(q);
             const section = document.getElementById('featured-section');
             const track = document.getElementById('featured-track');
-            
+
             if (snap.empty) {
                 section.style.display = "none";
                 return;
@@ -261,8 +223,9 @@
 
             section.style.display = "block";
             let html = "";
-            snap.docs.forEach(d => {
-                const e = d.data(); e.id = d.id;
+            const events = snap.docs.map(d => { const e = d.data(); e.id = d.id; return e; });
+
+            events.forEach(e => {
                 const img = e.imageUrl ? `<img src="${e.imageUrl}" alt="${e.name}">` : `<div style="height:240px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;font-size:1.2em;">画像なし</div>`;
                 html += `
                     <div class="featured-card">
@@ -276,14 +239,25 @@
                         </a>
                     </div>`;
             });
-            track.innerHTML = html + html; // 無限ループ用に2倍！
-            
-            // スライド速度をイベント数に応じて自動調整
-            const duration = Math.max(25, snap.size * 6);
-            track.style.animation = `scroll ${duration}s linear infinite`;
+
+            track.innerHTML = html + html; // 無限ループ用に2倍
+
+            let currentIndex = 0;
+            const totalCards = events.length;
+
+            const moveToSlide = () => {
+                const cardWidth = track.children[0].offsetWidth + 24; // margin込み
+                currentIndex = (currentIndex + 1) % totalCards;
+                track.style.transform = `translateX(-${currentIndex * cardWidth}px)`;
+            };
+
+            setTimeout(() => {
+                track.style.transition = 'transform 0.8s ease-in-out';
+                setInterval(moveToSlide, 4500); // 4.5秒ごとに1枚進む
+            }, 300);
         };
 
-        const renderEvents = () => { /* ← ここから下は全部そのまま！ */ 
+        const renderEvents = () => {
             const grid = document.getElementById('event-grid');
             let filtered = allEvents.filter(e => {
                 const matchCat = filters.category === "all" || e.category === filters.category;
@@ -301,18 +275,18 @@
 
             grid.innerHTML = filtered.map(ev => {
                 const isFav = favoriteEventIds.includes(ev.id);
-                const c = ev.category ? `<span class="category-tag">${categoryNames[ev.category] || ev.category}</span>` : "";
+                const catLabel = ev.category ? `<span class="category-tag">${categoryNames[ev.category] || ev.category}</span>` : "";
                 const img = ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${ev.name}">` : `<div style="height:200px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;">画像なし</div>`;
-                const time = ev.startTime ? `${ev.startTime} 〜 ${ev.endTime || ""}` : "終日";
+                const timeStr = ev.startTime ? `${ev.startTime} 〜 ${ev.endTime || ""}` : "終日";
 
                 return `
                     <div class="event-card">
                         <a href="detail.html?id=${ev.id}" style="text-decoration:none;color:inherit;">
                             ${img}
                             <div class="content">
-                                ${c}
+                                ${catLabel}
                                 <h2>${ev.name}</h2>
-                                <div class="meta"><strong>${ev.date}</strong> ${time}</div>
+                                <div class="meta"><strong>${ev.date}</strong> ${timeStr}</div>
                                 <p>${ev.description.substring(0,80)}...</p>
                             </div>
                         </a>
@@ -327,9 +301,6 @@
                 btn.onclick = e => { e.preventDefault(); e.stopPropagation(); toggleFavorite(btn.dataset.id); };
             });
         };
-
-        // 以下、toggleFavorite, loadNewEvents, generateSidebarFilters, loadAllEvents, onAuthStateChanged など
-        // → 全部そのまま！！（省略しないで全部入ってるよ！）
 
         const toggleFavorite = async (eventId) => {
             if (!currentUser) { modal.style.display = "block"; return; }
@@ -365,7 +336,6 @@
                 if (e.organizer) organizers.add(e.organizer);
                 if (e.venue) venues.add(e.venue);
             });
-
             const createButtons = (containerId, items, type) => {
                 const container = document.getElementById(containerId);
                 if (!container || items.size === 0) return;
@@ -384,7 +354,6 @@
                     container.appendChild(btn);
                 });
             };
-
             createButtons('tags-container', tags, 'tag');
             createButtons('organizer-container', organizers, 'organizer');
             createButtons('venue-container', venues, 'venue');
@@ -394,7 +363,7 @@
             const snap = await getDocs(query(collection(db, "events"), orderBy("date")));
             allEvents = snap.docs.map(d => { const data = d.data(); data.id = d.id; return data; });
             renderEvents();
-            loadFeatured();        // ← カルーセル版に変わった！
+            loadFeatured();
             loadNewEvents();
             generateSidebarFilters();
         };
@@ -421,7 +390,6 @@
         document.getElementById('search-input').addEventListener('keypress', e => {
             if (e.key === 'Enter') document.getElementById('search-btn').click();
         });
-
         document.querySelectorAll('input[name="category"]').forEach(r => {
             r.onchange = () => { filters.category = r.value; renderEvents(); };
         });
