@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>イベント一覧 | カルーセル修復版</title>
+    <title>イベント一覧 | 決定版</title>
     <style>
         :root { --primary: #5e35b1; --accent: #ff5252; --bg: #f8f9ff; --text: #333; --gray: #757575; }
         * { box-sizing: border-box; }
@@ -41,7 +41,6 @@
             cursor: pointer; font-weight: bold; white-space: nowrap;
         }
         #search-btn:hover { background: #4527a0; }
-
         #clear-filters-btn {
             width: 100%; padding: 8px; background: #f0f0f0; color: var(--gray); border: none; border-radius: 8px;
             cursor: pointer; font-size: 0.9em; transition: 0.2s; margin-top: 5px;
@@ -57,28 +56,15 @@
         .tag-btn { padding: 8px 16px; background: #eee; border-radius: 20px; font-size: 0.9em; cursor: pointer; transition: 0.2s; }
         .tag-btn.active { background: var(--primary); color: white; }
 
-        /* --- おすすめエリア（カルーセル用CSS修正） --- */
+        /* おすすめカルーセル */
         .featured { margin-bottom: 40px; position: relative; }
-        
-        /* グリッドではなくFlexboxに変更して横並びにする */
         .featured-grid { 
-            display: flex; 
-            gap: 20px; 
-            overflow-x: auto; /* 横スクロール許可 */
-            scroll-behavior: smooth; /* スムーズスクロール */
-            padding-bottom: 15px; /* スクロールバーとの干渉を防ぐ */
-            
-            /* スクロールバーを隠す（モダンブラウザ用） */
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE/Edge */
+            display: flex; gap: 20px; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 15px; 
+            scrollbar-width: none; -ms-overflow-style: none;
         }
-        .featured-grid::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
-
-        /* カードの幅を固定して崩れないようにする */
+        .featured-grid::-webkit-scrollbar { display: none; }
         .featured-card { 
-            flex: 0 0 auto; /* 縮小させない */
-            width: 400px;   /* 固定幅 */
-            max-width: 90%; /* スマホ対応 */
+            flex: 0 0 auto; width: 400px; max-width: 90%; 
             position: relative; background: white; border-radius: 16px; overflow: hidden; 
             box-shadow: 0 15px 30px rgba(0,0,0,0.15); transition: transform 0.3s; 
         }
@@ -87,9 +73,8 @@
         .featured-card .content { padding: 20px; }
         .featured-card h3 { margin: 0 0 10px; color: var(--primary); font-size: 1.4em; }
         .featured-label { position: absolute; top: 15px; left: 15px; background: var(--accent); color: white; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 0.9em; }
-        /* --- ここまでカルーセル修正 --- */
 
-        /* 通常イベントグリッド */
+        /* イベントグリッド */
         .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
         .event-card { position: relative; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.1); transition: all 0.3s; display: flex; flex-direction: column; }
         .event-card:hover { transform: translateY(-8px); }
@@ -101,44 +86,31 @@
         
         .favorite-btn { 
             width: 100%; padding: 12px; border: none; background: #ffd740; color: #333; 
-            font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 1em;
-            border-radius: 0 0 16px 16px; 
+            font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 1em; border-radius: 0 0 16px 16px; 
         }
         .favorite-btn.is-favorite { background: var(--accent); color: white; }
         .favorite-btn:hover { opacity: 0.9; }
 
-        /* 新着リスト */
+        /* 新着・モーダル・その他 */
         .new-events { list-style: none; padding: 0; margin: 0; }
         .new-events li { padding: 12px 0; border-bottom: 1px dashed #eee; }
         .new-events li:last-child { border: none; }
         .new-events a { color: #333; text-decoration: none; transition: color 0.2s; }
         .new-events a:hover { color: var(--primary); }
 
-        /* モーダル */
         .modal { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
         .modal-content { background: white; margin: 8% auto; padding: 40px; border-radius: 20px; width: 90%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalIn 0.4s; position: relative; }
         @keyframes modalIn { from { transform: translateY(-100px); opacity: 0; } to { transform: none; opacity: 1; } }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 32px; color: #aaa; cursor: pointer; }
-        .close-btn:hover { color: #333; }
         .auth-buttons button { width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 50px; color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; transition: opacity 0.2s; }
-        .auth-buttons button:hover { opacity: 0.9; }
-        #google-login-btn { background: #DB4437; }
-        #github-login-btn { background: #333; }
+        #google-login-btn { background: #DB4437; } #github-login-btn { background: #333; }
         #email-signup-btn, #email-login-btn { background: #4CAF50; }
         input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 50px; box-sizing: border-box; font-size: 1em; outline: none; }
         input[type="email"]:focus, input[type="password"]:focus { border-color: var(--primary); }
-
         .loading { grid-column: 1 / -1; text-align: center; padding: 100px 20px; color: #999; }
         .loading svg { width: 48px; height: 48px; }
-
-        @media (max-width: 1100px) {
-            .container { grid-template-columns: 1fr; }
-            .sidebar { order: -1; position: static; }
-        }
-        @media (max-width: 600px) {
-            .header { padding: 15px 20px; flex-direction: column; gap: 15px; text-align: center; }
-            .header h1 { font-size: 1.6em; }
-        }
+        @media (max-width: 1100px) { .container { grid-template-columns: 1fr; } .sidebar { order: -1; position: static; } }
+        @media (max-width: 600px) { .header { padding: 15px 20px; flex-direction: column; gap: 15px; text-align: center; } }
     </style>
 </head>
 <body>
@@ -197,17 +169,14 @@
                 <h3>タグ</h3>
                 <div class="filter-tags" id="tags-container"></div>
             </div>
-
             <div class="filter-group" id="organizer-filter" style="display:none;">
                 <h3>主催者</h3>
                 <div class="filter-tags" id="organizer-container"></div>
             </div>
-
             <div class="filter-group" id="venue-filter" style="display:none;">
                 <h3>会場</h3>
                 <div class="filter-tags" id="venue-container"></div>
             </div>
-
             <div class="filter-group">
                 <h3>新着イベント</h3>
                 <ul class="new-events" id="new-events-list">読み込み中...</ul>
@@ -251,33 +220,21 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- カルーセル制御用ロジック ---
         let carouselInterval;
         const startCarousel = () => {
             const container = document.getElementById('featured-grid');
             if (!container) return;
-
-            // 自動スクロールの実行
             const runScroll = () => {
-                // カード1枚の幅(400px) + gap(20px) = 420px 
-                // ※CSSを変えたらここも調整必要ですが、動的に取得するのがベスト
                 const card = container.querySelector('.featured-card');
                 if (!card) return;
-                
-                const scrollAmount = card.offsetWidth + 20; // 幅 + gap
-                
-                // 現在位置 + 画面幅 >= 全体の幅 (つまり右端にいる)
+                const scrollAmount = card.offsetWidth + 20;
                 if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 10) {
-                    container.scrollTo({ left: 0, behavior: 'smooth' }); // 最初に戻る
+                    container.scrollTo({ left: 0, behavior: 'smooth' });
                 } else {
-                    container.scrollBy({ left: scrollAmount, behavior: 'smooth' }); // 1つ進む
+                    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
                 }
             };
-
-            // 3秒ごとにスクロール
             carouselInterval = setInterval(runScroll, 3000);
-
-            // マウスホバー時は停止、離したら再開
             container.onmouseenter = () => clearInterval(carouselInterval);
             container.onmouseleave = () => {
                 clearInterval(carouselInterval);
@@ -285,7 +242,6 @@
             };
         };
 
-        // --- エラーメッセージ ---
         const getErrorMessage = (code) => {
             switch(code) {
                 case 'auth/invalid-email': return 'メールアドレスの形式が正しくありません。';
@@ -296,7 +252,6 @@
             }
         };
 
-        // --- モーダル ---
         const modal = document.getElementById('login-modal');
         const loginBtn = document.getElementById('login-btn-header');
         const closeBtn = document.querySelector('.close-btn');
@@ -327,7 +282,6 @@
             else alert("メールとパスワードを入力してください");
         };
 
-        // --- イベント表示・検索 ---
         const categoryNames = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
         let filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
 
@@ -336,7 +290,8 @@
             let filtered = allEvents.filter(e => {
                 const matchCat = filters.category === "all" || e.category === filters.category;
                 const keywords = filters.search.toLowerCase().split(/\s+/).filter(k => k);
-                const targetText = [e.name, e.description, e.venue, e.organizer].join(" ").toLowerCase();
+                // 検索は description (本文) も含めてヒットするようにする
+                const targetText = [e.name, e.description, e.summary, e.venue, e.organizer].join(" ").toLowerCase();
                 const matchSearch = keywords.length === 0 || keywords.every(k => targetText.includes(k));
                 const matchTag = !filters.tag || e.tags?.includes(filters.tag);
                 const matchOrg = !filters.organizer || e.organizer === filters.organizer;
@@ -355,6 +310,10 @@
                 const img = ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${ev.name}" loading="lazy">` : `<div style="height:200px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;font-size:0.9em;">画像なし</div>`;
                 const timeStr = ev.startTime ? `${ev.startTime} 〜 ${ev.endTime || ""}` : "終日";
 
+                // 【重要】一覧用の文章選定ロジック
+                // summaryがあればそれを表示、なければdescriptionの冒頭80文字を表示
+                const displayDesc = ev.summary || (ev.description ? ev.description.substring(0, 80) + "..." : "");
+
                 return `
                     <div class="event-card">
                         <a href="detail.html?id=${ev.id}" style="text-decoration:none;color:inherit;display:block;flex:1;">
@@ -363,7 +322,7 @@
                                 ${catLabel}
                                 <h2>${ev.name}</h2>
                                 <div class="meta"><strong>${ev.date}</strong> ${timeStr}</div>
-                                <p>${ev.description?.substring(0,80) || ""}...</p>
+                                <p>${displayDesc}</p>
                             </div>
                         </a>
                         <button class="favorite-btn ${isFav ? 'is-favorite' : ''}" data-id="${ev.id}">
@@ -379,8 +338,7 @@
         };
 
         const executeSearch = () => {
-            const val = document.getElementById('search-input').value.trim();
-            filters.search = val;
+            filters.search = document.getElementById('search-input').value.trim();
             renderEvents();
         };
         document.getElementById('search-btn').onclick = executeSearch;
@@ -418,14 +376,12 @@
             }
         };
 
-        // --- データ読み込み ---
         const loadFeatured = async () => {
             const q = query(collection(db, "events"), where("isFeatured", "==", true));
             const snap = await getDocs(q);
             if (snap.empty) return;
             document.getElementById('featured-section').style.display = "block";
-            const container = document.getElementById('featured-grid');
-            container.innerHTML = snap.docs.map(d => {
+            document.getElementById('featured-grid').innerHTML = snap.docs.map(d => {
                 const e = d.data(); e.id = d.id;
                 const img = e.imageUrl ? `<img src="${e.imageUrl}" alt="${e.name}" loading="lazy">` : `<div style="height:240px;background:#eee;"></div>`;
                 return `<div class="featured-card">
@@ -436,8 +392,6 @@
                     </a>
                 </div>`;
             }).join("");
-            
-            // カルーセル開始
             startCarousel();
         };
 
