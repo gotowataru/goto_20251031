@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>イベント一覧 | 完全版</title>
+    <title>イベント一覧 | カルーセル修復版</title>
     <style>
         :root { --primary: #5e35b1; --accent: #ff5252; --bg: #f8f9ff; --text: #333; --gray: #757575; }
         * { box-sizing: border-box; }
@@ -32,7 +32,6 @@
 
         /* 検索・フィルタ */
         .search-container { display: flex; margin-bottom: 10px; }
-        /* type="search" に変更し、デザインを調整 */
         #search-input {
             flex: 1; padding: 16px; border: 2px solid #ddd; border-right: none; border-radius: 30px 0 0 30px; font-size: 1em; outline: none;
         }
@@ -43,7 +42,6 @@
         }
         #search-btn:hover { background: #4527a0; }
 
-        /* リセットボタン */
         #clear-filters-btn {
             width: 100%; padding: 8px; background: #f0f0f0; color: var(--gray); border: none; border-radius: 8px;
             cursor: pointer; font-size: 0.9em; transition: 0.2s; margin-top: 5px;
@@ -59,17 +57,39 @@
         .tag-btn { padding: 8px 16px; background: #eee; border-radius: 20px; font-size: 0.9em; cursor: pointer; transition: 0.2s; }
         .tag-btn.active { background: var(--primary); color: white; }
 
-        /* おすすめエリア */
-        .featured { margin-bottom: 40px; }
-        .featured-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 20px; }
-        .featured-card { position: relative; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.15); transition: transform 0.3s; }
-        .featured-card:hover { transform: translateY(-10px); }
+        /* --- おすすめエリア（カルーセル用CSS修正） --- */
+        .featured { margin-bottom: 40px; position: relative; }
+        
+        /* グリッドではなくFlexboxに変更して横並びにする */
+        .featured-grid { 
+            display: flex; 
+            gap: 20px; 
+            overflow-x: auto; /* 横スクロール許可 */
+            scroll-behavior: smooth; /* スムーズスクロール */
+            padding-bottom: 15px; /* スクロールバーとの干渉を防ぐ */
+            
+            /* スクロールバーを隠す（モダンブラウザ用） */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        .featured-grid::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
+
+        /* カードの幅を固定して崩れないようにする */
+        .featured-card { 
+            flex: 0 0 auto; /* 縮小させない */
+            width: 400px;   /* 固定幅 */
+            max-width: 90%; /* スマホ対応 */
+            position: relative; background: white; border-radius: 16px; overflow: hidden; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15); transition: transform 0.3s; 
+        }
+        .featured-card:hover { transform: translateY(-5px); }
         .featured-card img { width: 100%; height: 240px; object-fit: cover; }
         .featured-card .content { padding: 20px; }
         .featured-card h3 { margin: 0 0 10px; color: var(--primary); font-size: 1.4em; }
         .featured-label { position: absolute; top: 15px; left: 15px; background: var(--accent); color: white; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 0.9em; }
+        /* --- ここまでカルーセル修正 --- */
 
-        /* イベントグリッド */
+        /* 通常イベントグリッド */
         .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
         .event-card { position: relative; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.1); transition: all 0.3s; display: flex; flex-direction: column; }
         .event-card:hover { transform: translateY(-8px); }
@@ -82,7 +102,6 @@
         .favorite-btn { 
             width: 100%; padding: 12px; border: none; background: #ffd740; color: #333; 
             font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 1em;
-            /* カードの下部に配置するためのスタイル調整 */
             border-radius: 0 0 16px 16px; 
         }
         .favorite-btn.is-favorite { background: var(--accent); color: white; }
@@ -109,7 +128,6 @@
         input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 50px; box-sizing: border-box; font-size: 1em; outline: none; }
         input[type="email"]:focus, input[type="password"]:focus { border-color: var(--primary); }
 
-        /* ローディング */
         .loading { grid-column: 1 / -1; text-align: center; padding: 100px 20px; color: #999; }
         .loading svg { width: 48px; height: 48px; }
 
@@ -233,20 +251,52 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- エラーメッセージの日本語化 ---
+        // --- カルーセル制御用ロジック ---
+        let carouselInterval;
+        const startCarousel = () => {
+            const container = document.getElementById('featured-grid');
+            if (!container) return;
+
+            // 自動スクロールの実行
+            const runScroll = () => {
+                // カード1枚の幅(400px) + gap(20px) = 420px 
+                // ※CSSを変えたらここも調整必要ですが、動的に取得するのがベスト
+                const card = container.querySelector('.featured-card');
+                if (!card) return;
+                
+                const scrollAmount = card.offsetWidth + 20; // 幅 + gap
+                
+                // 現在位置 + 画面幅 >= 全体の幅 (つまり右端にいる)
+                if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 10) {
+                    container.scrollTo({ left: 0, behavior: 'smooth' }); // 最初に戻る
+                } else {
+                    container.scrollBy({ left: scrollAmount, behavior: 'smooth' }); // 1つ進む
+                }
+            };
+
+            // 3秒ごとにスクロール
+            carouselInterval = setInterval(runScroll, 3000);
+
+            // マウスホバー時は停止、離したら再開
+            container.onmouseenter = () => clearInterval(carouselInterval);
+            container.onmouseleave = () => {
+                clearInterval(carouselInterval);
+                carouselInterval = setInterval(runScroll, 3000);
+            };
+        };
+
+        // --- エラーメッセージ ---
         const getErrorMessage = (code) => {
             switch(code) {
                 case 'auth/invalid-email': return 'メールアドレスの形式が正しくありません。';
                 case 'auth/user-not-found': return 'ユーザーが見つかりません。';
                 case 'auth/wrong-password': return 'パスワードが間違っています。';
                 case 'auth/email-already-in-use': return 'このメールアドレスは既に使用されています。';
-                case 'auth/weak-password': return 'パスワードは6文字以上にしてください。';
-                case 'auth/popup-closed-by-user': return 'ログイン画面が閉じられました。';
                 default: return `エラーが発生しました: ${code}`;
             }
         };
 
-        // --- モーダル制御 ---
+        // --- モーダル ---
         const modal = document.getElementById('login-modal');
         const loginBtn = document.getElementById('login-btn-header');
         const closeBtn = document.querySelector('.close-btn');
@@ -258,25 +308,18 @@
         let favoriteEventIds = [];
         let allEvents = [];
 
-        // --- 認証処理 ---
         const googleProvider = new GoogleAuthProvider();
         const githubProvider = new GithubAuthProvider();
-
         const handleAuthError = (e) => alert(getErrorMessage(e.code || e.message));
 
-        document.getElementById('google-login-btn').onclick = () => 
-            signInWithPopup(auth, googleProvider).then(() => modal.style.display = 'none').catch(handleAuthError);
-        
-        document.getElementById('github-login-btn').onclick = () => 
-            signInWithPopup(auth, githubProvider).then(() => modal.style.display = 'none').catch(handleAuthError);
-
+        document.getElementById('google-login-btn').onclick = () => signInWithPopup(auth, googleProvider).then(() => modal.style.display = 'none').catch(handleAuthError);
+        document.getElementById('github-login-btn').onclick = () => signInWithPopup(auth, githubProvider).then(() => modal.style.display = 'none').catch(handleAuthError);
         document.getElementById('email-signup-btn').onclick = () => {
             const email = document.getElementById('email-input').value.trim();
             const pass = document.getElementById('password-input').value;
             if (email && pass.length >= 6) createUserWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(handleAuthError);
             else alert("メールと6文字以上のパスワードを入力してください");
         };
-
         document.getElementById('email-login-btn').onclick = () => {
             const email = document.getElementById('email-input').value.trim();
             const pass = document.getElementById('password-input').value;
@@ -284,7 +327,7 @@
             else alert("メールとパスワードを入力してください");
         };
 
-        // --- フィルタリング & 検索ロジック ---
+        // --- イベント表示・検索 ---
         const categoryNames = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
         let filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
 
@@ -292,11 +335,9 @@
             const grid = document.getElementById('event-grid');
             let filtered = allEvents.filter(e => {
                 const matchCat = filters.category === "all" || e.category === filters.category;
-                // 検索ロジック：空白区切りの複数キーワード対応
                 const keywords = filters.search.toLowerCase().split(/\s+/).filter(k => k);
                 const targetText = [e.name, e.description, e.venue, e.organizer].join(" ").toLowerCase();
                 const matchSearch = keywords.length === 0 || keywords.every(k => targetText.includes(k));
-
                 const matchTag = !filters.tag || e.tags?.includes(filters.tag);
                 const matchOrg = !filters.organizer || e.organizer === filters.organizer;
                 const matchVenue = !filters.venue || e.venue === filters.venue;
@@ -337,71 +378,54 @@
             });
         };
 
-        // --- 検索実行とリセット ---
         const executeSearch = () => {
             const val = document.getElementById('search-input').value.trim();
             filters.search = val;
             renderEvents();
         };
-
-        // ボタンクリックで検索
         document.getElementById('search-btn').onclick = executeSearch;
-        
-        // Enterキーで検索
         document.getElementById('search-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') executeSearch();
         });
-
-        // 条件クリア機能
         document.getElementById('clear-filters-btn').onclick = () => {
             filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
-            
-            // UIリセット
             document.getElementById('search-input').value = "";
             document.querySelector('input[name="category"][value="all"]').checked = true;
             document.querySelectorAll('.tag-btn.active').forEach(b => b.classList.remove('active'));
-            
             renderEvents();
         };
-
-        // カテゴリ変更
         document.querySelectorAll('input[name="category"]').forEach(r => {
             r.onchange = () => { filters.category = r.value; renderEvents(); };
         });
 
-        // --- お気に入り機能（ドキュメント不在エラー対策済み） ---
         const toggleFavorite = async (eventId) => {
             if (!currentUser) { modal.style.display = "block"; return; }
-
             const userRef = doc(db, "users", currentUser.uid);
             const isFav = favoriteEventIds.includes(eventId);
-
             try {
-                // お気に入りボタンの見た目を先行して更新（Optimistic UI）
-                // 失敗したら再描画で元に戻る
                 if (isFav) {
                     await updateDoc(userRef, { favorites: arrayRemove(eventId) });
                     favoriteEventIds = favoriteEventIds.filter(id => id !== eventId);
                 } else {
-                    // setDoc + merge: true を使用することで、ドキュメントが存在しなくても自動作成される
                     await setDoc(userRef, { favorites: arrayUnion(eventId) }, { merge: true });
                     favoriteEventIds.push(eventId);
                 }
                 renderEvents();
             } catch (e) {
                 console.error(e);
-                alert("お気に入り処理に失敗しました: " + e.message);
-                renderEvents(); // エラー時は元の状態に戻すために再描画
+                alert("お気に入り処理に失敗しました");
+                renderEvents();
             }
         };
 
-        // --- データ読み込み系 ---
+        // --- データ読み込み ---
         const loadFeatured = async () => {
             const q = query(collection(db, "events"), where("isFeatured", "==", true));
             const snap = await getDocs(q);
             if (snap.empty) return;
             document.getElementById('featured-section').style.display = "block";
-            document.getElementById('featured-grid').innerHTML = snap.docs.map(d => {
+            const container = document.getElementById('featured-grid');
+            container.innerHTML = snap.docs.map(d => {
                 const e = d.data(); e.id = d.id;
                 const img = e.imageUrl ? `<img src="${e.imageUrl}" alt="${e.name}" loading="lazy">` : `<div style="height:240px;background:#eee;"></div>`;
                 return `<div class="featured-card">
@@ -412,6 +436,9 @@
                     </a>
                 </div>`;
             }).join("");
+            
+            // カルーセル開始
+            startCarousel();
         };
 
         const loadNewEvents = async () => {
@@ -430,7 +457,6 @@
                 if (e.organizer) organizers.add(e.organizer);
                 if (e.venue) venues.add(e.venue);
             });
-
             const createButtons = (containerId, items, type) => {
                 const container = document.getElementById(containerId);
                 if (!container || items.size === 0) return;
@@ -441,34 +467,21 @@
                     btn.className = "tag-btn";
                     btn.textContent = item;
                     btn.onclick = () => {
-                        // 他の同じ種類のタグが押されたら切り替える場合は、一度全部removeする処理を入れるが、
-                        // 今回はトグル（ON/OFF）動作にする
                         const isActive = btn.classList.contains('active');
-                        // 同一カテゴリ内で単一選択にするなら以下を有効化
-                        // container.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-                        
-                        if(isActive) {
-                            btn.classList.remove('active');
-                            filters[type] = "";
-                        } else {
-                            // シンプル化のため、同じタイプは1つだけ選択可能にする
-                            container.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-                            btn.classList.add('active');
-                            filters[type] = item;
-                        }
+                        container.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+                        if(!isActive) { btn.classList.add('active'); filters[type] = item; }
+                        else { filters[type] = ""; }
                         renderEvents();
                     };
                     container.appendChild(btn);
                 });
             };
-
             createButtons('tags-container', tags, 'tag');
             createButtons('organizer-container', organizers, 'organizer');
             createButtons('venue-container', venues, 'venue');
         };
 
         const loadAllEvents = async () => {
-            // 日付順で取得
             const snap = await getDocs(query(collection(db, "events"), orderBy("date")));
             allEvents = snap.docs.map(d => { const data = d.data(); data.id = d.id; return data; });
             renderEvents();
@@ -477,20 +490,13 @@
             generateSidebarFilters();
         };
 
-        // --- ログイン状態監視 ---
         onAuthStateChanged(auth, async user => {
             currentUser = user;
             if (user) {
                 loginBtn.textContent = `${user.displayName || user.email.split('@')[0]} さん`;
-                loginBtn.onclick = () => location.href = 'mypage.html'; // ここは別途マイページ作成が必要
-                
+                loginBtn.onclick = () => location.href = 'mypage.html';
                 const snap = await getDoc(doc(db, 'users', user.uid));
-                // 新規ユーザーでドキュメントがない場合も想定して安全に取得
-                if (snap.exists()) {
-                    favoriteEventIds = snap.data().favorites || [];
-                } else {
-                    favoriteEventIds = [];
-                }
+                favoriteEventIds = snap.exists() ? snap.data().favorites || [] : [];
             } else {
                 loginBtn.textContent = 'ログイン / サインアップ';
                 loginBtn.onclick = () => modal.style.display = 'block';
@@ -499,9 +505,7 @@
             renderEvents();
         });
 
-        // 初期読み込み開始
         loadAllEvents();
-
     </script>
 </body>
 </html>
