@@ -38,7 +38,7 @@
         .tag-btn { padding: 6px 14px; background: #eee; border-radius: 20px; font-size: 0.85em; cursor: pointer; transition: 0.2s; }
         .tag-btn.active { background: var(--primary); color: white; }
 
-        /* おすすめカルーセル (前回の修正を保持) */
+        /* おすすめカルーセル */
         .featured { margin-bottom: 40px; }
         .featured h2 { color: var(--primary); font-size: 2em; margin-bottom: 20px; text-align: center; }
         .carousel-container { 
@@ -102,19 +102,32 @@
         input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 50px; box-sizing: border-box; font-size: 1em; }
 
         /* --- レスポンシブ対応 (ブレークポイント) --- */
+
+        /* 1280px以下: サイドバーの幅を狭め、狭い画面でも2列を維持できるようにする */
+        @media (max-width: 1280px) {
+            .container {
+                /* サイドバーの幅を 340px から 280px に縮小 */
+                grid-template-columns: 1fr 280px;
+                gap: 20px;
+            }
+            .main, .sidebar { padding: 20px; }
+            .event-grid {
+                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+                gap: 20px;
+            }
+        }
         
-        /* 1000px以下: サイドバーを上部に移動し、イベントグリッドの列数を自動調整 */
+        /* 1000px以下: サイドバーを上部に移動し、完全に1列表示に切り替える */
         @media (max-width: 1000px) { 
             .header { padding: 15px 20px; }
             .container { 
-                grid-template-columns: 1fr; 
+                grid-template-columns: 1fr; /* 1列に */
                 gap: 20px; 
             } 
             .sidebar { 
                 order: -1; 
                 position: static; 
             }
-            .main, .sidebar { padding: 20px; }
 
             /* イベントグリッドを画面幅に合わせて調整 */
             .event-grid {
