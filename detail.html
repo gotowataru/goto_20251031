@@ -9,7 +9,6 @@
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-        /* ヘッダー（index.htmlと共通） */
         .header { 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; 
@@ -23,58 +22,42 @@
         }
         #login-btn-header:hover { background: white; color: #5e35b1; }
 
-        /* 詳細コンテナ */
         .container { max-width: 900px; margin: 40px auto; padding: 40px; background: white; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        
         .event-header { text-align: center; margin-bottom: 30px; }
         .event-header h1 { color: var(--primary); font-size: 2.4em; margin: 0 0 15px; }
         .category-badge { background: #eee; padding: 6px 14px; border-radius: 20px; font-size: 0.9em; color: #555; display: inline-block; margin-bottom: 15px; }
-
         .detail-image { width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-bottom: 30px; }
-
-        /* 情報テーブルライクな表示 */
         .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .info-item { background: #f8f9fa; padding: 20px; border-radius: 12px; border-left: 5px solid var(--primary); }
         .info-item h3 { margin: 0 0 8px; font-size: 0.9em; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
         .info-item p { margin: 0; font-size: 1.1em; font-weight: bold; color: var(--text); }
-
         .tags-area { margin: 20px 0; }
         .tag-chip { display: inline-block; background: #e3f2fd; color: #1565c0; padding: 6px 12px; border-radius: 6px; margin-right: 8px; font-size: 0.9em; }
+        .description { line-height: 1.9; font-size: 1.1em; color: #444; margin: 30px 0; white-space: pre-wrap; overflow-wrap: break-word; }
 
-        .description { line-height: 1.8; font-size: 1.1em; color: #444; margin: 30px 0; white-space: pre-wrap; }
+        .gallery-section { margin-top: 50px; border-top: 1px solid #eee; padding-top: 30px; }
+        .gallery-title { font-size: 1.5em; color: var(--primary); margin-bottom: 20px; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .gallery-item { display: block; overflow: hidden; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s; text-decoration: none; position: relative; }
+        .gallery-item:hover { transform: scale(1.02); }
+        .gallery-item img { width: 100%; height: 180px; object-fit: cover; display: block; }
+        .gallery-item::after { content: '拡大'; position: absolute; bottom: 0; right: 0; background: rgba(0,0,0,0.6); color: white; padding: 4px 10px; font-size: 0.8em; border-radius: 10px 0 0 0; }
 
-        /* アクションボタンエリア */
         .action-area { text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #eee; }
-
-        /* お気に入りボタン（アニメーション付き） */
-        #detail-favorite-btn {
-            padding: 16px 40px; font-size: 1.1em; font-weight: bold;
-            border: none; border-radius: 50px; cursor: pointer; transition: all 0.3s ease;
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1); display: inline-flex; align-items: center; gap: 10px;
-        }
+        #detail-favorite-btn { padding: 16px 40px; font-size: 1.1em; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 15px rgba(0,0,0,0.1); display: inline-flex; align-items: center; gap: 10px; }
         #detail-favorite-btn:not(.is-favorite) { background: #ffd740; color: #333; }
         #detail-favorite-btn.is-favorite { background: var(--accent); color: white; animation: pulse 0.5s; }
         #detail-favorite-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 20px rgba(0,0,0,0.2); }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         .back-link { display: block; margin-top: 20px; color: var(--primary); text-decoration: none; font-weight: bold; }
         .back-link:hover { text-decoration: underline; }
 
-        /* モーダル（index.htmlと同一） */
         .modal { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
         .modal-content { background: white; margin: 8% auto; padding: 40px; border-radius: 20px; width: 90%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalIn 0.4s; position: relative; }
         @keyframes modalIn { from { transform: translateY(-100px); opacity: 0; } to { transform: none; opacity: 1; } }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 32px; color: #aaa; cursor: pointer; }
-        .close-btn:hover { color: #333; }
         .auth-buttons button { width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 50px; color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; transition: opacity 0.2s; }
-        .auth-buttons button:hover { opacity: 0.9; }
-        #google-login-btn { background: #DB4437; }
-        #github-login-btn { background: #333; }
+        #google-login-btn { background: #DB4437; } #github-login-btn { background: #333; }
         #email-signup-btn, #email-login-btn { background: #4CAF50; }
         input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 50px; box-sizing: border-box; font-size: 1em; outline: none; }
         input[type="email"]:focus, input[type="password"]:focus { border-color: var(--primary); }
@@ -118,7 +101,6 @@
     </div>
 
     <script type="module">
-        // index.htmlと同じv10系SDKを使用
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -139,7 +121,6 @@
         const container = document.getElementById('event-detail-container');
         const pageTitle = document.getElementById('page-title');
 
-        // --- エラーメッセージ ---
         const getErrorMessage = (code) => {
             switch(code) {
                 case 'auth/invalid-email': return 'メールアドレスの形式が正しくありません。';
@@ -150,7 +131,6 @@
             }
         };
 
-        // --- モーダル制御 ---
         const modal = document.getElementById('login-modal');
         const loginBtn = document.getElementById('login-btn-header');
         const closeBtn = document.querySelector('.close-btn');
@@ -158,7 +138,6 @@
         closeBtn.onclick = () => modal.style.display = 'none';
         window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
 
-        // --- 認証ロジック ---
         const googleProvider = new GoogleAuthProvider();
         const githubProvider = new GithubAuthProvider();
         const handleAuthError = (e) => alert(getErrorMessage(e.code || e.message));
@@ -183,13 +162,11 @@
         let eventId = null;
         const categoryNames = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
 
-        // ログイン状態の変化を監視
         onAuthStateChanged(auth, async user => {
             currentUser = user;
             if (user) {
                 loginBtn.textContent = `${user.displayName || user.email.split('@')[0]} さん`;
                 loginBtn.onclick = () => location.href = 'mypage.html';
-                // ログインしたらお気に入り状態を再取得してボタンを更新
                 if(eventId) await checkFavoriteStatus();
             } else {
                 loginBtn.textContent = 'ログイン / サインアップ';
@@ -199,7 +176,6 @@
             }
         });
 
-        // お気に入り状態の確認
         const checkFavoriteStatus = async () => {
             if (!currentUser || !eventId) return;
             try {
@@ -207,18 +183,14 @@
                 if (snap.exists()) {
                     const favs = snap.data().favorites || [];
                     isFavorite = favs.includes(eventId);
-                } else {
-                    isFavorite = false;
-                }
+                } else { isFavorite = false; }
                 updateFavoriteButton();
             } catch (e) { console.error(e); }
         };
 
-        // ボタンの見た目を更新
         const updateFavoriteButton = () => {
             const btn = document.getElementById('detail-favorite-btn');
             if(!btn) return;
-            
             if (isFavorite) {
                 btn.classList.add('is-favorite');
                 btn.innerHTML = '<span>❤️</span> お気に入り解除';
@@ -228,35 +200,20 @@
             }
         };
 
-        // お気に入りトグル処理（index.htmlと同じ安全設計）
         const toggleFavorite = async () => {
-            if (!currentUser) {
-                modal.style.display = 'block'; // ログインモーダルを開く
-                return;
-            }
-
+            if (!currentUser) { modal.style.display = 'block'; return; }
             const userRef = doc(db, 'users', currentUser.uid);
-            // Optimistic UI: 先に見た目を変える
             isFavorite = !isFavorite;
             updateFavoriteButton();
-
             try {
-                if (!isFavorite) { // 解除操作（反転済みなので !isFavorite が解除）
-                    await updateDoc(userRef, { favorites: arrayRemove(eventId) });
-                } else { // 追加操作
-                    // setDoc merge:true で新規ユーザー対策
-                    await setDoc(userRef, { favorites: arrayUnion(eventId) }, { merge: true });
-                }
+                if (!isFavorite) { await updateDoc(userRef, { favorites: arrayRemove(eventId) }); }
+                else { await setDoc(userRef, { favorites: arrayUnion(eventId) }, { merge: true }); }
             } catch (e) { 
-                console.error(e);
-                alert('処理に失敗しました');
-                // 失敗したら戻す
-                isFavorite = !isFavorite;
-                updateFavoriteButton();
+                console.error(e); alert('処理に失敗しました');
+                isFavorite = !isFavorite; updateFavoriteButton();
             }
         };
 
-        // 詳細データの読み込み
         const loadEventDetail = async () => {
             eventId = new URLSearchParams(location.search).get('id');
             if (!eventId) { container.innerHTML = '<p style="text-align:center;color:red;">イベントIDが指定されていません</p>'; return; }
@@ -270,13 +227,26 @@
                 const imgHtml = data.imageUrl 
                     ? `<img src="${data.imageUrl}" class="detail-image" alt="${data.name}">` 
                     : `<div style="height:300px;background:#eee;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#999;margin-bottom:30px;">画像なし</div>`;
-
                 const catLabel = categoryNames[data.category] || data.category || "未分類";
                 
-                // タグ生成
                 let tagsHtml = '';
                 if (data.tags && Array.isArray(data.tags) && data.tags.length > 0) {
                     tagsHtml = `<div class="tags-area">${data.tags.map(t => `<span class="tag-chip">#${t}</span>`).join('')}</div>`;
+                }
+
+                let galleryHtml = '';
+                if (data.subImages && Array.isArray(data.subImages) && data.subImages.length > 0) {
+                    const items = data.subImages.map(url => `
+                        <a href="${url}" target="_blank" class="gallery-item">
+                            <img src="${url}" alt="詳細画像" loading="lazy">
+                        </a>
+                    `).join('');
+                    galleryHtml = `
+                        <div class="gallery-section">
+                            <h3 class="gallery-title">ギャラリー・関連情報</h3>
+                            <div class="gallery-grid">${items}</div>
+                        </div>
+                    `;
                 }
 
                 container.innerHTML = `
@@ -309,12 +279,12 @@
                     ${tagsHtml}
 
                     <h2>イベント概要</h2>
-                    <div class="description">${data.description}</div>
+                    <div class="description">${data.description || "詳細情報はありません。"}</div>
+
+                    ${galleryHtml}
 
                     <div class="action-area">
-                        <button id="detail-favorite-btn">
-                            <span>⭐</span> お気に入りに追加
-                        </button>
+                        <button id="detail-favorite-btn"><span>⭐</span> お気に入りに追加</button>
                         <br>
                         <a href="index.html" class="back-link">← イベント一覧に戻る</a>
                     </div>
@@ -322,8 +292,6 @@
 
                 pageTitle.textContent = `${data.name} | イベント詳細`;
                 document.getElementById('detail-favorite-btn').addEventListener('click', toggleFavorite);
-                
-                // 初期ロード時にお気に入りチェック
                 if(currentUser) await checkFavoriteStatus();
 
             } catch (e) {
