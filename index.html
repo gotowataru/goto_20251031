@@ -5,8 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>イベント一覧 | お気に入り機能付き</title>
     <style>
+        /* --- 最終的な横スクロール回避策 --- */
+        html, body {
+            overflow-x: hidden;
+        }
+        /* --------------------------------- */
+
         :root { --primary: #5e35b1; --accent: #ff5252; --bg: #f8f9ff; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #333; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0; 
+            background: var(--bg); 
+            color: #333; 
+        }
         .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 10; }
         .header h1 { margin: 0; font-size: 2em; }
         #login-btn-header { padding: 12px 28px; background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.4); border-radius: 50px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s; }
@@ -27,14 +38,13 @@
         .tag-btn { padding: 6px 14px; background: #eee; border-radius: 20px; font-size: 0.85em; cursor: pointer; transition: 0.2s; }
         .tag-btn.active { background: var(--primary); color: white; }
 
-        /* おすすめカルーセル (修正箇所) */
+        /* おすすめカルーセル (前回の修正を保持) */
         .featured { margin-bottom: 40px; }
         .featured h2 { color: var(--primary); font-size: 2em; margin-bottom: 20px; text-align: center; }
         .carousel-container { 
             overflow: hidden; 
             border-radius: 20px; 
             box-shadow: 0 15px 35px rgba(0,0,0,0.15); 
-            /* 親要素の padding を活用し、左右にはみ出さないようにパディングを追加 */
             padding: 0 12px; 
         }
         .carousel-wrapper {
@@ -44,7 +54,6 @@
         .featured-card {
             flex: 0 0 380px;
             min-width: 380px;
-            /* 修正: marginを削除し、カード間のスペースをpaddingで管理 */
             margin: 0; 
             padding: 0 12px; 
             position: relative;
@@ -54,7 +63,7 @@
             box-shadow: 0 15px 30px rgba(0,0,0,0.15);
             transition: transform 0.4s ease;
         }
-        .featured-card:hover { transform: translateY(-12px) scale(1.02); }
+        .featured-card:hover { transform: translateY(-8px) scale(1.01); }
         .featured-card img { width: 100%; height: 240px; object-fit: cover; }
         .featured-card .content { padding: 20px; }
         .featured-card h3 { margin: 0 0 10px; color: var(--primary); font-size: 1.4em; }
@@ -130,7 +139,6 @@
             .featured-card {
                 flex: 0 0 calc(100vw - 40px);
                 min-width: calc(100vw - 40px);
-                /* margin: 0; padding: 0 12px; はそのまま */
             }
             .featured-card img { height: 200px; }
             
