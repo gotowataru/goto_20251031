@@ -12,49 +12,24 @@
         #login-btn-header { padding: 12px 28px; background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.4); border-radius: 50px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s; }
         #login-btn-header:hover { background: white; color: #5e35b1; }
 
-        .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 360px; gap: 30px; }
+        .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 340px; gap: 30px; }
         .main, .sidebar { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .sidebar { height: fit-content; position: sticky; top: 20px; }
 
-        /* ★★★★★ 検索バー完全対策＋美しく大きく ★★★★★ */
-        .search-container {
-            display: flex;
-            margin-bottom: 24px;
-            height: 56px;                    /* 高さを固定してボタンが潰れないように */
-        }
+        .search-container { display: flex; margin-bottom: 20px; }
         #search-input {
-            flex: 1;
-            padding: 0 24px;                 /* 左右ゆったり */
-            font-size: 1.15em;               /* 文字大きめで見やすい */
-            border: 2.5px solid #ddd;
-            border-right: none;
-            border-radius: 30px 0 0 30px;
-            outline: none;
-            /* ブラウザの自動入力を100％阻止する最強対策 */
+            flex: 1; padding: 14px; border: 2px solid #ddd; border-right: none; border-radius: 30px 0 0 30px; font-size: 1em;
             autocomplete: off;
-            -webkit-autocomplete: off;
-            name="q-search-random-12345";
-            data-form-type="other";
-            -webkit-appearance: none;
-            appearance: none;
         }
         #search-btn {
-            width: 110px;                    /* ボタン幅を固定 → 文字が縦にならない！ */
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 0 30px 30px 0;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
+            padding: 0 22px; background: var(--primary); color: white; border: none; border-radius: 0 30px 30px 0; cursor: pointer; font-size: 1.1em;
         }
         #search-btn:hover { background: #4527a0; }
 
         .filter-group { margin-bottom: 25px; }
         .filter-group h3 { margin: 0 0 12px; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; }
         .filter-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .tag-btn { padding: 7px 15px; background: #eee; border-radius: 20px; font-size: 0.9em; cursor: pointer; transition: 0.2s; }
+        .tag-btn { padding: 6px 14px; background: #eee; border-radius: 20px; font-size: 0.85em; cursor: pointer; transition: 0.2s; }
         .tag-btn.active { background: var(--primary); color: white; }
 
         .featured { margin-bottom: 40px; }
@@ -117,14 +92,11 @@
             <div class="filter-group">
                 <h3>検索</h3>
                 <div class="search-container">
-                    <!-- 最強の自動入力防止対策完了 -->
-                    <input type="text" id="search-input" placeholder="キーワードで検索..."
-                           autocomplete="off" name="q-search-random-12345" data-form-type="other">
+                    <input type="text" id="search-input" placeholder="キーワードで検索..." autocomplete="off">
                     <button id="search-btn">検索</button>
                 </div>
             </div>
 
-            <!-- 以下は前と同じ（カテゴリ・タグ・主催者・会場・新着） -->
             <div class="filter-group">
                 <h3>カテゴリ</h3>
                 <label><input type="radio" name="category" value="all" checked> すべて</label>
@@ -137,9 +109,20 @@
                 <label><input type="radio" name="category" value="exhibition"> 展示・芸術</label>
             </div>
 
-            <div class="filter-group" id="tags-filter" style="display:none;"><h3>タグ</h3><div class="filter-tags" id="tags-container"></div></div>
-            <div class="filter-group" id="organizer-filter" style="display:none;"><h3>主催者</h3><div class="filter-tags" id="organizer-container"></div></div>
-            <div class="filter-group" id="venue-filter" style="display:none;"><h3>会場</h3><div class="filter-tags" id="venue-container"></div></div>
+            <div class="filter-group" id="tags-filter" style="display:none;">
+                <h3>タグ</h3>
+                <div class="filter-tags" id="tags-container"></div>
+            </div>
+
+            <div class="filter-group" id="organizer-filter" style="display:none;">
+                <h3>主催者</h3>
+                <div class="filter-tags" id="organizer-container"></div>
+            </div>
+
+            <div class="filter-group" id="venue-filter" style="display:none;">
+                <h3>会場</h3>
+                <div class="filter-tags" id="venue-container"></div>
+            </div>
 
             <div class="filter-group">
                 <h3>新着イベント</h3>
@@ -148,14 +131,233 @@
         </aside>
     </div>
 
-    <!-- ログインモーダル（省略せず全部入ってます） -->
-    <div id="login-modal" class="modal">......（前と同じ内容）</div>
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">×</span>
+            <h2 style="text-align:center; color:var(--primary); margin-bottom:30px;">ログイン / サインアップ</h2>
+            <div class="auth-buttons">
+                <button id="google-login-btn">Googleでログイン</button>
+                <button id="github-login-btn">GitHubでログイン</button>
+            </div>
+            <hr style="margin:30px 0;">
+            <input type="email" id="email-input" placeholder="メールアドレス">
+            <input type="password" id="password-input" placeholder="パスワード（6文字以上）">
+            <div class="auth-buttons">
+                <button id="email-signup-btn">アカウント作成</button>
+                <button id="email-login-btn">ログイン</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- スクリプトは前回と同じ完全版（loadAllEventsあり・フィルタ生成あり） -->
     <script type="module">
-        // ← ここだけ前回の完全版スクリプト（loadAllEventsあり）をそのまま貼り付け
-        // （文字数節約のため省略しますが、前回の「loadAllEvents = async () => {...}」が全部入ったものと同じです！）
-        // 必要ならまた貼りますね！
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
+            authDomain: "goto6234.firebaseapp.com",
+            projectId: "goto6234",
+            storageBucket: "goto6234.firebasestorage.app",
+            messagingSenderId: "730149609843",
+            appId: "1:730149609843:web:d11237de52723fc45b2506"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const modal = document.getElementById('login-modal');
+        const loginBtn = document.getElementById('login-btn-header');
+        const closeBtn = document.querySelector('.close-btn');
+        loginBtn.onclick = () => { if (!currentUser) modal.style.display = 'block'; };
+        closeBtn.onclick = () => modal.style.display = 'none';
+        window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+
+        let currentUser = null;
+        let favoriteEventIds = [];
+        let allEvents = [];
+
+        const googleProvider = new GoogleAuthProvider();
+        const githubProvider = new GithubAuthProvider();
+
+        document.getElementById('google-login-btn').onclick = () => signInWithPopup(auth, googleProvider).then(() => modal.style.display = 'none').catch(e => alert(e.message));
+        document.getElementById('github-login-btn').onclick = () => signInWithPopup(auth, githubProvider).then(() => modal.style.display = 'none').catch(e => alert(e.message));
+        document.getElementById('email-signup-btn').onclick = () => {
+            const email = document.getElementById('email-input').value;
+            const pass = document.getElementById('password-input').value;
+            if (email && pass.length >= 6) createUserWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(e => alert(e.message));
+        };
+        document.getElementById('email-login-btn').onclick = () => {
+            const email = document.getElementById('email-input').value;
+            const pass = document.getElementById('password-input').value;
+            if (email && pass) signInWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(e => alert(e.message));
+        };
+
+        const categoryNames = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
+
+        let filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
+
+        const renderEvents = () => {
+            const grid = document.getElementById('event-grid');
+            let filtered = allEvents.filter(e => {
+                const matchCat = filters.category === "all" || e.category === filters.category;
+                const matchSearch = !filters.search || [e.name, e.description, e.venue, e.organizer].some(f => f?.toLowerCase().includes(filters.search.toLowerCase()));
+                const matchTag = !filters.tag || e.tags?.includes(filters.tag);
+                const matchOrg = !filters.organizer || e.organizer === filters.organizer;
+                const matchVenue = !filters.venue || e.venue === filters.venue;
+                return matchCat && matchSearch && matchTag && matchOrg && matchVenue;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = "<p style='grid-column:1/-1;text-align:center;padding:80px;color:#999;font-size:1.3em;'>該当するイベントがありません</p>";
+                return;
+            }
+
+            grid.innerHTML = filtered.map(ev => {
+                const isFav = favoriteEventIds.includes(ev.id);
+                const catLabel = ev.category ? `<span class="category-tag">${categoryNames[ev.category] || ev.category}</span>` : "";
+                const img = ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${ev.name}">` : `<div style="height:200px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;">画像なし</div>`;
+                const timeStr = ev.startTime ? `${ev.startTime} 〜 ${ev.endTime || ""}` : "終日";
+
+                return `
+                    <div class="event-card">
+                        <a href="detail.html?id=${ev.id}" style="text-decoration:none;color:inherit;">
+                            ${img}
+                            <div class="content">
+                                ${catLabel}
+                                <h2>${ev.name}</h2>
+                                <div class="meta"><strong>${ev.date}</strong> ${timeStr}</div>
+                                <p>${ev.description.substring(0,80)}...</p>
+                            </div>
+                        </a>
+                        <button class="favorite-btn ${isFav ? 'is-favorite' : ''}" data-id="${ev.id}">
+                            ${isFav ? 'お気に入り解除' : 'お気に入りに追加'}
+                        </button>
+                    </div>
+                `;
+            }).join("");
+
+            document.querySelectorAll('.favorite-btn').forEach(btn => {
+                btn.onclick = e => { e.preventDefault(); e.stopPropagation(); toggleFavorite(btn.dataset.id); };
+            });
+        };
+
+        const toggleFavorite = async (eventId) => {
+            if (!currentUser) { modal.style.display = "block"; return; }
+            const userRef = doc(db, "users", currentUser.uid);
+            const isFav = favoriteEventIds.includes(eventId);
+            try {
+                if (isFav) {
+                    await updateDoc(userRef, { favorites: arrayRemove(eventId) });
+                    favoriteEventIds = favoriteEventIds.filter(id => id !== eventId);
+                } else {
+                    await updateDoc(userRef, { favorites: arrayUnion(eventId) });
+                    const snap = await getDoc(userRef);
+                    if (!snap.exists()) await setDoc(userRef, { favorites: [eventId] });
+                    favoriteEventIds.push(eventId);
+                }
+                renderEvents();
+            } catch (e) { alert("お気に入り処理に失敗しました"); }
+        };
+
+        const loadFeatured = async () => {
+            const q = query(collection(db, "events"), where("isFeatured", "==", true));
+            const snap = await getDocs(q);
+            if (snap.empty) return;
+            document.getElementById('featured-section').style.display = "block";
+            document.getElementById('featured-grid').innerHTML = snap.docs.map(d => {
+                const e = d.data(); e.id = d.id;
+                const img = e.imageUrl ? `<img src="${e.imageUrl}" alt="${e.name}">` : `<div style="height:240px;background:#eee;"></div>`;
+                return `<div class="featured-card" style="position:relative;">
+                    <span class="featured-label">おすすめ</span>
+                    <a href="detail.html?id=${e.id}" style="text-decoration:none;color:inherit;">
+                        ${img}
+                        <div class="content"><h3>${e.name}</h3><p><strong>${e.date}</strong> ${e.venue || ""}</p></div>
+                    </a>
+                </div>`;
+            }).join("");
+        };
+
+        const loadNewEvents = async () => {
+            const q = query(collection(db, "events"), orderBy("createdAt", "desc"), limit(5));
+            const snap = await getDocs(q);
+            document.getElementById('new-events-list').innerHTML = snap.docs.map(d => {
+                const e = d.data();
+                return `<li><a href="detail.html?id=${d.id}" style="color:#333;text-decoration:none;">${e.name}</a><br><small>${e.date}</small></li>`;
+            }).join("");
+        };
+
+        const generateSidebarFilters = () => {
+            const tags = new Set(), organizers = new Set(), venues = new Set();
+            allEvents.forEach(e => {
+                if (Array.isArray(e.tags)) e.tags.forEach(t => tags.add(t));
+                if (e.organizer) organizers.add(e.organizer);
+                if (e.venue) venues.add(e.venue);
+            });
+
+            const createButtons = (containerId, items, type) => {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                container.innerHTML = "";
+                if (items.size === 0) return;
+                document.getElementById(containerId.replace('-container', '-filter')).style.display = "block";
+                items.forEach(item => {
+                    const btn = document.createElement('span');
+                    btn.className = "tag-btn";
+                    btn.textContent = item;
+                    btn.onclick = () => {
+                        btn.classList.toggle('active');
+                        filters[type] = btn.classList.contains('active') ? item : "";
+                        renderEvents();
+                    };
+                    container.appendChild(btn);
+                });
+            };
+
+            createButtons('tags-container', tags, 'tag');
+            createButtons('organizer-container', organizers, 'organizer');
+            createButtons('venue-container', venues, 'venue');
+        };
+
+        const loadAllEvents = async () => {
+            const snap = await getDocs(query(collection(db, "events"), orderBy("date")));
+            allEvents = snap.docs.map(d => { const data = d.data(); data.id = d.id; return data; });
+            renderEvents();
+            loadFeatured();
+            loadNewEvents();
+            generateSidebarFilters();   // ← ここで動的フィルタ生成！
+        };
+
+        onAuthStateChanged(auth, async user => {
+            currentUser = user;
+            if (user) {
+                loginBtn.textContent = `${user.displayName || user.email.split('@')[0]} さん`;
+                loginBtn.onclick = () => location.href = 'mypage.html';
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                favoriteEventIds = snap.exists() ? snap.data().favorites || [] : [];
+            } else {
+                loginBtn.textContent = 'ログイン / サインアップ';
+                loginBtn.onclick = () => modal.style.display = 'block';
+                favoriteEventIds = [];
+            }
+            renderEvents();
+        });
+
+        document.getElementById('search-btn').onclick = () => {
+            filters.search = document.getElementById('search-input').value.trim();
+            renderEvents();
+        };
+        document.getElementById('search-input').addEventListener('keypress', e => {
+            if (e.key === 'Enter') document.getElementById('search-btn').click();
+        });
+
+        document.querySelectorAll('input[name="category"]').forEach(r => {
+            r.onchange = () => { filters.category = r.value; renderEvents(); };
+        });
+
+        // 初期化
+        loadAllEvents();
     </script>
 </body>
 </html>
