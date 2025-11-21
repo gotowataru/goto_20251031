@@ -302,7 +302,7 @@
             grid.innerHTML = filtered.map(ev => {
                 const isFav = favoriteEventIds.includes(ev.id);
                 const c = ev.category ? `<span class="category-tag">${categoryNames[ev.category] || ev.category}</span>` : "";
-                const img = ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${e.name}">` : `<div style="height:200px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;">画像なし</div>`;
+                const img = ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${ev.name}">` : `<div style="height:200px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;">画像なし</div>`;
                 const time = ev.startTime ? `${ev.startTime} 〜 ${ev.endTime || ""}` : "終日";
 
                 return `
