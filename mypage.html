@@ -5,42 +5,78 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>マイページ</title>
     <style>
+        /* 基本スタイルは維持しつつ、編集機能用のスタイルを追加 */
+        :root { --primary: #5e35b1; --accent: #ff5252; --success: #43a047; --info: #4285F4; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 30px 0; }
         .container { max-width: 1000px; margin: 0 auto; background: rgba(255,255,255,0.95); padding: 40px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
-        h1 { color: #5e35b1; text-align: center; font-size: 2.8em; margin-bottom: 10px; }
-        #user-info { background: #e8f5e8; padding: 20px; border-radius: 12px; border-left: 6px solid #43a047; margin-bottom: 30px; }
-        #logout-btn { background: #ff5252; color: white; padding: 15px 30px; border: none; border-radius: 50px; font-size: 1.1em; cursor: pointer; width: 100%; margin-top: 30px; box-shadow: 0 8px 20px rgba(255,82,82,0.4); transition: all 0.3s; }
+        h1 { color: var(--primary); text-align: center; font-size: 2.8em; margin-bottom: 10px; }
+
+        /* ユーザー情報エリアの調整 */
+        #user-info { background: #e8f5e8; padding: 20px; border-radius: 12px; border-left: 6px solid var(--success); margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        #user-info-text { flex: 1; }
+        #user-info button { background: var(--info); color: white; padding: 8px 15px; border: none; border-radius: 20px; cursor: pointer; transition: background 0.2s; }
+        #user-info button:hover { background: #3367d6; }
+        
+        #logout-btn { background: var(--accent); color: white; padding: 15px 30px; border: none; border-radius: 50px; font-size: 1.1em; cursor: pointer; width: 100%; margin-top: 30px; box-shadow: 0 8px 20px rgba(255,82,82,0.4); transition: all 0.3s; }
         #logout-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(255,82,82,0.5); }
 
-        .favorites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; margin-top: 30px; }
+        /* お気に入りカードスタイル */
+        .favorites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 30px; }
         .fav-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: transform 0.3s; position: relative; }
         .fav-card:hover { transform: translateY(-8px); }
         .fav-card img { width: 100%; height: 180px; object-fit: cover; }
         .fav-content { padding: 20px; }
-        .fav-title { font-size: 1.3em; margin: 0 0 10px; color: #5e35b1; }
-        .remove-btn { position: absolute; top: 12px; right: 12px; background: #ff5252; color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .calendar-btn { display: inline-block; margin-top: 10px; padding: 10px 16px; background: #4285F4; color: white; text-decoration: none; border-radius: 30px; font-weight: bold; }
+        .fav-content a { text-decoration: none; color: inherit; } /* リンクをカード内に含む */
+        .fav-title { font-size: 1.3em; margin: 0 0 10px; color: var(--primary); }
+        
+        .remove-btn { position: absolute; top: 12px; right: 12px; background: var(--accent); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 10; }
+        .remove-btn:hover { background: #e64a19; }
+
+        .calendar-btn { display: inline-block; margin-top: 10px; padding: 10px 16px; background: var(--info); color: white; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 0.9em; }
         .calendar-btn:hover { background: #3367d6; }
+
+        /* モーダル (ユーザー名編集用) */
+        .modal { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); }
+        .modal-content { background: white; margin: 15% auto; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative; }
+        .modal-content h3 { color: var(--primary); }
+        .modal-content input { width: 100%; padding: 10px; margin: 10px 0 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .modal-content button { padding: 10px 20px; background: var(--success); color: white; border: none; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>マイページ</h1>
-        <div id="user-info">読み込み中...</div>
+        
+        <div id="user-info">
+            <div id="user-info-text">読み込み中...</div>
+            <button id="edit-profile-btn">プロフィール編集</button>
+        </div>
 
-        <h2 style="color:#5e35b1; border-bottom:3px solid #ddd; padding-bottom:10px;">お気に入りイベント</h2>
-        <div id="favorites-list" class="favorites-grid"></div>
+        <h2 style="color:var(--primary); border-bottom:3px solid #ddd; padding-bottom:10px;">お気に入りイベント</h2>
+        <div id="favorites-list" class="favorites-grid">
+             <p style="grid-column:1/-1; text-align:center; color:#777;">読み込み中...</p>
+        </div>
 
         <button id="logout-btn">ログアウト</button>
-        <p style="text-align:center; margin-top:20px;"><a href="index.html" style="color:#5e35b1; font-weight:bold;">イベント一覧に戻る</a></p>
+        <p style="text-align:center; margin-top:20px;"><a href="index.html" style="color:var(--primary); font-weight:bold;">イベント一覧に戻る</a></p>
+    </div>
+
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <h3>表示名の変更</h3>
+            <label for="new-display-name">新しい表示名</label>
+            <input type="text" id="new-display-name" placeholder="新しい名前を入力">
+            <button id="save-profile-btn">保存</button>
+            <button style="background:#aaa; margin-left:10px;" onclick="document.getElementById('edit-modal').style.display='none'">キャンセル</button>
+        </div>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, arrayRemove, query, where, getDocs, collection } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"; // V10に統一
+        import { getAuth, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, arrayRemove, query, where, getDocs, collection, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-        const firebaseConfig = { /* 同じなので省略 */ 
+        const firebaseConfig = { 
             apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
             authDomain: "goto6234.firebaseapp.com",
             projectId: "goto6234",
@@ -53,27 +89,50 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const userInfo = document.getElementById('user-info');
+        const userInfo = document.getElementById('user-info-text');
         const favoritesList = document.getElementById('favorites-list');
+        const editModal = document.getElementById('edit-modal');
+        const newDisplayNameInput = document.getElementById('new-display-name');
+        
         let currentUser = null;
 
         const formatToCalendarDate = (date, start, end) => {
             if (!start || !end) return null;
-            const s = new Date(`${date} ${start}:00`).toISOString().replace(/[-:]|\.\d{3}/g, '');
-            const e = new Date(`${date} ${end}:00`).toISOString().replace(/[-:]|\.\d{3}/g, '');
-            return `${s}/${e}`;
+            // タイムゾーンを含まない簡易的なISOフォーマットを作成
+            const startDate = new Date(`${date}T${start}:00`);
+            const endDate = new Date(`${date}T${end}:00`);
+
+            // YYYYMMDDTHHMMSS 形式に変換
+            const formatPart = (dt) => {
+                const year = dt.getFullYear();
+                const month = String(dt.getMonth() + 1).padStart(2, '0');
+                const day = String(dt.getDate()).padStart(2, '0');
+                const hour = String(dt.getHours()).padStart(2, '0');
+                const minute = String(dt.getMinutes()).padStart(2, '0');
+                const second = String(dt.getSeconds()).padStart(2, '0');
+                return `${year}${month}${day}T${hour}${minute}${second}`;
+            };
+            return `${formatPart(startDate)}/${formatPart(endDate)}`;
         };
 
         const removeFavorite = async (eventId) => {
             if (!confirm('お気に入りから解除しますか？')) return;
-            await updateDoc(doc(db, 'users', currentUser.uid), { favorites: arrayRemove(eventId) });
-            displayFavoriteEvents();
+            try {
+                await updateDoc(doc(db, 'users', currentUser.uid), { favorites: arrayRemove(eventId) });
+                // Firestoreのユーザーデータからもfavoritesを削除（存在しない場合エラー回避のためsetDocではなくupdateDocを使用）
+                displayFavoriteEvents();
+            } catch (error) {
+                console.error("Error removing favorite:", error);
+                alert("お気に入り解除に失敗しました。");
+            }
         };
 
-        window.removeFavorite = removeFavorite; // グローバルに
+        window.removeFavorite = removeFavorite; // グローバルに公開
 
         const displayFavoriteEvents = async () => {
             favoritesList.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#777;">読み込み中...</p>';
+            
+            // 1. ユーザーのお気に入りIDリストを取得
             const userSnap = await getDoc(doc(db, 'users', currentUser.uid));
             if (!userSnap.exists() || !userSnap.data().favorites?.length) {
                 favoritesList.innerHTML = '<p style="grid-column:1/-1; text-align:center; font-size:1.3em;">まだお気に入りは登録されていません</p>';
@@ -81,40 +140,109 @@
             }
 
             const favIds = userSnap.data().favorites;
-            const q = query(collection(db, 'events'), where('__name__', 'in', favIds.slice(0,10)));
-            const snaps = await getDocs(q);
+            // Firestoreのwhere('__name__', 'in', ...)は最大10個のIDしか処理できないため、10個ごとに分けてクエリを実行
+            const batches = [];
+            for (let i = 0; i < favIds.length; i += 10) {
+                batches.push(favIds.slice(i, i + 10));
+            }
+
+            let allEvents = [];
+            for (const batch of batches) {
+                 // where('__name__', 'in', ...) は documentId で絞り込む
+                const q = query(collection(db, 'events'), where('__name__', 'in', batch));
+                const snaps = await getDocs(q);
+                snaps.forEach(s => {
+                    const data = s.data();
+                    data.id = s.id;
+                    allEvents.push(data);
+                });
+            }
 
             let html = '';
-            snaps.forEach(s => {
-                const d = s.data();
+            if (allEvents.length === 0) {
+                 favoritesList.innerHTML = '<p style="grid-column:1/-1; text-align:center; font-size:1.3em;">お気に入りのイベントが見つかりません</p>';
+                 return;
+            }
+            
+            allEvents.forEach(d => {
                 const dates = formatToCalendarDate(d.date, d.startTime, d.endTime);
-                const calBtn = dates ? `<a href="https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(d.name)}&dates=${dates}&details=${encodeURIComponent(d.description)}" target="_blank" class="calendar-btn">Googleカレンダーに追加</a>` : '';
+                
+                // GoogleカレンダーのURLエンコード
+                const calBtn = dates ? `<a href="https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(d.name)}&dates=${dates}Z&details=${encodeURIComponent(d.venue || '会場')}&location=${encodeURIComponent(d.venue || '')}" target="_blank" class="calendar-btn">Googleカレンダーに追加</a>` : '';
 
                 const img = d.imageUrl ? `<img src="${d.imageUrl}" alt="${d.name}">` : '<div style="height:180px; background:#eee; display:flex; align-items:center; justify-content:center; color:#999;">画像なし</div>';
 
+                // 【修正点１】Summaryの利用
+                const displayDesc = d.summary || (d.description ? d.description.substring(0,80) + '...' : '詳細なし...');
+
                 html += `
                     <div class="fav-card">
-                        ${img}
+                        <a href="detail.html?id=${d.id}" style="text-decoration:none; color:inherit; display:block;">
+                            ${img}
+                            <div class="fav-content">
+                                <h3 class="fav-title">${d.name}</h3>
+                                <p><strong>${d.date}</strong> ${d.startTime || '開始時間未定'} 〜 ${d.endTime || '終日'}</p>
+                                <p>${displayDesc}</p>
+                            </div>
+                        </a>
                         <div class="fav-content">
-                            <h3 class="fav-title">${d.name}</h3>
-                            <p><strong>${d.date}</strong> ${d.startTime || ''} 〜 ${d.endTime || '終日'}</p>
-                            <p>${d.description.substring(0,80)}...</p>
-                            ${calBtn}
-                            <button class="remove-btn" onclick="removeFavorite('${s.id}')">×</button>
+                             ${calBtn}
                         </div>
+                        <button class="remove-btn" onclick="removeFavorite('${d.id}')">×</button>
                     </div>
                 `;
             });
             favoritesList.innerHTML = html;
         };
+        
+        // ユーザー情報の更新
+        const updateUserInfoDisplay = (user) => {
+            const displayName = user.displayName || user.email.split('@')[0];
+            userInfo.innerHTML = `<strong>${displayName}</strong> さん、ようこそ！<br>Email: ${user.email}`;
+            newDisplayNameInput.value = user.displayName || '';
+        };
+
+        // プロフィール保存処理
+        document.getElementById('save-profile-btn').onclick = async () => {
+            const newName = newDisplayNameInput.value.trim();
+            if (newName && currentUser) {
+                try {
+                    // Firebase Authの表示名を更新
+                    await updateProfile(currentUser, { displayName: newName });
+                    
+                    // Firestoreのユーザーデータ（もしあれば）にも保存
+                    await setDoc(doc(db, 'users', currentUser.uid), { displayName: newName }, { merge: true });
+                    
+                    alert('プロフィールが更新されました！');
+                    editModal.style.display = 'none';
+                    updateUserInfoDisplay(auth.currentUser); // Authの最新データで再表示
+                } catch (error) {
+                    console.error("Error updating profile:", error);
+                    alert("プロフィールの更新に失敗しました。");
+                }
+            } else {
+                alert("表示名を入力してください。");
+            }
+        };
+
+        // プロフィール編集ボタン
+        document.getElementById('edit-profile-btn').onclick = () => {
+            if(currentUser) {
+                newDisplayNameInput.value = currentUser.displayName || '';
+                editModal.style.display = 'block';
+            }
+        };
+        // モーダルの背景クリックで閉じる
+        editModal.onclick = (e) => { if(e.target === editModal) editModal.style.display = 'none'; };
+
 
         onAuthStateChanged(auth, user => {
             currentUser = user;
             if (user) {
-                userInfo.innerHTML = `<strong>${user.displayName || user.email}</strong> さん、ようこそ！<br>UID: ${user.uid}`;
+                updateUserInfoDisplay(user);
                 displayFavoriteEvents();
             } else {
-                setTimeout(() => { alert('ログインが必要です'); location.href = 'index.html'; }, 2000);
+                setTimeout(() => { alert('ログインが必要です'); location.href = 'index.html'; }, 200);
             }
         });
 
