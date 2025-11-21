@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>イベント一覧 | お気に入り機能付き</title>
+    <title>イベント一覧 | 完全版</title>
     <style>
-        :root { --primary: #5e35b1; --accent: #ff5252; --bg: #f8f9ff; }
+        :root { --primary: #5e35b1; --accent: #ff5252; --bg: #f8f9ff; --text: #333; --gray: #757575; }
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #333; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; }
 
+        /* ヘッダー */
         .header { 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; 
@@ -21,26 +22,33 @@
         }
         #login-btn-header:hover { background: white; color: #5e35b1; }
 
+        /* レイアウト */
         .container { 
-            max-width: 1400px; 
-            margin: 30px auto; 
-            padding: 0 20px; 
-            display: grid; 
-            grid-template-columns: minmax(0, 1fr) 340px;   /* ← 横スクロール完全解決！ */
-            gap: 30px; 
+            max-width: 1400px; margin: 30px auto; padding: 0 20px; 
+            display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 30px; 
         }
         .main, .sidebar { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .sidebar { height: fit-content; position: sticky; top: 100px; }
 
-        .search-container { display: flex; margin-bottom: 20px; }
+        /* 検索・フィルタ */
+        .search-container { display: flex; margin-bottom: 10px; }
+        /* type="search" に変更し、デザインを調整 */
         #search-input {
-            flex: 1; padding: 16px; border: 2px solid #ddd; border-right: none; border-radius: 30px 0 0 30px; font-size: 1em;
+            flex: 1; padding: 16px; border: 2px solid #ddd; border-right: none; border-radius: 30px 0 0 30px; font-size: 1em; outline: none;
         }
+        #search-input:focus { border-color: var(--primary); }
         #search-btn {
-            padding: 0 32px; background: var(--primary); color: white; border: none; border-radius: 0 30px 30px 0; 
-            cursor: pointer; font-weight: bold;
+            padding: 0 24px; background: var(--primary); color: white; border: none; border-radius: 0 30px 30px 0; 
+            cursor: pointer; font-weight: bold; white-space: nowrap;
         }
         #search-btn:hover { background: #4527a0; }
+
+        /* リセットボタン */
+        #clear-filters-btn {
+            width: 100%; padding: 8px; background: #f0f0f0; color: var(--gray); border: none; border-radius: 8px;
+            cursor: pointer; font-size: 0.9em; transition: 0.2s; margin-top: 5px;
+        }
+        #clear-filters-btn:hover { background: #e0e0e0; color: #333; }
 
         .filter-group { margin-bottom: 25px; }
         .filter-group h3 { margin: 0 0 12px; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; }
@@ -51,6 +59,7 @@
         .tag-btn { padding: 8px 16px; background: #eee; border-radius: 20px; font-size: 0.9em; cursor: pointer; transition: 0.2s; }
         .tag-btn.active { background: var(--primary); color: white; }
 
+        /* おすすめエリア */
         .featured { margin-bottom: 40px; }
         .featured-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 20px; }
         .featured-card { position: relative; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.15); transition: transform 0.3s; }
@@ -60,40 +69,48 @@
         .featured-card h3 { margin: 0 0 10px; color: var(--primary); font-size: 1.4em; }
         .featured-label { position: absolute; top: 15px; left: 15px; background: var(--accent); color: white; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 0.9em; }
 
+        /* イベントグリッド */
         .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
-        .event-card { position: relative; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.1); transition: all 0.3s; }
+        .event-card { position: relative; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.1); transition: all 0.3s; display: flex; flex-direction: column; }
         .event-card:hover { transform: translateY(-8px); }
         .event-card img { width: 100%; height: 200px; object-fit: cover; }
-        .event-card .content { padding: 18px; }
+        .event-card .content { padding: 18px; flex: 1; }
         .event-card h2 { margin: 0 0 8px; font-size: 1.3em; line-height: 1.3; }
         .event-card .meta { font-size: 0.9em; color: #666; margin: 8px 0; }
         .category-tag { display: inline-block; padding: 4px 10px; background: #e0e0e0; border-radius: 20px; font-size: 0.8em; margin-right: 6px; }
+        
         .favorite-btn { 
-            width: 100%; padding: 12px; margin-top: 12px; border: none; background: #ffd740; color: #333; 
-            font-weight: bold; cursor: pointer; border-radius: 8px; transition: 0.3s; font-size: 1em;
+            width: 100%; padding: 12px; border: none; background: #ffd740; color: #333; 
+            font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 1em;
+            /* カードの下部に配置するためのスタイル調整 */
+            border-radius: 0 0 16px 16px; 
         }
         .favorite-btn.is-favorite { background: var(--accent); color: white; }
         .favorite-btn:hover { opacity: 0.9; }
 
+        /* 新着リスト */
+        .new-events { list-style: none; padding: 0; margin: 0; }
         .new-events li { padding: 12px 0; border-bottom: 1px dashed #eee; }
         .new-events li:last-child { border: none; }
-        .new-events a { color: #333; text-decoration: none; }
+        .new-events a { color: #333; text-decoration: none; transition: color 0.2s; }
         .new-events a:hover { color: var(--primary); }
 
+        /* モーダル */
         .modal { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
-        .modal-content { background: white; margin: 8% auto; padding: 40px; border-radius: 20px; width: 90%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalIn 0.4s; }
+        .modal-content { background: white; margin: 8% auto; padding: 40px; border-radius: 20px; width: 90%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalIn 0.4s; position: relative; }
         @keyframes modalIn { from { transform: translateY(-100px); opacity: 0; } to { transform: none; opacity: 1; } }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 32px; color: #aaa; cursor: pointer; }
         .close-btn:hover { color: #333; }
-        .auth-buttons button { width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 50px; color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; }
+        .auth-buttons button { width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 50px; color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; transition: opacity 0.2s; }
+        .auth-buttons button:hover { opacity: 0.9; }
         #google-login-btn { background: #DB4437; }
         #github-login-btn { background: #333; }
         #email-signup-btn, #email-login-btn { background: #4CAF50; }
-        input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 50px; box-sizing: border-box; font-size: 1em; }
+        input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 50px; box-sizing: border-box; font-size: 1em; outline: none; }
+        input[type="email"]:focus, input[type="password"]:focus { border-color: var(--primary); }
 
-        .loading {
-            grid-column: 1 / -1; text-align: center; padding: 100px 20px; color: #999;
-        }
+        /* ローディング */
+        .loading { grid-column: 1 / -1; text-align: center; padding: 100px 20px; color: #999; }
         .loading svg { width: 48px; height: 48px; }
 
         @media (max-width: 1100px) {
@@ -140,9 +157,10 @@
             <div class="filter-group">
                 <h3>検索</h3>
                 <div class="search-container">
-                    <input type="text" id="search-input" placeholder="キーワードで検索..." autocomplete="off">
+                    <input type="search" id="search-input" name="site_event_search_q" placeholder="キーワード..." autocomplete="off">
                     <button id="search-btn">検索</button>
                 </div>
+                <button id="clear-filters-btn">条件をクリア</button>
             </div>
 
             <div class="filter-group">
@@ -187,7 +205,7 @@
                 <button id="google-login-btn">Googleでログイン</button>
                 <button id="github-login-btn">GitHubでログイン</button>
             </div>
-            <hr style="margin:30px 0;">
+            <hr style="margin:30px 0; border:0; border-top:1px solid #eee;">
             <input type="email" id="email-input" placeholder="メールアドレス">
             <input type="password" id="password-input" placeholder="パスワード（6文字以上）">
             <div class="auth-buttons">
@@ -215,6 +233,20 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // --- エラーメッセージの日本語化 ---
+        const getErrorMessage = (code) => {
+            switch(code) {
+                case 'auth/invalid-email': return 'メールアドレスの形式が正しくありません。';
+                case 'auth/user-not-found': return 'ユーザーが見つかりません。';
+                case 'auth/wrong-password': return 'パスワードが間違っています。';
+                case 'auth/email-already-in-use': return 'このメールアドレスは既に使用されています。';
+                case 'auth/weak-password': return 'パスワードは6文字以上にしてください。';
+                case 'auth/popup-closed-by-user': return 'ログイン画面が閉じられました。';
+                default: return `エラーが発生しました: ${code}`;
+            }
+        };
+
+        // --- モーダル制御 ---
         const modal = document.getElementById('login-modal');
         const loginBtn = document.getElementById('login-btn-header');
         const closeBtn = document.querySelector('.close-btn');
@@ -226,23 +258,33 @@
         let favoriteEventIds = [];
         let allEvents = [];
 
+        // --- 認証処理 ---
         const googleProvider = new GoogleAuthProvider();
         const githubProvider = new GithubAuthProvider();
 
-        document.getElementById('google-login-btn').onclick = () => signInWithPopup(auth, googleProvider).then(() => modal.style.display = 'none').catch(e => alert(e.message));
-        document.getElementById('github-login-btn').onclick = () => signInWithPopup(auth, githubProvider).then(() => modal.style.display = 'none').catch(e => alert(e.message));
+        const handleAuthError = (e) => alert(getErrorMessage(e.code || e.message));
+
+        document.getElementById('google-login-btn').onclick = () => 
+            signInWithPopup(auth, googleProvider).then(() => modal.style.display = 'none').catch(handleAuthError);
+        
+        document.getElementById('github-login-btn').onclick = () => 
+            signInWithPopup(auth, githubProvider).then(() => modal.style.display = 'none').catch(handleAuthError);
+
         document.getElementById('email-signup-btn').onclick = () => {
             const email = document.getElementById('email-input').value.trim();
             const pass = document.getElementById('password-input').value;
-            if (email && pass.length >= 6) createUserWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(e => alert(e.message));
+            if (email && pass.length >= 6) createUserWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(handleAuthError);
             else alert("メールと6文字以上のパスワードを入力してください");
         };
+
         document.getElementById('email-login-btn').onclick = () => {
             const email = document.getElementById('email-input').value.trim();
             const pass = document.getElementById('password-input').value;
-            if (email && pass) signInWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(e => alert(e.message));
+            if (email && pass) signInWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(handleAuthError);
+            else alert("メールとパスワードを入力してください");
         };
 
+        // --- フィルタリング & 検索ロジック ---
         const categoryNames = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
         let filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
 
@@ -250,7 +292,11 @@
             const grid = document.getElementById('event-grid');
             let filtered = allEvents.filter(e => {
                 const matchCat = filters.category === "all" || e.category === filters.category;
-                const matchSearch = !filters.search || [e.name, e.description, e.venue, e.organizer].some(f => f?.toLowerCase().includes(filters.search.toLowerCase()));
+                // 検索ロジック：空白区切りの複数キーワード対応
+                const keywords = filters.search.toLowerCase().split(/\s+/).filter(k => k);
+                const targetText = [e.name, e.description, e.venue, e.organizer].join(" ").toLowerCase();
+                const matchSearch = keywords.length === 0 || keywords.every(k => targetText.includes(k));
+
                 const matchTag = !filters.tag || e.tags?.includes(filters.tag);
                 const matchOrg = !filters.organizer || e.organizer === filters.organizer;
                 const matchVenue = !filters.venue || e.venue === filters.venue;
@@ -270,7 +316,7 @@
 
                 return `
                     <div class="event-card">
-                        <a href="detail.html?id=${ev.id}" style="text-decoration:none;color:inherit;display:block;">
+                        <a href="detail.html?id=${ev.id}" style="text-decoration:none;color:inherit;display:block;flex:1;">
                             ${img}
                             <div class="content">
                                 ${catLabel}
@@ -291,7 +337,39 @@
             });
         };
 
-        // これが最重要修正！新規ユーザーでも100%お気に入り保存できる
+        // --- 検索実行とリセット ---
+        const executeSearch = () => {
+            const val = document.getElementById('search-input').value.trim();
+            filters.search = val;
+            renderEvents();
+        };
+
+        // ボタンクリックで検索
+        document.getElementById('search-btn').onclick = executeSearch;
+        
+        // Enterキーで検索
+        document.getElementById('search-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') executeSearch();
+        });
+
+        // 条件クリア機能
+        document.getElementById('clear-filters-btn').onclick = () => {
+            filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
+            
+            // UIリセット
+            document.getElementById('search-input').value = "";
+            document.querySelector('input[name="category"][value="all"]').checked = true;
+            document.querySelectorAll('.tag-btn.active').forEach(b => b.classList.remove('active'));
+            
+            renderEvents();
+        };
+
+        // カテゴリ変更
+        document.querySelectorAll('input[name="category"]').forEach(r => {
+            r.onchange = () => { filters.category = r.value; renderEvents(); };
+        });
+
+        // --- お気に入り機能（ドキュメント不在エラー対策済み） ---
         const toggleFavorite = async (eventId) => {
             if (!currentUser) { modal.style.display = "block"; return; }
 
@@ -299,23 +377,25 @@
             const isFav = favoriteEventIds.includes(eventId);
 
             try {
+                // お気に入りボタンの見た目を先行して更新（Optimistic UI）
+                // 失敗したら再描画で元に戻る
                 if (isFav) {
                     await updateDoc(userRef, { favorites: arrayRemove(eventId) });
                     favoriteEventIds = favoriteEventIds.filter(id => id !== eventId);
                 } else {
+                    // setDoc + merge: true を使用することで、ドキュメントが存在しなくても自動作成される
                     await setDoc(userRef, { favorites: arrayUnion(eventId) }, { merge: true });
                     favoriteEventIds.push(eventId);
                 }
                 renderEvents();
             } catch (e) {
                 console.error(e);
-                alert("お気に入り処理に失敗しました");
+                alert("お気に入り処理に失敗しました: " + e.message);
+                renderEvents(); // エラー時は元の状態に戻すために再描画
             }
         };
 
-        // 以下、loadFeatured / loadNewEvents / generateSidebarFilters / loadAllEvents はほぼそのまま
-        // （省略せず全部残してます）
-
+        // --- データ読み込み系 ---
         const loadFeatured = async () => {
             const q = query(collection(db, "events"), where("isFeatured", "==", true));
             const snap = await getDocs(q);
@@ -361,8 +441,21 @@
                     btn.className = "tag-btn";
                     btn.textContent = item;
                     btn.onclick = () => {
-                        btn.classList.toggle('active');
-                        filters[type] = btn.classList.contains('active') ? item : "";
+                        // 他の同じ種類のタグが押されたら切り替える場合は、一度全部removeする処理を入れるが、
+                        // 今回はトグル（ON/OFF）動作にする
+                        const isActive = btn.classList.contains('active');
+                        // 同一カテゴリ内で単一選択にするなら以下を有効化
+                        // container.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+                        
+                        if(isActive) {
+                            btn.classList.remove('active');
+                            filters[type] = "";
+                        } else {
+                            // シンプル化のため、同じタイプは1つだけ選択可能にする
+                            container.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+                            filters[type] = item;
+                        }
                         renderEvents();
                     };
                     container.appendChild(btn);
@@ -375,6 +468,7 @@
         };
 
         const loadAllEvents = async () => {
+            // 日付順で取得
             const snap = await getDocs(query(collection(db, "events"), orderBy("date")));
             allEvents = snap.docs.map(d => { const data = d.data(); data.id = d.id; return data; });
             renderEvents();
@@ -383,13 +477,20 @@
             generateSidebarFilters();
         };
 
+        // --- ログイン状態監視 ---
         onAuthStateChanged(auth, async user => {
             currentUser = user;
             if (user) {
                 loginBtn.textContent = `${user.displayName || user.email.split('@')[0]} さん`;
-                loginBtn.onclick = () => location.href = 'mypage.html';
+                loginBtn.onclick = () => location.href = 'mypage.html'; // ここは別途マイページ作成が必要
+                
                 const snap = await getDoc(doc(db, 'users', user.uid));
-                favoriteEventIds = snap.exists() ? snap.data().favorites || [] : [];
+                // 新規ユーザーでドキュメントがない場合も想定して安全に取得
+                if (snap.exists()) {
+                    favoriteEventIds = snap.data().favorites || [];
+                } else {
+                    favoriteEventIds = [];
+                }
             } else {
                 loginBtn.textContent = 'ログイン / サインアップ';
                 loginBtn.onclick = () => modal.style.display = 'block';
@@ -398,17 +499,9 @@
             renderEvents();
         });
 
-        // リアルタイム検索（超気持ちいい）
-        document.getElementById('search-input').addEventListener('input', e => {
-            filters.search = e.target.value.trim();
-            renderEvents();
-        });
-
-        document.querySelectorAll('input[name="category"]').forEach(r => {
-            r.onchange = () => { filters.category = r.value; renderEvents(); };
-        });
-
+        // 初期読み込み開始
         loadAllEvents();
+
     </script>
 </body>
 </html>
