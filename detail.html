@@ -5,50 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="page-title">イベント詳細</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
-        .container { max-width: 900px; margin: 40px auto; padding: 30px; background: white; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
-        h1 { color: #5e35b1; font-size: 2.4em; margin-bottom: 20px; text-align: center; }
-        .detail-image { width: 100%; max-height: 420px; object-fit: cover; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .info-box { background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%); padding: 20px; border-radius: 12px; margin: 25px 0; border-left: 6px solid #5e35b1; }
-        .info-box p { margin: 12px 0; font-size: 1.1em; }
-        .info-box strong { color: #1a237e; font-weight: 600; }
+        :root { --primary: #5e35b1; --accent: #ff5252; --bg: #f8f9ff; --text: #333; --gray: #757575; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-        /* お気に入りボタン（超カッコよく） */
+        /* ヘッダー（index.htmlと共通） */
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100;
+        }
+        .header h1 { margin: 0; font-size: 2em; }
+        .header a { text-decoration: none; color: white; }
+        #login-btn-header { 
+            padding: 12px 28px; background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.4); 
+            border-radius: 50px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;
+        }
+        #login-btn-header:hover { background: white; color: #5e35b1; }
+
+        /* 詳細コンテナ */
+        .container { max-width: 900px; margin: 40px auto; padding: 40px; background: white; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        
+        .event-header { text-align: center; margin-bottom: 30px; }
+        .event-header h1 { color: var(--primary); font-size: 2.4em; margin: 0 0 15px; }
+        .category-badge { background: #eee; padding: 6px 14px; border-radius: 20px; font-size: 0.9em; color: #555; display: inline-block; margin-bottom: 15px; }
+
+        .detail-image { width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-bottom: 30px; }
+
+        /* 情報テーブルライクな表示 */
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .info-item { background: #f8f9fa; padding: 20px; border-radius: 12px; border-left: 5px solid var(--primary); }
+        .info-item h3 { margin: 0 0 8px; font-size: 0.9em; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+        .info-item p { margin: 0; font-size: 1.1em; font-weight: bold; color: var(--text); }
+
+        .tags-area { margin: 20px 0; }
+        .tag-chip { display: inline-block; background: #e3f2fd; color: #1565c0; padding: 6px 12px; border-radius: 6px; margin-right: 8px; font-size: 0.9em; }
+
+        .description { line-height: 1.8; font-size: 1.1em; color: #444; margin: 30px 0; white-space: pre-wrap; }
+
+        /* アクションボタンエリア */
+        .action-area { text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #eee; }
+
+        /* お気に入りボタン（アニメーション付き） */
         #detail-favorite-btn {
-            display: block; margin: 30px auto; padding: 16px 40px; font-size: 18px; font-weight: bold;
+            padding: 16px 40px; font-size: 1.1em; font-weight: bold;
             border: none; border-radius: 50px; cursor: pointer; transition: all 0.3s ease;
-            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1); display: inline-flex; align-items: center; gap: 10px;
         }
-        #detail-favorite-btn:not(.is-favorite) {
-            background: #ffd740; color: #333;
-        }
-        #detail-favorite-btn.is-favorite {
-            background: #ff5252; color: white; animation: pulse 1.5s infinite;
-        }
-        #detail-favorite-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 20px rgba(0,0,0,0.3); }
+        #detail-favorite-btn:not(.is-favorite) { background: #ffd740; color: #333; }
+        #detail-favorite-btn.is-favorite { background: var(--accent); color: white; animation: pulse 0.5s; }
+        #detail-favorite-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 20px rgba(0,0,0,0.2); }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255,82,82,0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(255,82,82,0); }
-            100% { box-shadow: 0 0 0 0 rgba(255,82,82,0); }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
 
-        .back-links { text-align: center; margin-top: 40px; }
-        .back-links a { margin: 0 15px; color: #5e35b1; font-weight: bold; text-decoration: none; }
-        .back-links a:hover { text-decoration: underline; }
+        .back-link { display: block; margin-top: 20px; color: var(--primary); text-decoration: none; font-weight: bold; }
+        .back-link:hover { text-decoration: underline; }
+
+        /* モーダル（index.htmlと同一） */
+        .modal { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
+        .modal-content { background: white; margin: 8% auto; padding: 40px; border-radius: 20px; width: 90%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalIn 0.4s; position: relative; }
+        @keyframes modalIn { from { transform: translateY(-100px); opacity: 0; } to { transform: none; opacity: 1; } }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 32px; color: #aaa; cursor: pointer; }
+        .close-btn:hover { color: #333; }
+        .auth-buttons button { width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 50px; color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; transition: opacity 0.2s; }
+        .auth-buttons button:hover { opacity: 0.9; }
+        #google-login-btn { background: #DB4437; }
+        #github-login-btn { background: #333; }
+        #email-signup-btn, #email-login-btn { background: #4CAF50; }
+        input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 50px; box-sizing: border-box; font-size: 1em; outline: none; }
+        input[type="email"]:focus, input[type="password"]:focus { border-color: var(--primary); }
+
+        @media (max-width: 600px) {
+            .header { padding: 15px 20px; flex-direction: column; text-align: center; }
+            .container { padding: 20px; margin: 20px; }
+            .info-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
+
+    <header class="header">
+        <h1><a href="index.html">イベント一覧</a></h1>
+        <button id="login-btn-header">ログイン / サインアップ</button>
+    </header>
+
     <div class="container">
         <div id="event-detail-container">
             <p style="text-align:center; padding:60px; font-size:1.3em; color:#777;">読み込み中...</p>
         </div>
     </div>
 
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">×</span>
+            <h2 style="text-align:center; color:var(--primary); margin-bottom:30px;">ログイン / サインアップ</h2>
+            <div class="auth-buttons">
+                <button id="google-login-btn">Googleでログイン</button>
+                <button id="github-login-btn">GitHubでログイン</button>
+            </div>
+            <hr style="margin:30px 0; border:0; border-top:1px solid #eee;">
+            <input type="email" id="email-input" placeholder="メールアドレス">
+            <input type="password" id="password-input" placeholder="パスワード（6文字以上）">
+            <div class="auth-buttons">
+                <button id="email-signup-btn">アカウント作成</button>
+                <button id="email-login-btn">ログイン</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        // index.htmlと同じv10系SDKを使用
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
@@ -62,74 +135,201 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        
         const container = document.getElementById('event-detail-container');
         const pageTitle = document.getElementById('page-title');
+
+        // --- エラーメッセージ ---
+        const getErrorMessage = (code) => {
+            switch(code) {
+                case 'auth/invalid-email': return 'メールアドレスの形式が正しくありません。';
+                case 'auth/user-not-found': return 'ユーザーが見つかりません。';
+                case 'auth/wrong-password': return 'パスワードが間違っています。';
+                case 'auth/email-already-in-use': return 'このメールアドレスは既に使用されています。';
+                default: return `エラーが発生しました: ${code}`;
+            }
+        };
+
+        // --- モーダル制御 ---
+        const modal = document.getElementById('login-modal');
+        const loginBtn = document.getElementById('login-btn-header');
+        const closeBtn = document.querySelector('.close-btn');
+        loginBtn.onclick = () => { if (!currentUser) modal.style.display = 'block'; };
+        closeBtn.onclick = () => modal.style.display = 'none';
+        window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+
+        // --- 認証ロジック ---
+        const googleProvider = new GoogleAuthProvider();
+        const githubProvider = new GithubAuthProvider();
+        const handleAuthError = (e) => alert(getErrorMessage(e.code || e.message));
+
+        document.getElementById('google-login-btn').onclick = () => signInWithPopup(auth, googleProvider).then(() => modal.style.display = 'none').catch(handleAuthError);
+        document.getElementById('github-login-btn').onclick = () => signInWithPopup(auth, githubProvider).then(() => modal.style.display = 'none').catch(handleAuthError);
+        document.getElementById('email-signup-btn').onclick = () => {
+            const email = document.getElementById('email-input').value.trim();
+            const pass = document.getElementById('password-input').value;
+            if (email && pass.length >= 6) createUserWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(handleAuthError);
+            else alert("メールと6文字以上のパスワードを入力してください");
+        };
+        document.getElementById('email-login-btn').onclick = () => {
+            const email = document.getElementById('email-input').value.trim();
+            const pass = document.getElementById('password-input').value;
+            if (email && pass) signInWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(handleAuthError);
+            else alert("メールとパスワードを入力してください");
+        };
 
         let currentUser = null;
         let isFavorite = false;
         let eventId = null;
+        const categoryNames = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
 
-        onAuthStateChanged(auth, user => {
+        // ログイン状態の変化を監視
+        onAuthStateChanged(auth, async user => {
             currentUser = user;
-            if (eventId) loadEventDetail(); // ログイン状態が変わったら再描画
+            if (user) {
+                loginBtn.textContent = `${user.displayName || user.email.split('@')[0]} さん`;
+                loginBtn.onclick = () => location.href = 'mypage.html';
+                // ログインしたらお気に入り状態を再取得してボタンを更新
+                if(eventId) await checkFavoriteStatus();
+            } else {
+                loginBtn.textContent = 'ログイン / サインアップ';
+                loginBtn.onclick = () => modal.style.display = 'block';
+                isFavorite = false;
+                updateFavoriteButton();
+            }
         });
 
+        // お気に入り状態の確認
+        const checkFavoriteStatus = async () => {
+            if (!currentUser || !eventId) return;
+            try {
+                const snap = await getDoc(doc(db, 'users', currentUser.uid));
+                if (snap.exists()) {
+                    const favs = snap.data().favorites || [];
+                    isFavorite = favs.includes(eventId);
+                } else {
+                    isFavorite = false;
+                }
+                updateFavoriteButton();
+            } catch (e) { console.error(e); }
+        };
+
+        // ボタンの見た目を更新
+        const updateFavoriteButton = () => {
+            const btn = document.getElementById('detail-favorite-btn');
+            if(!btn) return;
+            
+            if (isFavorite) {
+                btn.classList.add('is-favorite');
+                btn.innerHTML = '<span>❤️</span> お気に入り解除';
+            } else {
+                btn.classList.remove('is-favorite');
+                btn.innerHTML = '<span>⭐</span> お気に入りに追加';
+            }
+        };
+
+        // お気に入りトグル処理（index.htmlと同じ安全設計）
         const toggleFavorite = async () => {
             if (!currentUser) {
-                if (confirm('ログインが必要です。ログインしますか？')) window.location.href = 'index.html';
+                modal.style.display = 'block'; // ログインモーダルを開く
                 return;
             }
 
             const userRef = doc(db, 'users', currentUser.uid);
+            // Optimistic UI: 先に見た目を変える
+            isFavorite = !isFavorite;
+            updateFavoriteButton();
+
             try {
-                if (isFavorite) {
+                if (!isFavorite) { // 解除操作（反転済みなので !isFavorite が解除）
                     await updateDoc(userRef, { favorites: arrayRemove(eventId) });
-                } else {
-                    await updateDoc(userRef, { favorites: arrayUnion(eventId) });
-                    const snap = await getDoc(userRef);
-                    if (!snap.exists()) await setDoc(userRef, { favorites: [eventId] });
+                } else { // 追加操作
+                    // setDoc merge:true で新規ユーザー対策
+                    await setDoc(userRef, { favorites: arrayUnion(eventId) }, { merge: true });
                 }
+            } catch (e) { 
+                console.error(e);
+                alert('処理に失敗しました');
+                // 失敗したら戻す
                 isFavorite = !isFavorite;
-                document.getElementById('detail-favorite-btn').classList.toggle('is-favorite');
-                document.getElementById('detail-favorite-btn').textContent = isFavorite ? '❤️ お気に入り解除' : '⭐ お気に入りに追加';
-            } catch (e) { alert('処理に失敗しました'); console.error(e); }
+                updateFavoriteButton();
+            }
         };
 
+        // 詳細データの読み込み
         const loadEventDetail = async () => {
             eventId = new URLSearchParams(location.search).get('id');
-            if (!eventId) { container.innerHTML = '<p style="text-align:center;color:red;">イベントIDがありません</p>'; return; }
+            if (!eventId) { container.innerHTML = '<p style="text-align:center;color:red;">イベントIDが指定されていません</p>'; return; }
 
-            const snap = await getDoc(doc(db, 'events', eventId));
-            if (!snap.exists()) { container.innerHTML = '<p style="text-align:center;color:red;">イベントが見つかりません</p>'; return; }
+            try {
+                const snap = await getDoc(doc(db, 'events', eventId));
+                if (!snap.exists()) { container.innerHTML = '<p style="text-align:center;color:red;">イベントが見つかりません</p>'; return; }
 
-            const data = snap.data();
-            isFavorite = currentUser ? (await getDoc(doc(db, 'users', currentUser.uid))).data()?.favorites?.includes(eventId) || false : false;
+                const data = snap.data();
+                const timeDisplay = data.startTime ? `${data.startTime} 〜 ${data.endTime || ""}` : "終日";
+                const imgHtml = data.imageUrl 
+                    ? `<img src="${data.imageUrl}" class="detail-image" alt="${data.name}">` 
+                    : `<div style="height:300px;background:#eee;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#999;margin-bottom:30px;">画像なし</div>`;
 
-            const timeDisplay = data.startTime && data.endTime ? `${data.startTime} 〜 ${data.endTime}` : '終日';
-            const imageHtml = data.imageUrl ? `<img src="${data.imageUrl}" class="detail-image">` : '';
+                const catLabel = categoryNames[data.category] || data.category || "未分類";
+                
+                // タグ生成
+                let tagsHtml = '';
+                if (data.tags && Array.isArray(data.tags) && data.tags.length > 0) {
+                    tagsHtml = `<div class="tags-area">${data.tags.map(t => `<span class="tag-chip">#${t}</span>`).join('')}</div>`;
+                }
 
-            container.innerHTML = `
-                <h1>${data.name}</h1>
-                ${imageHtml}
-                <div class="info-box">
-                    <p><strong>日付：</strong> ${data.date}</p>
-                    <p><strong>時刻：</strong> ${timeDisplay}</p>
-                </div>
-                <h2>イベント概要</h2>
-                <p style="line-height:1.8; font-size:1.1em;">${data.description.replace(/\n/g, '<br>')}</p>
+                container.innerHTML = `
+                    <div class="event-header">
+                        <span class="category-badge">${catLabel}</span>
+                        <h1>${data.name}</h1>
+                    </div>
+                    
+                    ${imgHtml}
 
-                <button id="detail-favorite-btn" class="${isFavorite ? 'is-favorite' : ''}">
-                    ${isFavorite ? '❤️ お気に入り解除' : '⭐ お気に入りに追加'}
-                </button>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <h3>Date</h3>
+                            <p>${data.date}</p>
+                        </div>
+                        <div class="info-item">
+                            <h3>Time</h3>
+                            <p>${timeDisplay}</p>
+                        </div>
+                        <div class="info-item">
+                            <h3>Venue</h3>
+                            <p>${data.venue || "未定"}</p>
+                        </div>
+                        <div class="info-item">
+                            <h3>Organizer</h3>
+                            <p>${data.organizer || "-"}</p>
+                        </div>
+                    </div>
 
-                <div class="back-links">
-                    <a href="index.html">← イベント一覧に戻る</a> | 
-                    <a href="mypage.html">マイページへ</a>
-                </div>
-            `;
+                    ${tagsHtml}
 
-            document.getElementById('detail-favorite-btn')?.addEventListener('click', toggleFavorite);
-            pageTitle.textContent = `${data.name} | イベント詳細`;
+                    <h2>イベント概要</h2>
+                    <div class="description">${data.description}</div>
+
+                    <div class="action-area">
+                        <button id="detail-favorite-btn">
+                            <span>⭐</span> お気に入りに追加
+                        </button>
+                        <br>
+                        <a href="index.html" class="back-link">← イベント一覧に戻る</a>
+                    </div>
+                `;
+
+                pageTitle.textContent = `${data.name} | イベント詳細`;
+                document.getElementById('detail-favorite-btn').addEventListener('click', toggleFavorite);
+                
+                // 初期ロード時にお気に入りチェック
+                if(currentUser) await checkFavoriteStatus();
+
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = '<p style="text-align:center;color:red;">読み込みエラーが発生しました</p>';
+            }
         };
 
         loadEventDetail();
