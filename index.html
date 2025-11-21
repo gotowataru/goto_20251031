@@ -8,7 +8,7 @@
         /* --- 基本レイアウトとリセット --- */
         body { font-family: sans-serif; margin: 0; background-color: #f4f7f6; color: #333; }
         
-        /* --- ヘッダー（右上のボタン配置用） --- */
+        /* --- ヘッダー --- */
         .header {
             display: flex;
             justify-content: space-between;
@@ -17,26 +17,20 @@
             background-color: white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-            color: #1e88e5;
-        }
+        .header h1 { margin: 0; font-size: 24px; color: #1e88e5; }
         .auth-controls button {
             padding: 8px 15px;
             border: none;
             border-radius: 20px;
             cursor: pointer;
             font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        #login-btn, #mypage-btn {
             background-color: #1e88e5;
             color: white;
+            transition: background-color 0.3s;
         }
-        #login-btn:hover, #mypage-btn:hover { background-color: #1565c0; }
+        .auth-controls button:hover { background-color: #1565c0; }
 
-        /* --- おすすめカルーセル（新しく追加） --- */
+        /* --- おすすめカルーセル（追加）--- */
         .featured-carousel {
             margin: 30px auto;
             max-width: 1000px;
@@ -57,9 +51,7 @@
             width: max-content;
             animation: scroll 30s linear infinite;
         }
-        .carousel-track:hover {
-            animation-play-state: paused;
-        }
+        .carousel-track:hover { animation-play-state: paused; }
         .featured-card {
             min-width: 320px;
             margin: 0 12px;
@@ -69,39 +61,23 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             transition: transform 0.3s;
         }
-        .featured-card:hover {
-            transform: translateY(-8px);
-        }
+        .featured-card:hover { transform: translateY(-8px); }
         .featured-card img {
             width: 100%;
             height: 180px;
             object-fit: cover;
             background: #eee;
         }
-        .featured-card-content {
-            padding: 16px;
-        }
-        .featured-card h3 {
-            margin: 0 0 8px 0;
-            font-size: 18px;
-            color: #333;
-        }
-        .featured-card p {
-            margin: 4px 0;
-            font-size: 14px;
-            color: #666;
-        }
+        .featured-card-content { padding: 16px; }
+        .featured-card h3 { margin: 0 0 8px 0; font-size: 18px; color: #333; }
+        .featured-card p { margin: 4px 0; font-size: 14px; color: #666; }
         @keyframes scroll {
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
         }
 
         /* --- イベント一覧エリア --- */
-        .main-content {
-            max-width: 1000px;
-            margin: 30px auto;
-            padding: 0 15px;
-        }
+        .main-content { max-width: 1000px; margin: 30px auto; padding: 0 15px; }
         .event-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -114,16 +90,8 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             position: relative;
         }
-        .event-card h2 {
-            margin-top: 0;
-            color: #333;
-            font-size: 20px;
-        }
-        .event-card p {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 15px;
-        }
+        .event-card h2 { margin-top: 0; color: #333; font-size: 20px; }
+        .event-card p { font-size: 14px; color: #666; margin-bottom: 15px; }
         .favorite-btn {
             padding: 8px 15px;
             border: 1px solid #ccc;
@@ -131,41 +99,121 @@
             cursor: pointer;
             font-weight: bold;
             background-color: #f0f0f0;
-            transition: background-color 0.2s, border-color 0.2s;
+            transition: all 0.2s;
         }
         .favorite-btn.is-favorite {
             background-color: #ff5252;
             color: white;
             border-color: #ff5252;
         }
-        
+
         /* --- モーダル --- */
         .modal {
             display: none;
             position: fixed;
             z-index: 100;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
             background-color: rgba(0,0,0,0.5);
         }
-        /* 以下はそのまま（省略） */
-        .modal-content { background-color: white; margin: 15% auto; padding: 30px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 90%; max-width: 450px; position: relative; }
-        .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; position: absolute; top: 10px; right: 20px; cursor: pointer; }
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 450px;
+            position: relative;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px; right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+        }
         .close-btn:hover { color: #333; }
-        input[type="email"], input[type="password"] { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        .auth-buttons button { width: 100%; padding: 12px; margin-bottom: 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; }
+        input[type="email"], input[type="password"] {
+            width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box;
+            border: 1px solid #ccc; border-radius: 4px;
+        }
+        .auth-buttons button {
+            width: 100%; padding: 12px; margin-bottom: 10px;
+            border: none; border-radius: 4px; cursor: pointer;
+            color: white; font-weight: bold;
+        }
         #email-signup-btn, #email-login-btn { background-color: #4CAF50; }
         #google-login-btn { background-color: #DB4437; }
         #github-login-btn { background-color: #333; }
-        #reauth-section { margin-top: 20px; padding: 15px; border: 1px solid #ffcc80; background-color: #fff3e0; border-radius: 4px; display: none; } /* ←最初は非表示に！ */
+        #reauth-section {
+            margin-top: 20px; padding: 15px;
+            border: 1px solid #ffcc80; background-color: #fff3e0;
+            border-radius: 4px; display: none;
+        }
         hr { margin: 20px 0; border: 0; border-top: 1px solid #eee; }
     </style>
+</head>
+<body>
+    <header class="header">
+        <h1>イベント一覧</h1>
+        <div class="auth-controls">
+            <button id="login-btn-header">ログイン / サインアップ</button>
+        </div>
+    </header>
+
+    <!-- おすすめカルーセル（新しく追加） -->
+    <section class="featured-carousel">
+        <h2>おすすめイベント</h2>
+        <div class="carousel-container">
+            <div class="carousel-track" id="featured-track"></div>
+        </div>
+    </section>
+
+    <main class="main-content">
+        <h2>開催中のイベント</h2>
+        <div class="event-grid" id="event-grid"></div>
+    </main>
+
+    <!-- ログインモーダル -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 style="text-align:center;">認証フォーム</h2>
+            
+            <div id="login-form-main">
+                <h3>ソーシャルログイン</h3>
+                <div class="auth-buttons">
+                    <button id="google-login-btn">Googleでログイン</button>
+                    <button id="github-login-btn">GitHubでログイン</button>
+                </div>
+                <hr>
+                <h3>メールアドレスで認証</h3>
+                <input type="email" id="email-input" placeholder="メールアドレス" required>
+                <input type="password" id="password-input" placeholder="パスワード" required>
+                <div class="auth-buttons">
+                    <button id="email-signup-btn">サインアップ (アカウント作成)</button>
+                    <button id="email-login-btn">ログイン</button>
+                </div>
+            </div>
+
+            <div id="reauth-section">
+                <h2>アカウントリンク</h2>
+                <p><strong>このメールアドレスは既存アカウントに登録されています。</strong><br>
+                既存アカウントのパスワードを入力してリンクしてください。</p>
+                <input type="email" id="reauth-email-input" readonly>
+                <input type="password" id="reauth-password-input" placeholder="既存アカウントのパスワード">
+                <div class="auth-buttons">
+                    <button id="reauth-login-btn">リンクを完了してログイン</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, linkWithCredential, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, linkWithCredential, setPersistence, browserSessionPersistence, signInWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -181,7 +229,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        
+
         let currentUser = null;
         let pendingCredential = null;
         let favoriteEventIds = [];
@@ -196,7 +244,7 @@
         const googleProvider = new GoogleAuthProvider();
         const githubProvider = new GithubAuthProvider();
 
-        // おすすめカルーセルをレンダリング（新しく追加）
+        // おすすめカルーセル
         const renderFeaturedCarousel = async () => {
             const track = document.getElementById('featured-track');
             if (!track) return;
@@ -204,45 +252,42 @@
             try {
                 const snapshot = await getDocs(collection(db, 'events'));
                 const featured = snapshot.docs
-                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .map(d => ({id: d.id, ...d.data()}))
                     .filter(e => e.isFeatured === true);
 
                 if (featured.length === 0) {
-                    track.innerHTML = '<p style="padding:50px;text-align:center;color:#999;">おすすめイベントは現在ありません</p>';
+                    track.innerHTML = '<p style="padding:60px;text-align:center;color:#999;">おすすめイベントは現在ありません</p>';
                     return;
                 }
 
                 let html = '';
-                featured.forEach(event => {
+                featured.forEach(e => {
                     html += `
                         <div class="featured-card">
-                            <img src="${event.imageUrl || 'https://via.placeholder.com/320x180/1e88e5/ffffff?text=No+Image'}" alt="${event.name}">
+                            <img src="${e.imageUrl || 'https://via.placeholder.com/320x180/1e88e5/ffffff?text=Event'}" alt="${e.name}">
                             <div class="featured-card-content">
-                                <h3>${event.name}</h3>
-                                <p><strong>${event.date || '日程未定'}</strong></p>
-                                <p>${(event.description || '').slice(0, 80)}...</p>
+                                <h3>${e.name}</h3>
+                                <p><strong>${e.date || '日程未定'}</strong></p>
+                                <p>${(e.description || '').substring(0,80)}...</p>
                             </div>
                         </div>`;
                 });
-
-                track.innerHTML = html + html; // 無限ループ用に2倍
-
-                const cardCount = featured.length;
-                const duration = Math.max(20, cardCount * 5);
+                track.innerHTML = html + html;
+                const duration = Math.max(20, featured.length * 5);
                 track.style.animation = `scroll ${duration}s linear infinite`;
-
             } catch (err) {
-                console.error("カルーセル読み込みエラー:", err);
+                console.error(err);
                 track.innerHTML = '<p>読み込みエラー</p>';
             }
         };
 
         const loadFavorites = async (uid) => {
             try {
-                const userSnap = await getDoc(doc(db, 'users', uid));
-                favoriteEventIds = userSnap.exists() ? (userSnap.data().favorites || []) : [];
+                const snap = await getDoc(doc(db, 'users', uid));
+                favoriteEventIds = snap.exists() ? (snap.data().favorites || []) : [];
             } catch (e) { favoriteEventIds = []; }
             renderEvents();
+            renderFeaturedCarousel();
         };
 
         const renderEvents = async () => {
@@ -250,56 +295,37 @@
             try {
                 const snapshot = await getDocs(collection(db, 'events'));
                 let html = '';
-                snapshot.docs.forEach(doc => {
-                    const data = doc.data();
-                    const id = doc.id;
+                snapshot.docs.forEach(d => {
+                    const data = d.data();
+                    const id = d.id;
                     const isFav = favoriteEventIds.includes(id);
                     html += `
                         <div class="event-card">
                             <h2>${data.name}</h2>
                             <p><strong>日付:</strong> ${data.date}</p>
                             <p>${data.description}</p>
-                            <button class="favorite-btn ${isFav?'is-favorite':''}" data-event-id="${id}" data-is-favorite="${isFav}">
+                            <button class="favorite-btn ${isFav ? 'is-favorite' : ''}" 
+                                    data-event-id="${id}" data-is-favorite="${isFav}">
                                 ${isFav ? 'お気に入り解除' : 'お気に入りに追加'}
                             </button>
                         </div>`;
                 });
                 eventGrid.innerHTML = html;
-                document.querySelectorAll('.favorite-btn').forEach(btn => {
-                    btn.addEventListener('click', handleFavoriteClick);
-                });
+                document.querySelectorAll('.favorite-btn').forEach(b => 
+                    b.addEventListener('click', handleFavoriteClick));
             } catch (e) {
-                eventGrid.innerHTML = '<p>イベント読み込み失敗</p>';
+                eventGrid.innerHTML = '<p>読み込み失敗</p>';
             }
         };
 
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            if (user) {
-                loginBtnHeader.textContent = `マイページへ (${user.displayName || user.email})`;
-                loginBtnHeader.onclick = () => location.href = 'mypage.html';
-                loadFavorites(user.uid);
-            } else {
-                loginBtnHeader.textContent = 'ログイン / サインアップ';
-                loginBtnHeader.onclick = () => loginModal.style.display = 'block';
-                favoriteEventIds = [];
-                renderEvents();
-            }
-            renderFeaturedCarousel(); // ログイン状態問わずおすすめは表示
-            if (!user) loginModal.style.display = 'none';
-        });
-
-        // 以下のお気に入り・認証処理は全部そのまま（省略せずに残してあるよ！）
-        // ...（handleFavoriteClick とかログイン処理は全部そのまま！）
-
-        // ここに今までの handleFavoriteClick とか全部貼ってるけど、長すぎるので省略するね
-        // → 実際は前のコードのまま全部残してOK！（コピペする時は全部入れてね）
-
-        // 以下は省略しないで全部入れるべき部分（抜粋）
         const handleFavoriteClick = async (e) => {
             const btn = e.currentTarget;
             const eventId = btn.dataset.eventId;
-            if (!currentUser) { alert('ログインしてください'); loginModal.style.display = 'block'; return; }
+            if (!currentUser) {
+                alert('ログインが必要です');
+                loginModal.style.display = 'block';
+                return;
+            }
             const isFav = btn.dataset.isFavorite === 'true';
             const userRef = doc(db, 'users', currentUser.uid);
             try {
@@ -320,69 +346,92 @@
                     btn.dataset.isFavorite = 'true';
                     btn.textContent = 'お気に入り解除';
                     btn.classList.add('is-favorite');
+                } else {
+                    alert('エラー: ' + err.message);
                 }
             }
         };
 
-        // ログイン処理も全部そのまま残してね！（Google/GitHub/Email）
+        // 認証状態監視（これが大事！）
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                loginBtnHeader.textContent = `マイページへ (${user.displayName || user.email.split('@')[0]})`;
+                loginBtnHeader.onclick = () => location.href = 'mypage.html';
+                loadFavorites(user.uid);
+            } else {
+                loginBtnHeader.textContent = 'ログイン / サインアップ';
+                loginBtnHeader.onclick = () => loginModal.style.display = 'block';
+                favoriteEventIds = [];
+                renderEvents();
+                renderFeaturedCarousel();
+            }
+            loginModal.style.display = 'none';
+        });
 
-        window.onclick = e => { if (e.target === loginModal) loginModal.style.display = 'none'; };
-        document.querySelector('.close-btn').addEventListener('click', () => loginModal.style.display = 'none');
+        // ソーシャルログイン
+        document.getElementById('google-login-btn').addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, googleProvider);
+            } catch (error) { handleSocialError(error); }
+        });
+        document.getElementById('github-login-btn').addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, githubProvider);
+            } catch (error) { handleSocialError(error); }
+        });
+
+        const handleSocialError = async (error) => {
+            if (error.code === 'auth/account-exists-with-different-credential') {
+                pendingCredential = error.credential;
+                const email = error.email;
+                document.getElementById('reauth-email-input').value = email;
+                reauthSection.style.display = 'block';
+                document.getElementById('login-form-main').style.display = 'none';
+                alert('このメールは別の方法で登録済みです。パスワードを入力してリンクしてください。');
+            } else {
+                alert('ログインエラー: ' + error.message);
+            }
+        };
+
+        // メール認証
+        document.getElementById('email-signup-btn').onclick = async () => {
+            const email = document.getElementById('email-input').value;
+            const pass = document.getElementById('password-input').value;
+            if (!email || !pass) return alert('入力してください');
+            try { await createUserWithEmailAndPassword(auth, email, pass); }
+            catch (e) { alert(e.message); }
+        };
+        document.getElementById('email-login-btn').onclick = async () => {
+            const email = document.getElementById('email-input').value;
+            const pass = document.getElementById('password-input').value;
+            if (!email || !pass) return alert('入力してください');
+            try { await signInWithEmailAndPassword(auth, email, pass); }
+            catch (e) { alert(e.message); }
+        };
+
+        // アカウントリンク
+        document.getElementById('reauth-login-btn').onclick = async () => {
+            const email = document.getElementById('reauth-email-input').value;
+            const pass = document.getElementById('reauth-password-input').value;
+            if (!pendingCredential) return alert('エラー');
+            try {
+                const cred = EmailAuthProvider.credential(email, pass);
+                const result = await signInWithCredential(auth, cred);
+                await linkWithCredential(result.user, pendingCredential);
+                pendingCredential = null;
+                reauthSection.style.display = 'none';
+                document.getElementById('login-form-main').style.display = 'block';
+            } catch (e) { alert('リンク失敗: ' + e.message); }
+        };
+
+        // モーダル閉じる
+        document.querySelector('.close-btn').onclick = () => loginModal.style.display = 'none';
+        window.onclick = (e) => { if (e.target === loginModal) loginModal.style.display = 'none'; };
+
+        // 初回読み込み
+        renderEvents();
+        renderFeaturedCarousel();
     </script>
-</head>
-<body>
-    <header class="header">
-        <h1>イベント一覧</h1>
-        <div class="auth-controls">
-            <button id="login-btn-header">ログイン / サインアップ</button>
-        </div>
-    </header>
-
-    <!-- おすすめカルーセル（ここが新しく追加された部分） -->
-    <section class="featured-carousel">
-        <h2>おすすめイベント</h2>
-        <div class="carousel-container">
-            <div class="carousel-track" id="featured-track">
-                <!-- JSで自動生成 -->
-            </div>
-        </div>
-    </section>
-
-    <main class="main-content">
-        <h2>開催中のイベント</h2>
-        <div class="event-grid" id="event-grid"></div>
-    </main>
-
-    <!-- ログインモーダル（今までと同じ） -->
-    <div id="login-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">×</span>
-            <div class="container">
-                <h2 style="text-align: center;">認証フォーム</h2>
-                <div id="login-form-main">
-                    <h3>ソーシャルログイン</h3>
-                    <div class="auth-buttons">
-                        <button id="google-login-btn">Googleでログイン</button>
-                        <button id="github-login-btn">GitHubでログイン</button>
-                    </div>
-                    <hr>
-                    <h3>メールアドレスで認証</h3>
-                    <input type="email" id="email-input" placeholder="メールアドレス">
-                    <input type="password" id="password-input" placeholder="パスワード">
-                    <div class="auth-buttons">
-                        <button id="email-signup-btn">サインアップ</button>
-                        <button id="email-login-btn">ログイン</button>
-                    </div>
-                </div>
-                <div id="reauth-section">
-                    <h2>アカウントリンク</h2>
-                    <p>このメールは既存アカウントです。パスワードを入力してリンクしてください。</p>
-                    <input type="email" id="reauth-email-input" readonly>
-                    <input type="password" id="reauth-password-input" placeholder="既存パスワード">
-                    <button id="reauth-login-btn">リンクしてログイン</button>
-                </div>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
