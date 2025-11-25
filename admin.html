@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理者イベント登録ページ</title>
+    <title>管理者イベント登録ページ | 決定版</title>
     <style>
         :root { --primary: #5e35b1; --accent: #ff5252; --bg: #f8f9ff; --text: #333; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: var(--bg); color: var(--text); }
@@ -86,7 +86,7 @@
             </div>
 
             <div class="form-group">
-                <label for="summary">要約 (一覧表示用、80文字程度)</label>
+                <label for="summary">要約 (一覧表示用、200文字まで)</label>
                 <textarea id="summary" maxlength="200"></textarea>
             </div>
 
@@ -111,9 +111,10 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        // setDocとdoc, documentId を追加でインポート
+        import { getFirestore, collection, setDoc, doc, serverTimestamp, getDocs, query, where, orderBy, limit, documentId } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-        // ★★★ 注：ここは、元の index.html の設定をそのまま使用してください。
+        // ★★★ Firebase Config: ここは index.html と同じ設定を使用してください ★★★
         const firebaseConfig = {
             apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
             authDomain: "goto6234.firebaseapp.com",
@@ -128,6 +129,16 @@
         const db = getFirestore(app);
         const form = document.getElementById('event-form');
         const messageElement = document.getElementById('message');
+
+        function showMessage(msg, type) {
+            messageElement.textContent = msg;
+            messageElement.className = ''; // クラスをリセット
+            messageElement.classList.add(type);
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 5000); // 5秒後にメッセージを消す
+        }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -145,44 +156,61 @@
                 summary: document.getElementById('summary').value.trim(),
                 description: document.getElementById('description').value,
                 isFeatured: document.getElementById('isFeatured').checked,
-                // index.htmlでorderBy("createdAt", "desc")を使っているので、登録日時も追加
-                createdAt: serverTimestamp() 
+                createdAt: serverTimestamp() // 登録日時
             };
 
-            // タグの処理: コンマ区切りの文字列を配列に変換
+            // タグの処理
             const tagsInput = document.getElementById('tags').value.trim();
-            if (tagsInput) {
-                eventData.tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-            } else {
-                eventData.tags = [];
-            }
+            eventData.tags = tagsInput 
+                ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+                : [];
 
-            // 必須項目チェック（HTMLのrequired属性もあるが念のため）
+            // 必須項目チェック
             if (!eventData.name || !eventData.date || !eventData.category) {
                 showMessage("エラー: イベント名、開催日、カテゴリは必須です。", "error");
                 return;
             }
 
-            // Firestoreへのデータ送信
+            // --- ★★★ カスタムID生成ロジック ★★★ ---
+            const today = eventData.date; // 例: '2025-11-25'
+            const prefix = `event-${today}`; // 例: 'event-2025-11-25'
+            let newSequence = 1;
+
             try {
-                const docRef = await addDoc(collection(db, "events"), eventData);
-                showMessage(`イベントを登録しました！ (ID: ${docRef.id})`, "success");
+                // 1. その日付の最新のID（最大の連番）を取得
+                // ドキュメントIDで降順ソートし、日付プレフィックスで範囲指定
+                const q = query(
+                    collection(db, "events"),
+                    orderBy(documentId(), "desc"),
+                    where(documentId(), ">=", prefix),
+                    // 'z'を付加することで、prefixで始まる全てのIDを含む範囲を指定
+                    where(documentId(), "<", prefix + 'z'), 
+                    limit(1)
+                );
+                const snap = await getDocs(q);
+
+                if (!snap.empty) {
+                    // 既存の最大のIDから連番部分を抽出して +1 する
+                    const lastId = snap.docs[0].id; // 例: 'event-2025-11-25-0003'
+                    const seqPart = lastId.substring(lastId.lastIndexOf('-') + 1); // '0003'
+                    newSequence = parseInt(seqPart) + 1; // 4
+                }
+                
+                // 2. 新しいIDを生成（4桁ゼロ埋め）
+                const sequenceStr = newSequence.toString().padStart(4, '0'); // '0004'
+                const customId = `${prefix}-${sequenceStr}`; // 'event-2025-11-25-0004'
+
+                // 3. Firestoreへのデータ送信（setDocを使用してカスタムIDを設定）
+                await setDoc(doc(db, "events", customId), eventData);
+                
+                showMessage(`イベントを登録しました！ (ID: ${customId})`, "success");
                 form.reset(); // フォームをリセット
+
             } catch (e) {
                 console.error("イベント登録エラー: ", e);
                 showMessage(`イベント登録に失敗しました: ${e.message}`, "error");
             }
         });
-
-        function showMessage(msg, type) {
-            messageElement.textContent = msg;
-            messageElement.className = ''; // クラスをリセット
-            messageElement.classList.add(type);
-            messageElement.style.display = 'block';
-            setTimeout(() => {
-                messageElement.style.display = 'none';
-            }, 5000); // 5秒後にメッセージを消す
-        }
     </script>
 </body>
 </html>
