@@ -3,31 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理者イベント登録ページ | 決定版</title>
+    <title>管理者イベント登録ページ | イベント管理</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #5e35b1; --accent: #ff5252; --bg: #f8f9ff; --text: #333; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: var(--bg); color: var(--text); }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        h1 { color: var(--primary); border-bottom: 3px solid var(--primary); padding-bottom: 10px; margin-bottom: 30px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; }
+        :root { 
+            --primary: #4CAF50; /* 成功/メインカラー (緑) */
+            --primary-dark: #388E3C;
+            --accent: #FF9800; /* 強調カラー (オレンジ) */
+            --bg: #e8eaf6; /* 背景を少し青みがかった薄い色に */
+            --card-bg: white;
+            --text: #212121;
+            --input-border: #bdbdbd;
+        }
+        body { 
+            font-family: 'Roboto', 'Segoe UI', sans-serif; 
+            margin: 0; 
+            padding: 40px 20px; 
+            background: var(--bg); 
+            color: var(--text); 
+            line-height: 1.6;
+        }
+        .container { 
+            max-width: 900px; /* 幅を広げる */
+            margin: 0 auto; 
+            background: var(--card-bg); 
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+        }
+        h1 { 
+            color: var(--primary-dark); 
+            border-bottom: 4px solid var(--primary); 
+            padding-bottom: 15px; 
+            margin-bottom: 40px; 
+            font-size: 1.8em;
+        }
+        .form-group { margin-bottom: 25px; }
+        .form-group label { 
+            display: block; 
+            font-weight: bold; 
+            margin-bottom: 8px; 
+            color: var(--text); 
+            font-size: 1.1em;
+        }
+        .required-star { color: var(--accent); margin-left: 5px; }
+        
+        /* 入力フィールドの共通スタイル */
         .form-group input:not([type="checkbox"]):not([type="radio"]),
         .form-group select,
         .form-group textarea {
-            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1em;
-            transition: border-color 0.2s;
+            width: 100%; 
+            padding: 14px; 
+            border: 1px solid var(--input-border); 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 1em;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); outline: none; }
-        textarea { resize: vertical; min-height: 120px; }
-        .checkbox-group label { font-weight: normal; display: inline-block; margin-right: 20px; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3); /* フォーカス時に影を追加 */
+            outline: none; 
+        }
+        textarea { resize: vertical; min-height: 100px; }
+        
         .submit-btn {
-            background: var(--accent); color: white; padding: 15px 30px; border: none; border-radius: 50px;
-            font-size: 1.1em; font-weight: bold; cursor: pointer; transition: background 0.3s;
+            background: var(--primary); 
+            color: white; 
+            padding: 15px 35px; 
+            border: none; 
+            border-radius: 8px;
+            font-size: 1.2em; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: background 0.3s, transform 0.1s;
+            margin-top: 20px;
         }
-        .submit-btn:hover { background: #d32f2f; }
-        #message { margin-top: 20px; padding: 15px; border-radius: 8px; font-weight: bold; display: none; }
-        .success { background: #e8f5e9; color: #388e3c; }
-        .error { background: #ffebee; color: #d32f2f; }
+        .submit-btn:hover { 
+            background: var(--primary-dark); 
+            transform: translateY(-1px);
+        }
+        
+        #message { 
+            margin-top: 25px; 
+            padding: 15px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            display: none; 
+        }
+        .success { 
+            background: #e8f5e9; 
+            color: #2e7d32; 
+            border: 1px solid #c8e6c9;
+        }
+        .error { 
+            background: #ffebee; 
+            color: #c62828; 
+            border: 1px solid #ffcdd2;
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            h1 { font-size: 1.5em; margin-bottom: 30px; }
+            .submit-btn { width: 100%; padding: 12px; font-size: 1.1em; }
+        }
     </style>
 </head>
 <body>
@@ -36,13 +116,14 @@
         <h1>イベント登録フォーム</h1>
 
         <form id="event-form">
+            
             <div class="form-group">
-                <label for="name">イベント名 <span style="color:var(--accent);">*</span></label>
+                <label for="name">イベント名 <span class="required-star">*</span></label>
                 <input type="text" id="name" required>
             </div>
 
             <div class="form-group">
-                <label for="date">開催日 <span style="color:var(--accent);">*</span></label>
+                <label for="date">開催日 <span class="required-star">*</span></label>
                 <input type="date" id="date" required>
             </div>
             
@@ -57,7 +138,7 @@
             </div>
 
             <div class="form-group">
-                <label for="category">カテゴリ <span style="color:var(--accent);">*</span></label>
+                <label for="category">カテゴリ <span class="required-star">*</span></label>
                 <select id="category" required>
                     <option value="">選択してください</option>
                     <option value="matsuri">祭り</option>
@@ -81,10 +162,14 @@
             </div>
 
             <div class="form-group">
-                <label for="imageUrl">画像URL (トップページ一覧用)</label>
-                <input type="url" id="imageUrl">
+                <label for="imageUrl">メイン画像URL (トップページ一覧用)</label>
+                <input type="url" id="imageUrl" placeholder="http://example.com/main.jpg">
             </div>
-
+            
+            <div class="form-group">
+                <label for="subImages">ギャラリー画像URL <span style="font-weight: normal; color: #555;">(コンマ区切りで複数入力)</span></label>
+                <textarea id="subImages" placeholder="http://example.com/img1.jpg, http://example.com/img2.jpg, ..."></textarea>
+            </div>
             <div class="form-group">
                 <label for="summary">要約 (一覧表示用、200文字まで)</label>
                 <textarea id="summary" maxlength="200"></textarea>
@@ -104,14 +189,14 @@
                 <input type="text" id="tags" placeholder="例: 無料,ファミリー向け,初心者歓迎">
             </div>
 
-            <button type="submit" class="submit-btn">イベントを登録</button>
+            <button type="submit" class="submit-btn">✅ イベントを登録</button>
             <div id="message"></div>
         </form>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        // setDoc, doc, getDocs, query, where をインポート
+        // setDoc, doc, getDocs, query, where, documentId をインポート
         import { getFirestore, collection, setDoc, doc, serverTimestamp, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
         // ★★★ Firebase Config: ここは index.html と同じ設定を使用してください ★★★
@@ -156,8 +241,18 @@
                 summary: document.getElementById('summary').value.trim(),
                 description: document.getElementById('description').value,
                 isFeatured: document.getElementById('isFeatured').checked,
-                createdAt: serverTimestamp() // 登録日時
+                createdAt: serverTimestamp()
             };
+
+            // 【追加】ギャラリー画像（subImages）の処理
+            const subImagesInput = document.getElementById('subImages').value.trim();
+            eventData.subImages = subImagesInput
+                ? subImagesInput
+                    .split(',')
+                    .map(url => url.trim())
+                    .filter(url => url.length > 0 && (url.startsWith('http') || url.startsWith('https')))
+                : [];
+            // ---------------------------------------
 
             // タグの処理
             const tagsInput = document.getElementById('tags').value.trim();
@@ -171,30 +266,26 @@
                 return;
             }
 
-            // --- ★★★ 修正されたカスタムID生成ロジック ★★★ ---
-            const targetDate = eventData.date; // 例: '2025-11-28'
-            const idPrefix = `event-${targetDate}-`; // 例: 'event-2025-11-28-'
+            // --- ★★★ カスタムID生成ロジック ★★★ ---
+            const targetDate = eventData.date;
+            const idPrefix = `event-${targetDate}-`;
             let maxSequence = 0;
 
             try {
                 // 1. シンプルなクエリで、その日付の全イベントを取得
-                // 「date」フィールドに対するシンプルな where 句なので、整合性が保たれやすい
                 const q = query(
                     collection(db, "events"),
                     where("date", "==", targetDate) 
                 );
                 const snap = await getDocs(q);
 
-                // 2. 取得した全ドキュメントIDから最大の連番を見つける
+                // 2. 取得した全ドキュメントIDから最大の連番を見つける (JavaScriptで処理)
                 snap.docs.forEach(doc => {
                     const id = doc.id;
-                    // ドキュメントIDが正しい形式（event-YYYY-MM-DD-NNNN）であることを確認
                     if (id.startsWith(idPrefix) && id.length > idPrefix.length) {
-                        // IDの末尾の連番部分を抽出
                         const seqPart = id.substring(id.lastIndexOf('-') + 1);
                         const sequence = parseInt(seqPart);
                         
-                        // 有効な数値で、これまでの最大値より大きい場合、更新
                         if (!isNaN(sequence) && sequence > maxSequence) {
                             maxSequence = sequence;
                         }
@@ -207,12 +298,11 @@
                 const sequenceStr = newSequence.toString().padStart(4, '0');
                 const customId = `${idPrefix}${sequenceStr}`; 
 
-                // 4. Firestoreへのデータ送信（setDocを使用してカスタムIDを設定）
-                // setDocはIDが重複した場合、上書きします
+                // 4. Firestoreへのデータ送信
                 await setDoc(doc(db, "events", customId), eventData);
                 
                 showMessage(`イベントを登録しました！ (ID: ${customId})`, "success");
-                form.reset(); // フォームをリセット
+                form.reset();
 
             } catch (e) {
                 console.error("イベント登録エラー: ", e);
