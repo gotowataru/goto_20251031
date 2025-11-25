@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者イベント登録ページ</title>
+    <style>
+        :root { --primary: #5e35b1; --accent: #ff5252; --bg: #f8f9ff; --text: #333; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: var(--bg); color: var(--text); }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { color: var(--primary); border-bottom: 3px solid var(--primary); padding-bottom: 10px; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; }
+        .form-group input:not([type="checkbox"]):not([type="radio"]),
+        .form-group select,
+        .form-group textarea {
+            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1em;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); outline: none; }
+        textarea { resize: vertical; min-height: 120px; }
+        .checkbox-group label { font-weight: normal; display: inline-block; margin-right: 20px; }
+        .submit-btn {
+            background: var(--accent); color: white; padding: 15px 30px; border: none; border-radius: 50px;
+            font-size: 1.1em; font-weight: bold; cursor: pointer; transition: background 0.3s;
+        }
+        .submit-btn:hover { background: #d32f2f; }
+        #message { margin-top: 20px; padding: 15px; border-radius: 8px; font-weight: bold; display: none; }
+        .success { background: #e8f5e9; color: #388e3c; }
+        .error { background: #ffebee; color: #d32f2f; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>イベント登録フォーム</h1>
+
+        <form id="event-form">
+            <div class="form-group">
+                <label for="name">イベント名 <span style="color:var(--accent);">*</span></label>
+                <input type="text" id="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="date">開催日 <span style="color:var(--accent);">*</span></label>
+                <input type="date" id="date" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="startTime">開始時間 (例: 10:00)</label>
+                <input type="time" id="startTime">
+            </div>
+
+            <div class="form-group">
+                <label for="endTime">終了時間 (例: 17:00)</label>
+                <input type="time" id="endTime">
+            </div>
+
+            <div class="form-group">
+                <label for="category">カテゴリ <span style="color:var(--accent);">*</span></label>
+                <select id="category" required>
+                    <option value="">選択してください</option>
+                    <option value="matsuri">祭り</option>
+                    <option value="music">音楽</option>
+                    <option value="learn">学び</option>
+                    <option value="workshop">ワークショップ</option>
+                    <option value="sports">スポーツ</option>
+                    <option value="gourmet">グルメ</option>
+                    <option value="exhibition">展示・芸術</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="venue">会場</label>
+                <input type="text" id="venue">
+            </div>
+            
+            <div class="form-group">
+                <label for="organizer">主催者</label>
+                <input type="text" id="organizer">
+            </div>
+
+            <div class="form-group">
+                <label for="imageUrl">画像URL (トップページ一覧用)</label>
+                <input type="url" id="imageUrl">
+            </div>
+
+            <div class="form-group">
+                <label for="summary">要約 (一覧表示用、80文字程度)</label>
+                <textarea id="summary" maxlength="200"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="description">詳細本文 (詳細ページ用)</label>
+                <textarea id="description"></textarea>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label><input type="checkbox" id="isFeatured"> おすすめイベントとして表示する</label>
+            </div>
+
+            <div class="form-group">
+                <label for="tags">タグ (コンマ区切りで複数入力)</label>
+                <input type="text" id="tags" placeholder="例: 無料,ファミリー向け,初心者歓迎">
+            </div>
+
+            <button type="submit" class="submit-btn">イベントを登録</button>
+            <div id="message"></div>
+        </form>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+        // ★★★ 注：ここは、元の index.html の設定をそのまま使用してください。
+        const firebaseConfig = {
+            apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
+            authDomain: "goto6234.firebaseapp.com",
+            projectId: "goto6234",
+            storageBucket: "goto6234.firebasestorage.app",
+            messagingSenderId: "730149609843",
+            appId: "1:730149609843:web:d11237de52723fc45b2506"
+        };
+        // ★★★ 
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const form = document.getElementById('event-form');
+        const messageElement = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // フォームデータの収集
+            const eventData = {
+                name: document.getElementById('name').value.trim(),
+                date: document.getElementById('date').value,
+                startTime: document.getElementById('startTime').value.trim(),
+                endTime: document.getElementById('endTime').value.trim(),
+                category: document.getElementById('category').value,
+                venue: document.getElementById('venue').value.trim(),
+                organizer: document.getElementById('organizer').value.trim(),
+                imageUrl: document.getElementById('imageUrl').value.trim(),
+                summary: document.getElementById('summary').value.trim(),
+                description: document.getElementById('description').value,
+                isFeatured: document.getElementById('isFeatured').checked,
+                // index.htmlでorderBy("createdAt", "desc")を使っているので、登録日時も追加
+                createdAt: serverTimestamp() 
+            };
+
+            // タグの処理: コンマ区切りの文字列を配列に変換
+            const tagsInput = document.getElementById('tags').value.trim();
+            if (tagsInput) {
+                eventData.tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+            } else {
+                eventData.tags = [];
+            }
+
+            // 必須項目チェック（HTMLのrequired属性もあるが念のため）
+            if (!eventData.name || !eventData.date || !eventData.category) {
+                showMessage("エラー: イベント名、開催日、カテゴリは必須です。", "error");
+                return;
+            }
+
+            // Firestoreへのデータ送信
+            try {
+                const docRef = await addDoc(collection(db, "events"), eventData);
+                showMessage(`イベントを登録しました！ (ID: ${docRef.id})`, "success");
+                form.reset(); // フォームをリセット
+            } catch (e) {
+                console.error("イベント登録エラー: ", e);
+                showMessage(`イベント登録に失敗しました: ${e.message}`, "error");
+            }
+        });
+
+        function showMessage(msg, type) {
+            messageElement.textContent = msg;
+            messageElement.className = ''; // クラスをリセット
+            messageElement.classList.add(type);
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 5000); // 5秒後にメッセージを消す
+        }
+    </script>
+</body>
+</html>
