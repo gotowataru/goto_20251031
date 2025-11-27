@@ -4,157 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>イベント一覧 | 決定版</title>
-    <style>
-        :root { --primary: #5e35b1; --accent: #ff5252; --bg: #f8f9ff; --text: #333; --gray: #757575; }
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
-
-        /* ヘッダー */
-        .header { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-            color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100;
-        }
-        .header h1 { margin: 0; font-size: 2em; }
-        .header-right { display: flex; align-items: center; gap: 30px; }
-
-        /* ヘッダーに移動したカテゴリメニュー */
-        .header-categories {
-            display: flex; gap: 20px; flex-wrap: wrap; align-items: center;
-        }
-        .header-categories label {
-            display: flex; align-items: center; gap: 6px; cursor: pointer; 
-            font-size: 0.95em; white-space: nowrap; color: rgba(255,255,255,0.9);
-            transition: color 0.2s;
-        }
-        .header-categories label:hover { color: white; }
-        .header-categories input[type="radio"] { accent-color: white; transform: scale(1.1); }
-
-        #login-btn-header { 
-            padding: 12px 28px; background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.4); 
-            border-radius: 50px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;
-        }
-        #login-btn-header:hover { background: white; color: #5e35b1; }
-
-        /* メインコンテンツ */
-        .container { 
-            max-width: 1400px; margin: 30px auto; padding: 0 20px; flex: 1;
-            display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 30px; 
-        }
-        .main, .sidebar { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .sidebar { height: fit-content; position: sticky; top: 100px; }
-
-        /* 検索 */
-        .search-container { display: flex; margin-bottom: 10px; }
-        #search-input {
-            flex: 1; padding: 16px; border: 2px solid #ddd; border-right: none; border-radius: 30px 0 0 30px; font-size: 1em; outline: none;
-        }
-        #search-input:focus { border-color: var(--primary); }
-        #search-btn {
-            padding: 0 24px; background: var(--primary); color: white; border: none; border-radius: 0 30px 30px 0; 
-            cursor: pointer; font-weight: bold;
-        }
-        #search-btn:hover { background: #4527a0; }
-        #clear-filters-btn {
-            width: 100%; padding: 8px; background: #f0f0f0; color: var(--gray); border: none; border-radius: 8px;
-            cursor: pointer; font-size: 0.9em; margin-top: 5px;
-        }
-        #clear-filters-btn:hover { background: #e0e0e0; color: #333; }
-
-        .filter-group { margin-bottom: 25px; }
-        .filter-group h3 { margin: 0 0 12px; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; }
-        .filter-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .tag-btn { padding: 8px 16px; background: #eee; border-radius: 20px; font-size: 0.9em; cursor: pointer; transition: 0.2s; }
-        .tag-btn.active { background: var(--primary); color: white; }
-
-        /* おすすめイベント */
-        .featured { margin-bottom: 40px; }
-        .featured-grid { 
-            display: flex; gap: 20px; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 15px;
-            scrollbar-width: none; -ms-overflow-style: none;
-        }
-        .featured-grid::-webkit-scrollbar { display: none; }
-        .featured-card { 
-            flex: 0 0 auto; width: 400px; max-width: 90%; position: relative; background: white; 
-            border-radius: 16px; overflow: hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.15); transition: transform 0.3s; 
-        }
-        .featured-card:hover { transform: translateY(-5px); }
-        .featured-card img { width: 100%; height: 240px; object-fit: cover; }
-        .featured-card .content { padding: 20px; }
-        .featured-card h3 { margin: 0 0 10px; color: var(--primary); font-size: 1.4em; }
-        .featured-label { position: absolute; top: 15px; left: 15px; background: var(--accent); color: white; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 0.9em; }
-
-        /* イベント一覧 */
-        .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
-        .event-card { position: relative; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.1); transition: all 0.3s; display: flex; flex-direction: column; }
-        .event-card:hover { transform: translateY(-8px); }
-        .event-card img { width: 100%; height: 200px; object-fit: cover; }
-        .event-card .content { padding: 18px; flex: 1; }
-        .event-card h2 { margin: 0 0 8px; font-size: 1.3em; line-height: 1.3; }
-        .event-card .meta { font-size: 0.9em; color: #666; margin: 8px 0; }
-        .category-tag { display: inline-block; padding: 4px 10px; background: #e0e0e0; border-radius: 20px; font-size: 0.8em; margin-right: 6px; }
-        .favorite-btn { 
-            width: 100%; padding: 12px; border: none; background: #ffd740; color: #333; 
-            font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 1em; border-radius: 0 0 16px 16px; 
-        }
-        .favorite-btn.is-favorite { background: var(--accent); color: white; }
-        .favorite-btn:hover { opacity: 0.9; }
-
-        .new-events { list-style: none; padding: 0; margin: 0; }
-        .new-events li { padding: 12px 0; border-bottom: 1px dashed #eee; }
-        .new-events li:last-child { border: none; }
-        .new-events a { color: #333; text-decoration: none; transition: color 0.2s; }
-        .new-events a:hover { color: var(--primary); }
-
-        .loading, .load-more { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #999; }
-        .load-more span { font-size: 0.95em; }
-
-        /* フッター */
-        footer {
-            background: #333; color: #ccc; padding: 40px 20px; margin-top: auto;
-            text-align: center; font-size: 0.9em;
-        }
-        .footer-links {
-            display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-        .footer-links a {
-            color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 8px; transition: background 0.3s;
-        }
-        .footer-links a:hover {
-            background: rgba(255,255,255,0.1);
-        }
-        .copyright { color: #999; }
-
-        /* モーダル */
-        .modal { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
-        .modal-content { background: white; margin: 8% auto; padding: 40px; border-radius: 20px; width: 90%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalIn 0.4s; position: relative; }
-        @keyframes modalIn { from { transform: translateY(-100px); opacity: 0; } to { transform: none; opacity: 1; } }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 32px; color: #aaa; cursor: pointer; }
-        .close-btn:hover { color: #333; }
-        .auth-buttons button { width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 50px; color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; }
-        #google-login-btn { background: #DB4437; }
-        #github-login-btn { background: #333; }
-        #email-signup-btn, #email-login-btn { background: #4CAF50; }
-        input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 50px; box-sizing: border-box; font-size: 1em; outline: none; }
-        input[type="email"]:focus, input[type="password"]:focus { border-color: var(--primary); }
-
-        @media (max-width: 900px) {
-            .header { flex-direction: column; gap: 15px; text-align: center; }
-            .header-right { flex-direction: column; gap: 15px; }
-            .header-categories { justify-content: center; }
-        }
-        @media (max-width: 600px) {
-            .header-categories { gap: 12px; font-size: 0.9em; }
-        }
-    </style>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <!-- ヘッダー（カテゴリ移動済み） -->
     <header class="header">
         <h1>イベント一覧</h1>
-
         <div class="header-right">
             <div class="header-categories">
                 <label><input type="radio" name="category" value="all" checked><span>すべて</span></label>
@@ -170,55 +25,39 @@
         </div>
     </header>
 
-    <!-- メインコンテンツ -->
     <div class="container">
         <div class="main">
             <section class="featured" id="featured-section" style="display:none;">
-                <h2 style="color:var(--primary); font-size:2em; margin-bottom:20px;">おすすめイベント</h2>
+                <h2>おすすめイベント</h2>
                 <div class="featured-grid" id="featured-grid"></div>
             </section>
             <section>
-                <h2 style="color:var(--primary); font-size:1.8em; margin:30px 0 20px;">開催予定イベント</h2>
+                <h2>開催予定イベント</h2>
                 <div class="event-grid" id="event-grid">
-                    <div class="loading">
-                        <svg viewBox="0 0 38 38" stroke="var(--primary)" style="width:48px;height:48px;">
-                            <g fill="none" stroke-width="4">
-                                <circle cx="19" cy="19" r="16" stroke-opacity=".3"/>
-                                <path d="M19 3 A16 16 0 0 1 19 35">
-                                    <animateTransform attributeName="transform" type="rotate" from="0 19 19" to="360 19 19" dur="1s" repeatCount="indefinite"/>
-                                </path>
-                            </g>
-                        </svg><br>読み込み中...
-                    </div>
+                    <div class="loading">読み込み中...</div>
                 </div>
-                <div id="load-more-trigger" class="load-more">
-                    <span>もっと見る</span>
-                </div>
+                <div id="load-more-trigger" class="load-more"><span>もっと見る</span></div>
             </section>
         </div>
 
-        <!-- サイドバー（カテゴリはヘッダーに移動したので削除） -->
         <aside class="sidebar">
             <div class="filter-group">
                 <h3>検索</h3>
                 <div class="search-container">
-                    <input type="search" id="search-input" name="site_event_search_q" placeholder="キーワード..." autocomplete="off">
+                    <input type="search" id="search-input" placeholder="キーワード..." autocomplete="off">
                     <button id="search-btn">検索</button>
                 </div>
                 <button id="clear-filters-btn">条件をクリア</button>
             </div>
 
             <div class="filter-group" id="tags-filter" style="display:none;">
-                <h3>タグ</h3>
-                <div class="filter-tags" id="tags-container"></div>
+                <h3>タグ</h3><div class="filter-tags" id="tags-container"></div>
             </div>
             <div class="filter-group" id="organizer-filter" style="display:none;">
-                <h3>主催者</h3>
-                <div class="filter-tags" id="organizer-container"></div>
+                <h3>主催者</h3><div class="filter-tags" id="organizer-container"></div>
             </div>
             <div class="filter-group" id="venue-filter" style="display:none;">
-                <h3>会場</h3>
-                <div class="filter-tags" id="venue-container"></div>
+                <h3>会場</h3><div class="filter-tags" id="venue-container"></div>
             </div>
 
             <div class="filter-group">
@@ -228,27 +67,23 @@
         </aside>
     </div>
 
-    <!-- フッター -->
     <footer>
         <div class="footer-links">
             <a href="privacy.html">プライバシーポリシー</a>
             <a href="contact.html">お問い合わせ</a>
         </div>
-        <div class="copyright">
-            © 2025 イベント一覧 All Rights Reserved.
-        </div>
+        <div class="copyright">© 2025 イベント一覧 All Rights Reserved.</div>
     </footer>
 
-    <!-- ログインモーダル -->
     <div id="login-modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn">x</span>
-            <h2 style="text-align:center; color:var(--primary); margin-bottom:30px;">ログイン / サインアップ</h2>
+            <span class="close-btn">×</span>
+            <h2>ログイン / サインアップ</h2>
             <div class="auth-buttons">
                 <button id="google-login-btn">Googleでログイン</button>
                 <button id="github-login-btn">GitHubでログイン</button>
             </div>
-            <hr style="margin:30px 0; border:0; border-top:1px solid #eee;">
+            <hr>
             <input type="email" id="email-input" placeholder="メールアドレス">
             <input type="password" id="password-input" placeholder="パスワード（6文字以上）">
             <div class="auth-buttons">
@@ -258,259 +93,6 @@
         </div>
     </div>
 
-    <!-- スクリプト（完全版） -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, query, where, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
-            authDomain: "goto6234.firebaseapp.com",
-            projectId: "goto6234",
-            storageBucket: "goto6234.firebasestorage.app",
-            messagingSenderId: "730149609843",
-            appId: "1:730149609843:web:d11237de52723fc45b2506"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        let currentUser = null;
-        let favoriteEventIds = [];
-        let allEvents = [];
-        let isLoading = false;
-        let lastVisible = null;
-        const PAGE_SIZE = 20;
-
-        const modal = document.getElementById('login-modal');
-        const loginBtn = document.getElementById('login-btn-header');
-        const closeBtn = document.querySelector('.close-btn');
-        loginBtn.onclick = () => { if (!currentUser) modal.style.display = 'block'; };
-        closeBtn.onclick = () => modal.style.display = 'none';
-        window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
-
-        const googleProvider = new GoogleAuthProvider();
-        const githubProvider = new GithubAuthProvider();
-
-        document.getElementById('google-login-btn').onclick = () => signInWithPopup(auth, googleProvider).then(() => modal.style.display = 'none').catch(e => alert(e.message));
-        document.getElementById('github-login-btn').onclick = () => signInWithPopup(auth, githubProvider).then(() => modal.style.display = 'none').catch(e => alert(e.message));
-        document.getElementById('email-signup-btn').onclick = () => {
-            const email = document.getElementById('email-input').value.trim();
-            const pass = document.getElementById('password-input').value;
-            if (email && pass.length >= 6) createUserWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(e => alert(e.message));
-            else alert("メールと6文字以上のパスワードを入力してください");
-        };
-        document.getElementById('email-login-btn').onclick = () => {
-            const email = document.getElementById('email-input').value.trim();
-            const pass = document.getElementById('password-input').value;
-            if (email && pass) signInWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(e => alert(e.message));
-            else alert("メールとパスワードを入力してください");
-        };
-
-        const categoryNames = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
-        let filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
-
-        const renderEvents = () => {
-            const grid = document.getElementById('event-grid');
-            let filtered = allEvents.filter(e => {
-                const matchCat = filters.category === "all" || e.category === filters.category;
-                const keywords = filters.search.toLowerCase().split(/\s+/).filter(k => k);
-                const targetText = [e.name, e.description, e.summary, e.venue, e.organizer].join(" ").toLowerCase();
-                const matchSearch = keywords.length === 0 || keywords.every(k => targetText.includes(k));
-                const matchTag = !filters.tag || e.tags?.includes(filters.tag);
-                const matchOrg = !filters.organizer || e.organizer === filters.organizer;
-                const matchVenue = !filters.venue || e.venue === filters.venue;
-                return matchCat && matchSearch && matchTag && matchOrg && matchVenue;
-            });
-
-            if (filtered.length === 0) {
-                grid.innerHTML = "<p style='grid-column:1/-1;text-align:center;padding:100px;color:#999;font-size:1.3em;'>該当するイベントがありません</p>";
-                return;
-            }
-
-            grid.innerHTML = filtered.map(ev => {
-                const isFav = favoriteEventIds.includes(ev.id);
-                const catLabel = ev.category ? `<span class="category-tag">${categoryNames[ev.category] || ev.category}</span>` : "";
-                const img = ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${ev.name}" loading="lazy">` : `<div style="height:200px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;">画像なし</div>`;
-                const timeStr = ev.startTime ? `${ev.startTime} 〜 ${ev.endTime || ""}` : "終日";
-                const displayDesc = ev.summary || (ev.description ? ev.description.substring(0, 80) + "..." : "");
-
-                return `
-                    <div class="event-card">
-                        <a href="detail.html?id=${ev.id}" style="text-decoration:none;color:inherit;display:block;flex:1;">
-                            ${img}
-                            <div class="content">
-                                ${catLabel}
-                                <h2>${ev.name}</h2>
-                                <div class="meta"><strong>${ev.date}</strong> ${timeStr}</div>
-                                <p>${displayDesc}</p>
-                            </div>
-                        </a>
-                        <button class="favorite-btn ${isFav ? 'is-favorite' : ''}" data-id="${ev.id}">
-                            ${isFav ? 'お気に入り解除' : 'お気に入りに追加'}
-                        </button>
-                    </div>
-                `;
-            }).join("");
-
-            document.querySelectorAll('.favorite-btn').forEach(btn => {
-                btn.onclick = e => { e.preventDefault(); e.stopPropagation(); toggleFavorite(btn.dataset.id); };
-            });
-        };
-
-        const toggleFavorite = async (eventId) => {
-            if (!currentUser) { modal.style.display = "block"; return; }
-            const userRef = doc(db, "users", currentUser.uid);
-            const isFav = favoriteEventIds.includes(eventId);
-            try {
-                if (isFav) {
-                    await updateDoc(userRef, { favorites: arrayRemove(eventId) });
-                    favoriteEventIds = favoriteEventIds.filter(id => id !== eventId);
-                } else {
-                    await setDoc(userRef, { favorites: arrayUnion(eventId) }, { merge: true });
-                    favoriteEventIds.push(eventId);
-                }
-                renderEvents();
-            } catch (e) {
-                console.error(e);
-                alert("お気に入り処理に失敗しました");
-            }
-        };
-
-        const loadFeatured = async () => {
-            const q = query(collection(db, "events"), where("isFeatured", "==", true));
-            const snap = await getDocs(q);
-            if (snap.empty) return;
-            document.getElementById('featured-section').style.display = "block";
-            document.getElementById('featured-grid').innerHTML = snap.docs.map(d => {
-                const e = d.data(); e.id = d.id;
-                const img = e.imageUrl ? `<img src="${e.imageUrl}" alt="${e.name}" loading="lazy">` : `<div style="height:240px;background:#eee;"></div>`;
-                return `<div class="featured-card">
-                    <span class="featured-label">おすすめ</span>
-                    <a href="detail.html?id=${e.id}" style="text-decoration:none;color:inherit;display:block;">
-                        ${img}
-                        <div class="content"><h3>${e.name}</h3><p><strong>${e.date}</strong> ${e.venue || ""}</p></div>
-                    </a>
-                </div>`;
-            }).join("");
-        };
-
-        const loadNewEvents = async () => {
-            const q = query(collection(db, "events"), orderBy("createdAt", "desc"), limit(5));
-            const snap = await getDocs(q);
-            document.getElementById('new-events-list').innerHTML = snap.docs.map(d => {
-                const e = d.data();
-                return `<li><a href="detail.html?id=${d.id}">${e.name}</a><br><small>${e.date}</small></li>`;
-            }).join("") || "<li>新着イベントはありません</li>";
-        };
-
-        const generateSidebarFilters = () => {
-            const tags = new Set(), organizers = new Set(), venues = new Set();
-            allEvents.forEach(e => {
-                if (Array.isArray(e.tags)) e.tags.forEach(t => tags.add(t));
-                if (e.organizer) organizers.add(e.organizer);
-                if (e.venue) venues.add(e.venue);
-            });
-            const createButtons = (containerId, items, type) => {
-                const container = document.getElementById(containerId);
-                if (!container || items.size === 0) return;
-                document.getElementById(containerId.replace('-container', '-filter')).style.display = "block";
-                container.innerHTML = "";
-                items.forEach(item => {
-                    const btn = document.createElement('span');
-                    btn.className = "tag-btn";
-                    btn.textContent = item;
-                    btn.onclick = () => {
-                        const isActive = btn.classList.contains('active');
-                        container.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-                        if (!isActive) { btn.classList.add('active'); filters[type] = item; }
-                        else { filters[type] = ""; }
-                        renderEvents();
-                    };
-                    container.appendChild(btn);
-                });
-            };
-            createButtons('tags-container', tags, 'tag');
-            createButtons('organizer-container', organizers, 'organizer');
-            createButtons('venue-container', venues, 'venue');
-        };
-
-        const loadMoreEvents = async () => {
-            if (isLoading) return;
-            isLoading = true;
-            document.getElementById('load-more-trigger').innerHTML = '<span style="color:#999;">読み込み中...</span>';
-
-            const q = query(collection(db, "events"), orderBy("date"), startAfter(lastVisible), limit(PAGE_SIZE));
-            const snap = await getDocs(q);
-
-            if (snap.empty) {
-                document.getElementById('load-more-trigger').style.display = 'none';
-                isLoading = false;
-                return;
-            }
-
-            const newEvents = snap.docs.map(d => { const data = d.data(); data.id = d.id; return data; });
-            allEvents = [...allEvents, ...newEvents];
-            lastVisible = snap.docs[snap.docs.length - 1];
-
-            renderEvents();
-            generateSidebarFilters();
-            document.getElementById('load-more-trigger').innerHTML = '<span>もっと見る</span>';
-            isLoading = false;
-        };
-
-        const loadInitialEvents = async () => {
-            const snap = await getDocs(query(collection(db, "events"), orderBy("date"), limit(PAGE_SIZE)));
-            allEvents = snap.docs.map(d => { const data = d.data(); data.id = d.id; return data; });
-            lastVisible = snap.docs[snap.docs.length - 1] || null;
-
-            renderEvents();
-            loadFeatured();
-            loadNewEvents();
-            generateSidebarFilters();
-
-            const observer = new IntersectionObserver(entries => {
-                if (entries[0].isIntersecting && !isLoading) loadMoreEvents();
-            }, { rootMargin: "400px" });
-            observer.observe(document.getElementById('load-more-trigger'));
-        };
-
-        onAuthStateChanged(auth, async user => {
-            currentUser = user;
-            if (user) {
-                loginBtn.textContent = `${user.displayName || user.email.split('@')[0]} さん`;
-                loginBtn.onclick = () => location.href = 'mypage.html';
-                const snap = await getDoc(doc(db, 'users', user.uid));
-                favoriteEventIds = snap.exists() ? snap.data().favorites || [] : [];
-            } else {
-                loginBtn.textContent = 'ログイン / サインアップ';
-                loginBtn.onclick = () => modal.style.display = 'block';
-                favoriteEventIds = [];
-            }
-            renderEvents();
-        });
-
-        document.getElementById('search-btn').onclick = () => {
-            filters.search = document.getElementById('search-input').value.trim();
-            renderEvents();
-        };
-        document.getElementById('search-input').addEventListener('keypress', e => {
-            if (e.key === 'Enter') document.getElementById('search-btn').click();
-        });
-        document.getElementById('clear-filters-btn').onclick = () => {
-            filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
-            document.getElementById('search-input').value = "";
-            document.querySelector('input[name="category"][value="all"]').checked = true;
-            document.querySelectorAll('.tag-btn.active').forEach(b => b.classList.remove('active'));
-            renderEvents();
-        };
-        document.querySelectorAll('input[name="category"]').forEach(r => {
-            r.onchange = () => { filters.category = r.value; renderEvents(); };
-        });
-
-        loadInitialEvents();
-    </script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
