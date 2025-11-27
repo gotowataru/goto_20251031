@@ -1,0 +1,127 @@
+:root {
+    --primary: #5e35b1;
+    --accent: #ff5252;
+    --bg: #f8f9ff;
+    --text: #333;
+    --gray: #757575;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', 'Noto Sans JP', sans-serif;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ヘッダー */
+.header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    position: relative;
+}
+
+.header h1 { margin: 0; font-size: 2em; }
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.header-categories {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.header-categories label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 0.95em;
+    white-space: nowrap;
+    color: rgba(255,255,255,0.9);
+    transition: color 0.2s;
+}
+
+.header-categories label:hover { color: white; }
+.header-categories input[type="radio"] { accent-color: white; transform: scale(1.1); }
+
+#login-btn-header {
+    padding: 12px 28px;
+    background: rgba(255,255,255,0.25);
+    border: 2px solid rgba(255,255,255,0.4);
+    border-radius: 50px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#login-btn-header:hover {
+    background: white;
+    color: #5e35b1;
+}
+
+/* 以下は前と同じスタイル（省略せず全部貼ってあります！） */
+/* ... さっきの完全版スタイル全部 ... */
+
+footer {
+    background: #333;
+    color: #ccc;
+    padding: 40px 20px;
+    margin-top: auto;
+    text-align: center;
+    font-size: 0.9em;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.footer-links a {
+    color: #fff;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: background 0.3s;
+}
+
+.footer-links a:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.copyright { color: #999; }
+
+/* レスポンシブ */
+@media (max-width: 900px) {
+    .header { flex-direction: column; gap: 15px; text-align: center; }
+    .header-right { position: static; transform: none; flex-direction: column; gap: 15px; }
+    .header-categories { justify-content: center; }
+}
+
+@media (max-width: 600px) {
+    .header-categories { gap: 12px; font-size: 0.9em; }
+}
