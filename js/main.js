@@ -1,5 +1,3 @@
-// ... (import文、firebaseConfig、初期変数定義は省略) ...
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, query, where, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -135,7 +133,7 @@ const loadFeatured = async () => {
             </a>
         </div>`;
     }).join("");
-    // startCarousel(); // 元のコードには定義されていませんが、そのまま残します
+    // startCarousel(); // 未定義関数なのでコメントアウト/削除
 };
 
 const loadNewEvents = async () => {
@@ -154,28 +152,62 @@ const generateSidebarFilters = () => {
         if (e.organizer) organizers.add(e.organizer);
         if (e.venue) venues.add(e.venue);
     });
+    
+    // フィルターの表示件数
+    const MAX_ITEMS = 10; 
+
     const createButtons = (containerId, items, type) => {
         const container = document.getElementById(containerId);
+        const filterGroup = document.getElementById(containerId.replace('-container', '-filter'));
+
         if (!container || items.size === 0) {
-             document.getElementById(containerId.replace('-container', '-filter')).style.display = "none"; // 項目がない場合はフィルターを非表示
+             filterGroup.style.display = "none";
              return;
         }
-        document.getElementById(containerId.replace('-container', '-filter')).style.display = "block";
+        filterGroup.style.display = "block";
         container.innerHTML = "";
-        items.forEach(item => {
+        
+        const sortedItems = Array.from(items).sort();
+        let itemsCount = 0;
+
+        sortedItems.forEach(item => {
             const btn = document.createElement('span');
             btn.className = "tag-btn";
             btn.textContent = item;
+            
+            // 10件を超えたら非表示にするクラスを付与
+            if (itemsCount >= MAX_ITEMS) {
+                btn.classList.add('hidden-tag');
+            }
+            
             btn.onclick = () => {
                 const isActive = btn.classList.contains('active');
                 container.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-                if (!isActive) { btn.classList.add('active'); filters[type] = item; }
+                if (!isActive) { filters[type] = item; btn.classList.add('active'); }
                 else { filters[type] = ""; }
                 renderEvents();
             };
             container.appendChild(btn);
+            itemsCount++;
         });
+
+        // 10件を超えた場合、「もっと見る」ボタンを追加
+        if (itemsCount > MAX_ITEMS) {
+            const showMoreBtn = document.createElement('button');
+            showMoreBtn.className = "show-more-btn";
+            showMoreBtn.textContent = `もっと見る (${itemsCount - MAX_ITEMS}件)`;
+            showMoreBtn.onclick = () => {
+                // 非表示のタグを表示する
+                container.querySelectorAll('.hidden-tag').forEach(tag => {
+                    tag.classList.remove('hidden-tag');
+                });
+                // ボタン自身を非表示にする
+                showMoreBtn.style.display = 'none';
+            };
+            container.appendChild(showMoreBtn);
+        }
     };
+    
     createButtons('tags-container', tags, 'tag');
     createButtons('organizer-container', organizers, 'organizer');
     createButtons('venue-container', venues, 'venue');
@@ -249,17 +281,22 @@ document.getElementById('search-input').addEventListener('keypress', e => {
 document.getElementById('clear-filters-btn').onclick = () => {
     filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
     document.getElementById('search-input').value = "";
+    
     // カテゴリフィルターのチェックをリセット
-    document.querySelector('.category-nav input[name="category"][value="all"]').checked = true;
-    document.querySelectorAll('.tag-btn.active').forEach(b => b.classList.remove('active'));
-    renderEvents();
+    const allRadio = document.querySelector('.category-nav input[name="category"][value="all"]');
+    if (allRadio) allRadio.checked = true;
+    
+    // タグ/主催者/会場フィルターのアクティブ状態をリセット
+    document.querySelectorAll('.filter-tags .tag-btn.active').forEach(b => b.classList.remove('active'));
+    
+    // 非表示の要素を再表示するロジック（ボタンを再表示させるために必要）
+    loadInitialEvents(); 
 };
 
-// 🌟 カテゴリフィルターのイベントリスナーを新しい nav 要素の input に設定 🌟
+// カテゴリフィルターのイベントリスナーを新しい nav 要素の input に設定
 document.querySelectorAll('.category-nav input[name="category"]').forEach(r => {
     r.onchange = () => { filters.category = r.value; renderEvents(); };
 });
-// -------------------------------------------------------------------
 
 // 最初に20件だけ読み込んでスタート！
 loadInitialEvents();
