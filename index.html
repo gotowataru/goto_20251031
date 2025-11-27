@@ -13,6 +13,16 @@
         <button id="login-btn-header">ログイン / サインアップ</button>
     </header>
 
+    <nav class="category-nav">
+        <label class="radio-label"><input type="radio" name="category" value="all" checked><span>すべて</span></label>
+        <label class="radio-label"><input type="radio" name="category" value="matsuri"><span>祭り</span></label>
+        <label class="radio-label"><input type="radio" name="category" value="music"><span>音楽</span></label>
+        <label class="radio-label"><input type="radio" name="category" value="learn"><span>学び</span></label>
+        <label class="radio-label"><input type="radio" name="category" value="workshop"><span>ワークショップ</span></label>
+        <label class="radio-label"><input type="radio" name="category" value="sports"><span>スポーツ</span></label>
+        <label class="radio-label"><input type="radio" name="category" value="gourmet"><span>グルメ</span></label>
+        <label class="radio-label"><input type="radio" name="category" value="exhibition"><span>展示・芸術</span></label>
+    </nav>
     <div class="container">
         <div class="main">
             <section class="featured" id="featured-section" style="display:none;">
@@ -47,18 +57,6 @@
                     <button id="search-btn">検索</button>
                 </div>
                 <button id="clear-filters-btn">条件をクリア</button>
-            </div>
-
-            <div class="filter-group">
-                <h3>カテゴリ</h3>
-                <label class="radio-label"><input type="radio" name="category" value="all" checked><span>すべて</span></label>
-                <label class="radio-label"><input type="radio" name="category" value="matsuri"><span>祭り</span></label>
-                <label class="radio-label"><input type="radio" name="category" value="music"><span>音楽</span></label>
-                <label class="radio-label"><input type="radio" name="category" value="learn"><span>学び</span></label>
-                <label class="radio-label"><input type="radio" name="category" value="workshop"><span>ワークショップ</span></label>
-                <label class="radio-label"><input type="radio" name="category" value="sports"><span>スポーツ</span></label>
-                <label class="radio-label"><input type="radio" name="category" value="gourmet"><span>グルメ</span></label>
-                <label class="radio-label"><input type="radio" name="category" value="exhibition"><span>展示・芸術</span></label>
             </div>
 
             <div class="filter-group" id="tags-filter" style="display:none;">
@@ -99,6 +97,13 @@
         </div>
     </div>
 
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#" target="_blank">プライバシーポリシー</a>
+            <a href="#" target="_blank">お問い合わせ</a>
+        </div>
+        <p>&copy; 2024 Event List App</p>
+    </footer>
     <script type="module" src="js/main.js"></script>
 </body>
 </html>
