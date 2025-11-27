@@ -10,36 +10,32 @@
 
     <header class="header">
         <h1>イベント一覧</h1>
-        <div class="header-right">
-            <div class="header-categories">
-                <label><input type="radio" name="category" value="all" checked><span>すべて</span></label>
-                <label><input type="radio" name="category" value="matsuri"><span>祭り</span></label>
-                <label><input type="radio" name="category" value="music"><span>音楽</span></label>
-                <label><input type="radio" name="category" value="learn"><span>学び</span></label>
-                <label><input type="radio" name="category" value="workshop"><span>ワークショップ</span></label>
-                <label><input type="radio" name="category" value="sports"><span>スポーツ</span></label>
-                <label><input type="radio" name="category" value="gourmet"><span>グルメ</span></label>
-                <label><input type="radio" name="category" value="exhibition"><span>展示・芸術</span></label>
-            </div>
-            <button id="login-btn-header">ログイン / サインアップ</button>
-        </div>
+        <button id="login-btn-header">ログイン / サインアップ</button>
     </header>
 
     <div class="container">
         <div class="main">
             <section class="featured" id="featured-section" style="display:none;">
-                <h2>おすすめイベント</h2>
-                <button class="carousel-btn" id="prev-btn">←</button>
-                <button class="carousel-btn" id="next-btn">→</button>
+                <h2 style="color:var(--primary); font-size:2em; margin-bottom:20px;">おすすめイベント</h2>
                 <div class="featured-grid" id="featured-grid"></div>
             </section>
-
             <section>
-                <h2>開催予定イベント</h2>
+                <h2 style="color:var(--primary); font-size:1.8em; margin:30px 0 20px;">開催予定イベント</h2>
                 <div class="event-grid" id="event-grid">
-                    <div class="loading">読み込み中...</div>
+                    <div class="loading">
+                        <svg viewBox="0 0 38 38" stroke="var(--primary)" style="width:48px;height:48px;">
+                            <g fill="none" stroke-width="4">
+                                <circle cx="19" cy="19" r="16" stroke-opacity=".3"/>
+                                <path d="M19 3 A16 16 0 0 1 19 35">
+                                    <animateTransform attributeName="transform" type="rotate" from="0 19 19" to="360 19 19" dur="1s" repeatCount="indefinite"/>
+                                </path>
+                            </g>
+                        </svg><br>読み込み中...
+                    </div>
                 </div>
-                <div id="load-more-trigger" class="load-more"><span>もっと見る</span></div>
+                <div id="load-more-trigger" class="load-more">
+                    <span>もっと見る</span>
+                </div>
             </section>
         </div>
 
@@ -47,20 +43,35 @@
             <div class="filter-group">
                 <h3>検索</h3>
                 <div class="search-container">
-                    <input type="search" id="search-input" placeholder="キーワード..." autocomplete="off">
+                    <input type="search" id="search-input" name="site_event_search_q" placeholder="キーワード..." autocomplete="off">
                     <button id="search-btn">検索</button>
                 </div>
                 <button id="clear-filters-btn">条件をクリア</button>
             </div>
 
+            <div class="filter-group">
+                <h3>カテゴリ</h3>
+                <label class="radio-label"><input type="radio" name="category" value="all" checked><span>すべて</span></label>
+                <label class="radio-label"><input type="radio" name="category" value="matsuri"><span>祭り</span></label>
+                <label class="radio-label"><input type="radio" name="category" value="music"><span>音楽</span></label>
+                <label class="radio-label"><input type="radio" name="category" value="learn"><span>学び</span></label>
+                <label class="radio-label"><input type="radio" name="category" value="workshop"><span>ワークショップ</span></label>
+                <label class="radio-label"><input type="radio" name="category" value="sports"><span>スポーツ</span></label>
+                <label class="radio-label"><input type="radio" name="category" value="gourmet"><span>グルメ</span></label>
+                <label class="radio-label"><input type="radio" name="category" value="exhibition"><span>展示・芸術</span></label>
+            </div>
+
             <div class="filter-group" id="tags-filter" style="display:none;">
-                <h3>タグ</h3><div class="filter-tags" id="tags-container"></div>
+                <h3>タグ</h3>
+                <div class="filter-tags" id="tags-container"></div>
             </div>
             <div class="filter-group" id="organizer-filter" style="display:none;">
-                <h3>主催者</h3><div class="filter-tags" id="organizer-container"></div>
+                <h3>主催者</h3>
+                <div class="filter-tags" id="organizer-container"></div>
             </div>
             <div class="filter-group" id="venue-filter" style="display:none;">
-                <h3>会場</h3><div class="filter-tags" id="venue-container"></div>
+                <h3>会場</h3>
+                <div class="filter-tags" id="venue-container"></div>
             </div>
 
             <div class="filter-group">
@@ -70,23 +81,15 @@
         </aside>
     </div>
 
-    <footer>
-        <div class="footer-links">
-            <a href="privacy.html">プライバシーポリシー</a>
-            <a href="contact.html">お問い合わせ</a>
-        </div>
-        <div class="copyright">© 2025 イベント一覧 All Rights Reserved.</div>
-    </footer>
-
     <div id="login-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn">×</span>
-            <h2>ログイン / サインアップ</h2>
+            <h2 style="text-align:center; color:var(--primary); margin-bottom:30px;">ログイン / サインアップ</h2>
             <div class="auth-buttons">
                 <button id="google-login-btn">Googleでログイン</button>
                 <button id="github-login-btn">GitHubでログイン</button>
             </div>
-            <hr>
+            <hr style="margin:30px 0; border:0; border-top:1px solid #eee;">
             <input type="email" id="email-input" placeholder="メールアドレス">
             <input type="password" id="password-input" placeholder="パスワード（6文字以上）">
             <div class="auth-buttons">
