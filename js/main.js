@@ -1,3 +1,5 @@
+// ... (import文、firebaseConfig、初期変数定義は省略) ...
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, query, where, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -247,13 +249,17 @@ document.getElementById('search-input').addEventListener('keypress', e => {
 document.getElementById('clear-filters-btn').onclick = () => {
     filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
     document.getElementById('search-input').value = "";
-    document.querySelector('input[name="category"][value="all"]').checked = true;
+    // カテゴリフィルターのチェックをリセット
+    document.querySelector('.category-nav input[name="category"][value="all"]').checked = true;
     document.querySelectorAll('.tag-btn.active').forEach(b => b.classList.remove('active'));
     renderEvents();
 };
-document.querySelectorAll('input[name="category"]').forEach(r => {
+
+// 🌟 カテゴリフィルターのイベントリスナーを新しい nav 要素の input に設定 🌟
+document.querySelectorAll('.category-nav input[name="category"]').forEach(r => {
     r.onchange = () => { filters.category = r.value; renderEvents(); };
 });
+// -------------------------------------------------------------------
 
 // 最初に20件だけ読み込んでスタート！
 loadInitialEvents();
