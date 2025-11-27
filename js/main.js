@@ -117,6 +117,47 @@ const toggleFavorite = async (eventId) => {
     }
 };
 
+const startCarousel = () => {
+    const grid = document.getElementById('featured-grid');
+    if (!grid) return;
+
+    const cards = grid.querySelectorAll('.featured-card');
+    if (cards.length === 0) return;
+
+    const cardWidth = cards[0].offsetWidth; // 1枚のカードの幅を取得
+    let currentIndex = 0;
+    const intervalTime = 2000; // 2秒
+
+    // カルーセルをスライドさせる関数
+    const slide = () => {
+        currentIndex++;
+        // ループ処理: 最後のカードまで行ったら、最初のカードに戻る
+        if (currentIndex >= cards.length) {
+            // CSSアニメーションを無効にして瞬時に最初の位置に戻す
+            grid.style.transition = 'none';
+            grid.scrollLeft = 0;
+            currentIndex = 1;
+            
+            // わずかな遅延の後にCSSアニメーションを再度有効にする
+            setTimeout(() => {
+                grid.style.transition = 'scroll-left 0.5s ease-in-out';
+                grid.scrollLeft = currentIndex * (cardWidth + 20); // 20pxはfeatured-gridのgap
+            }, 50);
+
+        } else {
+            grid.style.transition = 'scroll-left 0.5s ease-in-out';
+            // カードの幅 + gap(20px) 分だけスクロール
+            grid.scrollLeft = currentIndex * (cardWidth + 20); 
+        }
+    };
+
+    // 最初のカードの幅を取得できることを確認してからインターバルを設定
+    if (cardWidth > 0) {
+        setInterval(slide, intervalTime);
+    }
+};
+
+
 const loadFeatured = async () => {
     const q = query(collection(db, "events"), where("isFeatured", "==", true));
     const snap = await getDocs(q);
@@ -133,7 +174,9 @@ const loadFeatured = async () => {
             </a>
         </div>`;
     }).join("");
-    // startCarousel(); // 未定義関数なのでコメントアウト/削除
+    
+    // カルーセル機能の開始
+    startCarousel(); 
 };
 
 const loadNewEvents = async () => {
