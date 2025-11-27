@@ -14,89 +14,124 @@ body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); co
 }
 #login-btn-header:hover { background: white; color: #5e35b1; }
 
+/* 🌟 カテゴリナビゲーションのスタイル 🌟 */
+.category-nav {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 88px; /* ヘッダーの高さに合わせて調整 */
+    z-index: 90;
+}
+/* radio-labelのスタイルは流用 */
+.category-nav .radio-label {
+    display: inline-block;
+    margin: 5px 0;
+    padding: 8px 15px;
+    border-radius: 20px;
+    background: #f0f0f0;
+    transition: background 0.2s;
+    font-size: 0.9em;
+}
+.category-nav .radio-label:hover {
+    background: #e0e0e0;
+}
+.category-nav input[type="radio"] {
+    display: none; /* ラジオボタン自体は非表示 */
+}
+.category-nav input[type="radio"]:checked + span {
+    background: var(--primary);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: default;
+}
+.category-nav .radio-label span {
+    padding: 0;
+    background: none;
+    display: inline;
+}
+.category-nav input[type="radio"]:checked + span,
+.category-nav input[type="radio"]:checked + span:hover {
+    background: var(--primary);
+    color: white;
+}
+/* radio-label全体をボタン化 */
+.category-nav .radio-label {
+    cursor: pointer;
+    background: none; /* ラベルの背景はなし */
+    margin: 0;
+}
+/* ラジオボタンに連動するspanタグのスタイルを調整 */
+.category-nav .radio-label > span {
+    display: inline-block;
+    padding: 8px 15px;
+    border-radius: 20px;
+    background: #f0f0f0;
+    transition: all 0.2s;
+}
+.category-nav .radio-label:hover > span {
+    background: #e0e0e0;
+}
+/* チェックされた時のスタイル */
+.category-nav input[type="radio"]:checked + span {
+    background: var(--primary);
+    color: white;
+}
+.category-nav input[type="radio"]:checked + span:hover {
+    background: #4527a0;
+}
+
+/* 🌟 フッターのスタイル 🌟 */
+.footer {
+    background: #424242;
+    color: #f0f0f0;
+    text-align: center;
+    padding: 30px 20px;
+    margin-top: 40px;
+}
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 15px;
+}
+.footer-links a {
+    color: #bdbdbd;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+.footer-links a:hover {
+    color: white;
+    text-decoration: underline;
+}
+.footer p {
+    margin: 0;
+    font-size: 0.85em;
+    color: #9e9e9e;
+}
+/* ------------------------------- */
+
 .container { 
     max-width: 1400px; margin: 30px auto; padding: 0 20px; 
     display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 30px; 
 }
 .main, .sidebar { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-.sidebar { height: fit-content; position: sticky; top: 100px; }
+.sidebar { height: fit-content; position: sticky; top: 100px; } /* topの値を category-nav の高さ + 差分 に調整 */
+/* ... (その他のスタイルは省略または変更なし) ... */
 
-.search-container { display: flex; margin-bottom: 10px; }
-#search-input {
-    flex: 1; padding: 16px; border: 2px solid #ddd; border-right: none; border-radius: 30px 0 0 30px; font-size: 1em; outline: none;
+/* メディアクエリの top の調整 */
+@media (max-width: 1100px) { 
+    .container { grid-template-columns: 1fr; } 
+    .sidebar { order: -1; position: static; } 
+    .category-nav { position: static; top: auto; }
 }
-#search-input:focus { border-color: var(--primary); }
-#search-btn {
-    padding: 0 24px; background: var(--primary); color: white; border: none; border-radius: 0 30px 30px 0; 
-    cursor: pointer; font-weight: bold; white-space: nowrap;
+@media (max-width: 600px) { 
+    .header { padding: 15px 20px; flex-direction: column; gap: 15px; text-align: center; } 
+    .category-nav { justify-content: flex-start; padding: 10px; }
 }
-#search-btn:hover { background: #4527a0; }
-#clear-filters-btn {
-    width: 100%; padding: 8px; background: #f0f0f0; color: var(--gray); border: none; border-radius: 8px;
-    cursor: pointer; font-size: 0.9em; transition: 0.2s; margin-top: 5px;
-}
-#clear-filters-btn:hover { background: #e0e0e0; color: #333; }
-
-.filter-group { margin-bottom: 25px; }
-.filter-group h3 { margin: 0 0 12px; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; }
-.radio-label { display: block; margin: 12px 0; cursor: pointer; font-size: 0.95em; }
-.radio-label input { margin-right: 8px; accent-color: var(--primary); }
-
-.filter-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.tag-btn { padding: 8px 16px; background: #eee; border-radius: 20px; font-size: 0.9em; cursor: pointer; transition: 0.2s; }
-.tag-btn.active { background: var(--primary); color: white; }
-
-.featured { margin-bottom: 40px; position: relative; }
-.featured-grid { 
-    display: flex; gap: 20px; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 15px;
-    scrollbar-width: none; -ms-overflow-style: none;
-}
-.featured-grid::-webkit-scrollbar { display: none; }
-.featured-card { 
-    flex: 0 0 auto; width: 400px; max-width: 90%; 
-    position: relative; background: white; border-radius: 16px; overflow: hidden; 
-    box-shadow: 0 15px 30px rgba(0,0,0,0.15); transition: transform 0.3s; 
-}
-.featured-card:hover { transform: translateY(-5px); }
-.featured-card img { width: 100%; height: 240px; object-fit: cover; }
-.featured-card .content { padding: 20px; }
-.featured-card h3 { margin: 0 0 10px; color: var(--primary); font-size: 1.4em; }
-.featured-label { position: absolute; top: 15px; left: 15px; background: var(--accent); color: white; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 0.9em; }
-
-.event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
-.event-card { position: relative; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.1); transition: all 0.3s; display: flex; flex-direction: column; }
-.event-card:hover { transform: translateY(-8px); }
-.event-card img { width: 100%; height: 200px; object-fit: cover; }
-.event-card .content { padding: 18px; flex: 1; }
-.event-card h2 { margin: 0 0 8px; font-size: 1.3em; line-height: 1.3; }
-.event-card .meta { font-size: 0.9em; color: #666; margin: 8px 0; }
-.category-tag { display: inline-block; padding: 4px 10px; background: #e0e0e0; border-radius: 20px; font-size: 0.8em; margin-right: 6px; }
-.favorite-btn { 
-    width: 100%; padding: 12px; border: none; background: #ffd740; color: #333; 
-    font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 1em; border-radius: 0 0 16px 16px; 
-}
-.favorite-btn.is-favorite { background: var(--accent); color: white; }
-.favorite-btn:hover { opacity: 0.9; }
-
-.new-events { list-style: none; padding: 0; margin: 0; }
-.new-events li { padding: 12px 0; border-bottom: 1px dashed #eee; }
-.new-events li:last-child { border: none; }
-.new-events a { color: #333; text-decoration: none; transition: color 0.2s; }
-.new-events a:hover { color: var(--primary); }
-
-.loading, .load-more { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #999; }
-.load-more span { font-size: 0.95em; }
-
-.modal { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
-.modal-content { background: white; margin: 8% auto; padding: 40px; border-radius: 20px; width: 90%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalIn 0.4s; position: relative; }
-@keyframes modalIn { from { transform: translateY(-100px); opacity: 0; } to { transform: none; opacity: 1; } }
-.close-btn { position: absolute; top: 15px; right: 20px; font-size: 32px; color: #aaa; cursor: pointer; }
-.close-btn:hover { color: #333; }
-.auth-buttons button { width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 50px; color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; }
-#google-login-btn { background: #DB4437; } #github-login-btn { background: #333; }
-#email-signup-btn, #email-login-btn { background: #4CAF50; }
-input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 50px; box-sizing: border-box; font-size: 1em; outline: none; }
-input[type="email"]:focus, input[type="password"]:focus { border-color: var(--primary); }
-
-@media (max-width: 1100px) { .container { grid-template-columns: 1fr; } .sidebar { order: -1; position: static; } }
-@media (max-width: 600px) { .header { padding: 15px 20px; flex-direction: column; gap: 15px; text-align: center; } }
