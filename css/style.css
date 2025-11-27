@@ -122,7 +122,7 @@ body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); co
     display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 30px; 
 }
 .main, .sidebar { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-.sidebar { height: fit-content; position: sticky; top: 100px; } /* topの値を category-nav の高さ + 差分 に調整 */
+.sidebar { height: fit-content; position: sticky; top: 150px; } /* topの値を category-nav の高さ + 差分 に調整 */
 /* ... (その他のスタイルは省略または変更なし) ... */
 
 /* メディアクエリの top の調整 */
@@ -135,3 +135,4 @@ body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); co
     .header { padding: 15px 20px; flex-direction: column; gap: 15px; text-align: center; } 
     .category-nav { justify-content: flex-start; padding: 10px; }
 }
+
