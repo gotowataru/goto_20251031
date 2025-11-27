@@ -30,7 +30,6 @@ body {
     position: sticky;
     top: 0;
     z-index: 100;
-    position: relative;
 }
 
 .header h1 { margin: 0; font-size: 2em; }
@@ -74,6 +73,7 @@ body {
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s;
+    white-space: nowrap;
 }
 
 #login-btn-header:hover {
@@ -81,45 +81,83 @@ body {
     color: #5e35b1;
 }
 
-/* 以下は前と同じスタイル（省略せず全部貼ってあります！） */
-/* ... さっきの完全版スタイル全部 ... */
-
-footer {
-    background: #333;
-    color: #ccc;
-    padding: 40px 20px;
-    margin-top: auto;
-    text-align: center;
-    font-size: 0.9em;
+/* メインレイアウト */
+.container {
+    max-width: 1400px;
+    margin: 30px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 340px;
+    gap: 30px;
+    flex: 1;
 }
 
-.footer-links {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    flex-wrap: wrap;
-    margin-bottom: 15px;
+.main, .sidebar {
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
-.footer-links a {
-    color: #fff;
-    text-decoration: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    transition: background 0.3s;
+.sidebar {
+    height: fit-content;
+    position: sticky;
+    top: 100px;
 }
 
-.footer-links a:hover {
-    background: rgba(255,255,255,0.1);
-}
+/* 以下は元々の美しいスタイル全部（省略せず完全版） */
+.search-container { display: flex; margin-bottom: 10px; }
+#search-input { flex: 1; padding: 16px; border: 2px solid #ddd; border-right: none; border-radius: 30px 0 0 30px; font-size: 1em; outline: none; }
+#search-input:focus { border-color: var(--primary); }
+#search-btn { padding: 0 24px; background: var(--primary); color: white; border: none; border-radius: 0 30px 30px 0; cursor: pointer; font-weight: bold; }
+#search-btn:hover { background: #4527a0; }
+#clear-filters-btn { width: 100%; padding: 10px; background: #f8f8f8; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; margin-top: 8px; }
 
-.copyright { color: #999; }
+.filter-group { margin-bottom: 30px; }
+.filter-group h3 { margin: 0 0 12px; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; }
+
+.filter-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag-btn { padding: 8px 16px; background: #eee; border-radius: 20px; cursor: pointer; font-size: 0.9em; transition: 0.2s; }
+.tag-btn.active { background: var(--primary); color: white; }
+
+.featured-grid { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+.featured-grid::-webkit-scrollbar { display: none; }
+.featured-card { flex: 0 0 400px; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.15); transition: transform .3s; }
+.featured-card:hover { transform: translateY(-8px); }
+.featured-label { position: absolute; top: 15px; left: 15px; background: var(--accent); color: white; padding: 6px 14px; border-radius: 20px; font-weight: bold; z-index: 2; }
+
+.event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px,1fr)); gap: 25px; }
+.event-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; transition: .3s; }
+.event-card:hover { transform: translateY(-8px); }
+.event-card img { width: 100%; height: 200px; object-fit: cover; }
+.event-card .content { padding: 18px; flex: 1; }
+.category-tag { padding: 4px 10px; background: #e0e0e0; border-radius: 20px; font-size: 0.8em; }
+.favorite-btn { padding: 12px; background: #ffd740; color: #333; border: none; font-weight: bold; cursor: pointer; border-radius: 0 0 16px 16px; }
+.favorite-btn.is-favorite { background: var(--accent); color: white; }
+
+.new-events li { padding: 12px 0; border-bottom: 1px dashed #eee; }
+.new-events a { color: #333; text-decoration: none; }
+.new-events a:hover { color: var(--primary); }
+
+.load-more, .loading { text-align: center; padding: 60px; color: #999; }
+
+/* モーダル */
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: white; padding: 40px; border-radius: 20px; width: 90%; max-width: 480px; position: relative; animation: modalIn .4s; }
+@keyframes modalIn { from { transform: translateY(-50px); opacity: 0; } }
+
+footer { background: #333; color: #ccc; padding: 40px 20px; text-align: center; margin-top: auto; }
+.footer-links { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-bottom: 15px; }
+.footer-links a { color: white; text-decoration: none; padding: 8px 16px; border-radius: 8px; }
+.footer-links a:hover { background: rgba(255,255,255,0.1); }
 
 /* レスポンシブ */
 @media (max-width: 900px) {
     .header { flex-direction: column; gap: 15px; text-align: center; }
     .header-right { position: static; transform: none; flex-direction: column; gap: 15px; }
     .header-categories { justify-content: center; }
+    .container { grid-template-columns: 1fr; }
+    .sidebar { order: -1; position: static; }
 }
 
 @media (max-width: 600px) {
