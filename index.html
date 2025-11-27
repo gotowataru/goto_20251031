@@ -7,27 +7,44 @@
     <style>
         :root { --primary: #5e35b1; --accent: #ff5252; --bg: #f8f9ff; --text: #333; --gray: #757575; }
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
 
+        /* ヘッダー */
         .header { 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; 
             box-shadow: 0 4px 20px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100;
         }
         .header h1 { margin: 0; font-size: 2em; }
+        .header-right { display: flex; align-items: center; gap: 30px; }
+
+        /* ヘッダーに移動したカテゴリメニュー */
+        .header-categories {
+            display: flex; gap: 20px; flex-wrap: wrap; align-items: center;
+        }
+        .header-categories label {
+            display: flex; align-items: center; gap: 6px; cursor: pointer; 
+            font-size: 0.95em; white-space: nowrap; color: rgba(255,255,255,0.9);
+            transition: color 0.2s;
+        }
+        .header-categories label:hover { color: white; }
+        .header-categories input[type="radio"] { accent-color: white; transform: scale(1.1); }
+
         #login-btn-header { 
             padding: 12px 28px; background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.4); 
             border-radius: 50px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s;
         }
         #login-btn-header:hover { background: white; color: #5e35b1; }
 
+        /* メインコンテンツ */
         .container { 
-            max-width: 1400px; margin: 30px auto; padding: 0 20px; 
+            max-width: 1400px; margin: 30px auto; padding: 0 20px; flex: 1;
             display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 30px; 
         }
         .main, .sidebar { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .sidebar { height: fit-content; position: sticky; top: 100px; }
 
+        /* 検索 */
         .search-container { display: flex; margin-bottom: 10px; }
         #search-input {
             flex: 1; padding: 16px; border: 2px solid #ddd; border-right: none; border-radius: 30px 0 0 30px; font-size: 1em; outline: none;
@@ -35,34 +52,31 @@
         #search-input:focus { border-color: var(--primary); }
         #search-btn {
             padding: 0 24px; background: var(--primary); color: white; border: none; border-radius: 0 30px 30px 0; 
-            cursor: pointer; font-weight: bold; white-space: nowrap;
+            cursor: pointer; font-weight: bold;
         }
         #search-btn:hover { background: #4527a0; }
         #clear-filters-btn {
             width: 100%; padding: 8px; background: #f0f0f0; color: var(--gray); border: none; border-radius: 8px;
-            cursor: pointer; font-size: 0.9em; transition: 0.2s; margin-top: 5px;
+            cursor: pointer; font-size: 0.9em; margin-top: 5px;
         }
         #clear-filters-btn:hover { background: #e0e0e0; color: #333; }
 
         .filter-group { margin-bottom: 25px; }
         .filter-group h3 { margin: 0 0 12px; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; }
-        .radio-label { display: block; margin: 12px 0; cursor: pointer; font-size: 0.95em; }
-        .radio-label input { margin-right: 8px; accent-color: var(--primary); }
-
         .filter-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
         .tag-btn { padding: 8px 16px; background: #eee; border-radius: 20px; font-size: 0.9em; cursor: pointer; transition: 0.2s; }
         .tag-btn.active { background: var(--primary); color: white; }
 
-        .featured { margin-bottom: 40px; position: relative; }
+        /* おすすめイベント */
+        .featured { margin-bottom: 40px; }
         .featured-grid { 
             display: flex; gap: 20px; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 15px;
             scrollbar-width: none; -ms-overflow-style: none;
         }
         .featured-grid::-webkit-scrollbar { display: none; }
         .featured-card { 
-            flex: 0 0 auto; width: 400px; max-width: 90%; 
-            position: relative; background: white; border-radius: 16px; overflow: hidden; 
-            box-shadow: 0 15px 30px rgba(0,0,0,0.15); transition: transform 0.3s; 
+            flex: 0 0 auto; width: 400px; max-width: 90%; position: relative; background: white; 
+            border-radius: 16px; overflow: hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.15); transition: transform 0.3s; 
         }
         .featured-card:hover { transform: translateY(-5px); }
         .featured-card img { width: 100%; height: 240px; object-fit: cover; }
@@ -70,6 +84,7 @@
         .featured-card h3 { margin: 0 0 10px; color: var(--primary); font-size: 1.4em; }
         .featured-label { position: absolute; top: 15px; left: 15px; background: var(--accent); color: white; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 0.9em; }
 
+        /* イベント一覧 */
         .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
         .event-card { position: relative; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.1); transition: all 0.3s; display: flex; flex-direction: column; }
         .event-card:hover { transform: translateY(-8px); }
@@ -94,28 +109,68 @@
         .loading, .load-more { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #999; }
         .load-more span { font-size: 0.95em; }
 
+        /* フッター */
+        footer {
+            background: #333; color: #ccc; padding: 40px 20px; margin-top: auto;
+            text-align: center; font-size: 0.9em;
+        }
+        .footer-links {
+            display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .footer-links a {
+            color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 8px; transition: background 0.3s;
+        }
+        .footer-links a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .copyright { color: #999; }
+
+        /* モーダル */
         .modal { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
         .modal-content { background: white; margin: 8% auto; padding: 40px; border-radius: 20px; width: 90%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalIn 0.4s; position: relative; }
         @keyframes modalIn { from { transform: translateY(-100px); opacity: 0; } to { transform: none; opacity: 1; } }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 32px; color: #aaa; cursor: pointer; }
         .close-btn:hover { color: #333; }
         .auth-buttons button { width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 50px; color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; }
-        #google-login-btn { background: #DB4437; } #github-login-btn { background: #333; }
+        #google-login-btn { background: #DB4437; }
+        #github-login-btn { background: #333; }
         #email-signup-btn, #email-login-btn { background: #4CAF50; }
         input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 50px; box-sizing: border-box; font-size: 1em; outline: none; }
         input[type="email"]:focus, input[type="password"]:focus { border-color: var(--primary); }
 
-        @media (max-width: 1100px) { .container { grid-template-columns: 1fr; } .sidebar { order: -1; position: static; } }
-        @media (max-width: 600px) { .header { padding: 15px 20px; flex-direction: column; gap: 15px; text-align: center; } }
+        @media (max-width: 900px) {
+            .header { flex-direction: column; gap: 15px; text-align: center; }
+            .header-right { flex-direction: column; gap: 15px; }
+            .header-categories { justify-content: center; }
+        }
+        @media (max-width: 600px) {
+            .header-categories { gap: 12px; font-size: 0.9em; }
+        }
     </style>
 </head>
 <body>
 
+    <!-- ヘッダー（カテゴリ移動済み） -->
     <header class="header">
         <h1>イベント一覧</h1>
-        <button id="login-btn-header">ログイン / サインアップ</button>
+
+        <div class="header-right">
+            <div class="header-categories">
+                <label><input type="radio" name="category" value="all" checked><span>すべて</span></label>
+                <label><input type="radio" name="category" value="matsuri"><span>祭り</span></label>
+                <label><input type="radio" name="category" value="music"><span>音楽</span></label>
+                <label><input type="radio" name="category" value="learn"><span>学び</span></label>
+                <label><input type="radio" name="category" value="workshop"><span>ワークショップ</span></label>
+                <label><input type="radio" name="category" value="sports"><span>スポーツ</span></label>
+                <label><input type="radio" name="category" value="gourmet"><span>グルメ</span></label>
+                <label><input type="radio" name="category" value="exhibition"><span>展示・芸術</span></label>
+            </div>
+            <button id="login-btn-header">ログイン / サインアップ</button>
+        </div>
     </header>
 
+    <!-- メインコンテンツ -->
     <div class="container">
         <div class="main">
             <section class="featured" id="featured-section" style="display:none;">
@@ -142,6 +197,7 @@
             </section>
         </div>
 
+        <!-- サイドバー（カテゴリはヘッダーに移動したので削除） -->
         <aside class="sidebar">
             <div class="filter-group">
                 <h3>検索</h3>
@@ -150,18 +206,6 @@
                     <button id="search-btn">検索</button>
                 </div>
                 <button id="clear-filters-btn">条件をクリア</button>
-            </div>
-
-            <div class="filter-group">
-                <h3>カテゴリ</h3>
-                <label class="radio-label"><input type="radio" name="category" value="all" checked><span>すべて</span></label>
-                <label class="radio-label"><input type="radio" name="category" value="matsuri"><span>祭り</span></label>
-                <label class="radio-label"><input type="radio" name="category" value="music"><span>音楽</span></label>
-                <label class="radio-label"><input type="radio" name="category" value="learn"><span>学び</span></label>
-                <label class="radio-label"><input type="radio" name="category" value="workshop"><span>ワークショップ</span></label>
-                <label class="radio-label"><input type="radio" name="category" value="sports"><span>スポーツ</span></label>
-                <label class="radio-label"><input type="radio" name="category" value="gourmet"><span>グルメ</span></label>
-                <label class="radio-label"><input type="radio" name="category" value="exhibition"><span>展示・芸術</span></label>
             </div>
 
             <div class="filter-group" id="tags-filter" style="display:none;">
@@ -184,9 +228,21 @@
         </aside>
     </div>
 
+    <!-- フッター -->
+    <footer>
+        <div class="footer-links">
+            <a href="privacy.html">プライバシーポリシー</a>
+            <a href="contact.html">お問い合わせ</a>
+        </div>
+        <div class="copyright">
+            © 2025 イベント一覧 All Rights Reserved.
+        </div>
+    </footer>
+
+    <!-- ログインモーダル -->
     <div id="login-modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn">×</span>
+            <span class="close-btn">x</span>
             <h2 style="text-align:center; color:var(--primary); margin-bottom:30px;">ログイン / サインアップ</h2>
             <div class="auth-buttons">
                 <button id="google-login-btn">Googleでログイン</button>
@@ -202,6 +258,7 @@
         </div>
     </div>
 
+    <!-- スクリプト（完全版） -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
@@ -276,7 +333,7 @@
             grid.innerHTML = filtered.map(ev => {
                 const isFav = favoriteEventIds.includes(ev.id);
                 const catLabel = ev.category ? `<span class="category-tag">${categoryNames[ev.category] || ev.category}</span>` : "";
-                const img = ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${ev.name}" loading="lazy">` : `<div style="height:200px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;font-size:0.9em;">画像なし</div>`;
+                const img = ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${ev.name}" loading="lazy">` : `<div style="height:200px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;">画像なし</div>`;
                 const timeStr = ev.startTime ? `${ev.startTime} 〜 ${ev.endTime || ""}` : "終日";
                 const displayDesc = ev.summary || (ev.description ? ev.description.substring(0, 80) + "..." : "");
 
@@ -338,7 +395,6 @@
                     </a>
                 </div>`;
             }).join("");
-            startCarousel();
         };
 
         const loadNewEvents = async () => {
@@ -454,7 +510,7 @@
             r.onchange = () => { filters.category = r.value; renderEvents(); };
         });
 
-        // 最初に20件だけ読み込んでスタート！
         loadInitialEvents();
     </script>
 </body>
+</html>
