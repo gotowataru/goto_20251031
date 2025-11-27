@@ -202,6 +202,32 @@ body {
     color: white; 
 }
 
+/* 🌟「もっと見る」機能用CSS 🌟 */
+/* 初期表示で非表示にするタグのスタイル */
+.hidden-tag {
+    display: none !important;
+}
+
+/* 「もっと見る」ボタンのスタイル */
+.show-more-btn {
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    background: #f0f0f0;
+    color: var(--primary);
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.show-more-btn:hover {
+    background: #e0e0e0;
+}
+/* ------------------------------------- */
+
 /* おすすめイベント（Featured）セクション */
 .featured { 
     margin-bottom: 40px; 
