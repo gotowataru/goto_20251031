@@ -12,7 +12,7 @@
         <h1>イベント一覧</h1>
         <div class="header-right">
             <div class="header-categories">
-                <label><input type="radio"radio" name="category" value="all" checked><span>すべて</span></label>
+                <label><input type="radio" name="category" value="all" checked><span>すべて</span></label>
                 <label><input type="radio" name="category" value="matsuri"><span>祭り</span></label>
                 <label><input type="radio" name="category" value="music"><span>音楽</span></label>
                 <label><input type="radio" name="category" value="learn"><span>学び</span></label>
@@ -27,10 +27,14 @@
 
     <div class="container">
         <div class="main">
+            <!-- おすすめイベント（カルーセル） -->
             <section class="featured" id="featured-section" style="display:none;">
                 <h2>おすすめイベント</h2>
+                <button class="carousel-btn" id="prev-btn">←</button>
+                <button class="carousel-btn" id="next-btn">→</button>
                 <div class="featured-grid" id="featured-grid"></div>
             </section>
+
             <section>
                 <h2>開催予定イベント</h2>
                 <div class="event-grid" id="event-grid">
