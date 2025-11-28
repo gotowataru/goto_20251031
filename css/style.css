@@ -1,103 +1,13 @@
-
+/* 変数定義 */
 :root { 
-    --primary: #5e35b1;
-    --accent: #ff5252;
+    --primary: #5e35b1; 
+    --accent: #ff5252; 
     --bg: #f8f9ff; 
     --text: #333; 
     --gray: #757575; 
-    --shadow-light: 0 5px 15px rgba(0,0,0,0.08);
 }
 
-/* ==================== 新しいヘッダー（ここだけ変更） ==================== */
-.header-new {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: white;
-    border-bottom: 1px solid #eee;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-}
-
-.header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 18px 20px;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.site-title {
-    margin: 0;
-    font-size: 1.9em;
-    font-weight: 800;
-    color: var(--primary);
-}
-
-#login-btn-header {
-    padding: 11px 28px;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 50px;
-    font-weight: bold;
-    font-size: 1em;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-#login-btn-header:hover {
-    background: #4527a0;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(94,53,177,0.3);
-}
-
-.category-nav-integrated {
-    padding: 14px 20px;
-    background: #f5f0ff;
-    border-top: 1px solid #e7e0ff;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 14px;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.category-nav-integrated input[type="radio"] { display: none; }
-
-.category-nav-integrated .radio-label > span {
-    display: block;
-    padding: 9px 20px;
-    border-radius: 30px;
-    background: white;
-    color: var(--text);
-    font-weight: 600;
-    font-size: 0.94em;
-    transition: all 0.25s;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.09);
-}
-
-.category-nav-integrated .radio-label:hover > span {
-    background: #f0e6ff;
-    transform: translateY(-1px);
-}
-
-.category-nav-integrated input[type="radio"]:checked + span {
-    background: var(--primary);
-    color: white;
-    box-shadow: 0 5px 15px rgba(94,53,177,0.35);
-}
-
-/* スマホ時の調整 */
-@media (max-width: 768px) {
-    .header-top { padding: 14px 15px; }
-    .site-title { font-size: 1.6em; }
-    .category-nav-integrated { gap: 10px; padding: 12px 10px; }
-    .category-nav-integrated .radio-label > span { padding: 8px 16px; font-size: 0.9em; }
-}
-
-/* ==================== ここから下は元のCSSを一切変更せず全部そのまま ==================== */
+/* リセットと基本設定 */
 * { 
     box-sizing: border-box; 
 }
@@ -109,6 +19,7 @@ body {
     overflow-x: hidden; 
 }
 
+/* ヘッダー */
 .header { 
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
     color: white; 
@@ -125,35 +36,44 @@ body {
     margin: 0; 
     font-size: 2em; 
 }
+#login-btn-header { 
+    padding: 12px 28px; 
+    background: rgba(255,255,255,0.25); 
+    border: 2px solid rgba(255,255,255,0.4); 
+    border-radius: 50px; 
+    color: white; 
+    font-weight: bold; 
+    cursor: pointer; 
+    transition: all 0.3s;
+}
+#login-btn-header:hover { 
+    background: white; 
+    color: #5e35b1; 
+}
 
-/* 旧ヘッダーは使わないので残しておくだけ（影響なし） */
-.category-nav-wrapper {
+/* カテゴリナビゲーション */
+.category-nav {
     background: white;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
     position: sticky;
-    top: 88px;
+    top: 88px; /* ヘッダーの高さに合わせて調整 */
     z-index: 90;
 }
 
-.category-nav {
-    padding: 10px 0;
-    display: flex;
-    gap: 15px;
-    white-space: nowrap; 
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 10px 20px;
-}
-
+/* カテゴリラジオボタンの装飾 */
 .category-nav input[type="radio"] {
-    display: none;
+    display: none; /* ラジオボタン自体は非表示 */
 }
 .category-nav .radio-label {
     cursor: pointer;
     background: none;
     margin: 0;
     font-size: 0.9em;
-    flex-shrink: 0;
 }
 .category-nav .radio-label > span {
     display: inline-block;
@@ -174,17 +94,15 @@ body {
     background: #4527a0;
 }
 
+/* メインコンテナとレイアウト */
 .container { 
     max-width: 1400px; 
     margin: 30px auto; 
     padding: 0 20px; 
-}
-.main-wrapper {
-    display: grid;
+    display: grid; 
     grid-template-columns: minmax(0, 1fr) 340px; 
-    gap: 30px;
+    gap: 30px; 
 }
-
 .main, .sidebar { 
     background: white; 
     padding: 25px; 
@@ -194,18 +112,10 @@ body {
 .sidebar { 
     height: fit-content; 
     position: sticky; 
-    top: 150px;
+    top: 150px; /* ヘッダー+カテゴリナビゲーションの高さに合わせて調整 */
 }
 
-.section-title {
-    margin: 0 0 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #f0f0f0;
-    color: var(--primary);
-    font-size: 1.8em;
-    font-weight: 700;
-}
-
+/* 検索とフィルター要素 */
 .search-container { 
     display: flex; 
     margin-bottom: 10px; 
@@ -261,6 +171,17 @@ body {
     border-bottom: 2px solid #eee; 
     padding-bottom: 8px; 
 }
+/* サイドバーのラジオボタン（カテゴリ移動により未使用だが、汎用性のため残存） */
+.radio-label { 
+    display: block; 
+    margin: 12px 0; 
+    cursor: pointer; 
+    font-size: 0.95em; 
+}
+.radio-label input { 
+    margin-right: 8px; 
+    accent-color: var(--primary); 
+}
 
 .filter-tags { 
     display: flex; 
@@ -281,7 +202,13 @@ body {
     color: white; 
 }
 
-.hidden-tag { display: none !important; }
+/* 🌟「もっと見る」機能用CSS 🌟 */
+/* 初期表示で非表示にするタグのスタイル */
+.hidden-tag {
+    display: none !important;
+}
+
+/* 「もっと見る」ボタンのスタイル */
 .show-more-btn {
     width: 100%;
     padding: 10px;
@@ -295,32 +222,29 @@ body {
     font-weight: bold;
     transition: background 0.2s;
 }
+
 .show-more-btn:hover {
     background: #e0e0e0;
 }
+/* ------------------------------------- */
 
+/* おすすめイベント（Featured）セクション */
 .featured { 
     margin-bottom: 40px; 
     position: relative; 
 }
-
-.carousel-container {
-    position: relative;
-}
-
 .featured-grid { 
     display: flex; 
     gap: 20px; 
-    overflow-x: scroll;
+    overflow-x: auto; 
     scroll-behavior: smooth; 
-    padding: 10px 0;
+    padding-bottom: 15px;
     scrollbar-width: none; 
     -ms-overflow-style: none;
 }
 .featured-grid::-webkit-scrollbar { 
     display: none; 
 }
-
 .featured-card { 
     flex: 0 0 auto; 
     width: 400px; 
@@ -358,45 +282,9 @@ body {
     border-radius: 20px; 
     font-weight: bold; 
     font-size: 0.9em; 
-    z-index: 10;
 }
 
-.carousel-controls {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    z-index: 20;
-    pointer-events: none;
-}
-
-.nav-btn {
-    width: 50px;
-    height: 50px;
-    background-color: rgba(94, 53, 177, 0.7);
-    color: white;
-    border: 3px solid white;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1.8em;
-    font-weight: 900;
-    transition: background-color 0.3s, transform 0.1s;
-    pointer-events: all;
-    line-height: 44px;
-    text-align: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-.nav-btn:hover {
-    background-color: var(--primary);
-    transform: scale(1.05);
-}
-
-.prev-btn { margin-left: -25px; }
-.next-btn { margin-right: -25px; }
-
+/* イベントカード一覧 */
 .event-grid { 
     display: grid; 
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
@@ -434,12 +322,10 @@ body {
     color: #666; 
     margin: 8px 0; 
 }
-
 .category-tag { 
     display: inline-block; 
     padding: 4px 10px; 
-    background: var(--primary);
-    color: white; 
+    background: #e0e0e0; 
     border-radius: 20px; 
     font-size: 0.8em; 
     margin-right: 6px; 
@@ -464,6 +350,7 @@ body {
     opacity: 0.9; 
 }
 
+/* 新着イベントリスト */
 .new-events { 
     list-style: none; 
     padding: 0; 
@@ -485,6 +372,7 @@ body {
     color: var(--primary); 
 }
 
+/* ローディングと「もっと見る」 */
 .loading, .load-more { 
     grid-column: 1 / -1; 
     text-align: center; 
@@ -495,6 +383,7 @@ body {
     font-size: 0.95em; 
 }
 
+/* モーダル */
 .modal { 
     display: none; 
     position: fixed; 
@@ -515,8 +404,14 @@ body {
     position: relative; 
 }
 @keyframes modalIn { 
-    from { transform: translateY(-100px); opacity: 0; } 
-    to { transform: none; opacity: 1; } 
+    from { 
+        transform: translateY(-100px); 
+        opacity: 0; 
+    } 
+    to { 
+        transform: none; 
+        opacity: 1; 
+    } 
 }
 .close-btn { 
     position: absolute; 
@@ -540,10 +435,15 @@ body {
     font-size: 1.1em; 
     cursor: pointer; 
 }
-#google-login-btn { background: #DB4437; } 
-#github-login-btn { background: #333; }
-#email-signup-btn, #email-login-btn { background: var(--primary); }
-#email-signup-btn { background: #e0e0e0; color: var(--text); }
+#google-login-btn { 
+    background: #DB4437; 
+} 
+#github-login-btn { 
+    background: #333; 
+}
+#email-signup-btn, #email-login-btn { 
+    background: #4CAF50; 
+}
 input[type="email"], input[type="password"] { 
     width: 100%; 
     padding: 14px; 
@@ -558,6 +458,7 @@ input[type="email"]:focus, input[type="password"]:focus {
     border-color: var(--primary); 
 }
 
+/* フッター */
 .footer {
     background: #424242;
     color: #f0f0f0;
@@ -587,28 +488,29 @@ input[type="email"]:focus, input[type="password"]:focus {
     color: #9e9e9e;
 }
 
-/* レスポンシブ */
+/* レスポンシブ対応 */
 @media (max-width: 1100px) { 
-    .main-wrapper { 
+    .container { 
         grid-template-columns: 1fr; 
     } 
     .sidebar { 
         order: -1; 
         position: static; 
     } 
+    .category-nav { 
+        position: static; 
+        top: auto; 
+    }
 }
 @media (max-width: 600px) { 
-    .header-top { 
+    .header { 
+        padding: 15px 20px; 
         flex-direction: column; 
-        gap: 12px; 
+        gap: 15px; 
         text-align: center; 
     } 
-    .event-grid {
-        grid-template-columns: 1fr;
+    .category-nav { 
+        justify-content: flex-start; 
+        padding: 10px; 
     }
-    .featured-card {
-        width: 300px;
-    }
-    .prev-btn { margin-left: 5px; } 
- .next-btn { margin-right: 5px; }
 }
