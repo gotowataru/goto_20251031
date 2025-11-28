@@ -1,10 +1,11 @@
 /* 変数定義 */
 :root { 
-    --primary: #5e35b1; 
-    --accent: #ff5252; 
+    --primary: #5e35b1; /* メインカラー（ディープパープル） */
+    --accent: #ff5252; /* アクセントカラー（赤） */
     --bg: #f8f9ff; 
     --text: #333; 
     --gray: #757575; 
+    --shadow-light: 0 5px 15px rgba(0,0,0,0.08); /* 軽めの影 */
 }
 
 /* リセットと基本設定 */
@@ -19,7 +20,7 @@ body {
     overflow-x: hidden; 
 }
 
-/* ヘッダー */
+/* --- 1. ヘッダー --- */
 .header { 
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
     color: white; 
@@ -51,29 +52,38 @@ body {
     color: #5e35b1; 
 }
 
-/* カテゴリナビゲーション */
-.category-nav {
+/* --- 2. カテゴリナビゲーション --- */
+.category-nav-wrapper {
+    /* HTMLで追加したラッパー */
     background: white;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    padding: 10px 20px;
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    flex-wrap: wrap;
     position: sticky;
-    top: 88px; /* ヘッダーの高さに合わせて調整 */
+    top: 88px;
     z-index: 90;
+}
+
+.category-nav {
+    /* containerクラスのpaddingを活かすため、中央寄せはラッパーではなくnav自体で行う */
+    padding: 10px 0; /* ラッパー側で上下paddingを調整 */
+    display: flex;
+    gap: 15px;
+    /* overflow-x: auto; /* スマホでの横スクロールを許可 */
+    white-space: nowrap; /* ボタンが折り返さないように */
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 10px 20px;
 }
 
 /* カテゴリラジオボタンの装飾 */
 .category-nav input[type="radio"] {
-    display: none; /* ラジオボタン自体は非表示 */
+    display: none;
 }
 .category-nav .radio-label {
     cursor: pointer;
     background: none;
     margin: 0;
     font-size: 0.9em;
+    flex-shrink: 0; /* ラベルが縮まないように */
 }
 .category-nav .radio-label > span {
     display: inline-block;
@@ -94,15 +104,18 @@ body {
     background: #4527a0;
 }
 
-/* メインコンテナとレイアウト */
+/* --- 3. メインコンテナとレイアウト --- */
 .container { 
     max-width: 1400px; 
     margin: 30px auto; 
     padding: 0 20px; 
-    display: grid; 
-    grid-template-columns: minmax(0, 1fr) 340px; 
-    gap: 30px; 
 }
+.main-wrapper { /* HTMLで追加したラッパー */
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px; 
+    gap: 30px;
+}
+
 .main, .sidebar { 
     background: white; 
     padding: 25px; 
@@ -112,10 +125,20 @@ body {
 .sidebar { 
     height: fit-content; 
     position: sticky; 
-    top: 150px; /* ヘッダー+カテゴリナビゲーションの高さに合わせて調整 */
+    top: 150px; /* ヘッダー(88px) + カテゴリナビゲーション(約50px) + マージン(12px) ≒ 150px */
 }
 
-/* 検索とフィルター要素 */
+/* 汎用セクションタイトル */
+.section-title { /* HTMLを修正 */
+    margin: 0 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+    color: var(--primary);
+    font-size: 1.8em;
+    font-weight: 700;
+}
+
+/* --- 4. 検索とフィルター要素 (変更なし) --- */
 .search-container { 
     display: flex; 
     margin-bottom: 10px; 
@@ -171,17 +194,6 @@ body {
     border-bottom: 2px solid #eee; 
     padding-bottom: 8px; 
 }
-/* サイドバーのラジオボタン（カテゴリ移動により未使用だが、汎用性のため残存） */
-.radio-label { 
-    display: block; 
-    margin: 12px 0; 
-    cursor: pointer; 
-    font-size: 0.95em; 
-}
-.radio-label input { 
-    margin-right: 8px; 
-    accent-color: var(--primary); 
-}
 
 .filter-tags { 
     display: flex; 
@@ -202,13 +214,9 @@ body {
     color: white; 
 }
 
-/* 🌟「もっと見る」機能用CSS 🌟 */
-/* 初期表示で非表示にするタグのスタイル */
 .hidden-tag {
     display: none !important;
 }
-
-/* 「もっと見る」ボタンのスタイル */
 .show-more-btn {
     width: 100%;
     padding: 10px;
@@ -222,29 +230,35 @@ body {
     font-weight: bold;
     transition: background 0.2s;
 }
-
 .show-more-btn:hover {
     background: #e0e0e0;
 }
-/* ------------------------------------- */
 
-/* おすすめイベント（Featured）セクション */
+/* --- 5. カルーセル (Featured) の新規追加・修正 --- */
 .featured { 
     margin-bottom: 40px; 
     position: relative; 
 }
+
+/* 🌟 カルーセルコンテナの追加 🌟 */
+.carousel-container {
+    position: relative;
+}
+
 .featured-grid { 
     display: flex; 
     gap: 20px; 
-    overflow-x: auto; 
+    overflow-x: scroll; /* auto -> scroll に変更 */
     scroll-behavior: smooth; 
-    padding-bottom: 15px;
+    padding: 10px 0; /* 上下paddingを追加 */
+    /* スクロールバー非表示 */
     scrollbar-width: none; 
     -ms-overflow-style: none;
 }
 .featured-grid::-webkit-scrollbar { 
     display: none; 
 }
+
 .featured-card { 
     flex: 0 0 auto; 
     width: 400px; 
@@ -282,9 +296,47 @@ body {
     border-radius: 20px; 
     font-weight: bold; 
     font-size: 0.9em; 
+    z-index: 10;
 }
 
-/* イベントカード一覧 */
+/* 🌟 カルーセルコントロールボタンの追加 🌟 */
+.carousel-controls {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    z-index: 20;
+    pointer-events: none; /* デフォルトでクリック無効 */
+}
+
+.nav-btn {
+    width: 50px;
+    height: 50px;
+    background-color: rgba(94, 53, 177, 0.7); /* primaryの半透明 */
+    color: white;
+    border: 3px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.8em;
+    font-weight: 900;
+    transition: background-color 0.3s, transform 0.1s;
+    pointer-events: all; /* ボタンのみクリック有効 */
+    line-height: 44px; /* 中央寄せ */
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.nav-btn:hover {
+    background-color: var(--primary);
+    transform: scale(1.05);
+}
+
+.prev-btn { margin-left: -25px; } /* 半分外に出して視覚的に見やすく */
+.next-btn { margin-right: -25px; }
+
+/* --- 6. イベントカード一覧 --- */
 .event-grid { 
     display: grid; 
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
@@ -322,10 +374,13 @@ body {
     color: #666; 
     margin: 8px 0; 
 }
+
+/* 🌟 カテゴリタグのスタイル修正 🌟 */
 .category-tag { 
     display: inline-block; 
     padding: 4px 10px; 
-    background: #e0e0e0; 
+    background: var(--primary); /* primaryカラーに変更 */
+    color: white; 
     border-radius: 20px; 
     font-size: 0.8em; 
     margin-right: 6px; 
@@ -350,7 +405,7 @@ body {
     opacity: 0.9; 
 }
 
-/* 新着イベントリスト */
+/* --- 7. 新着イベントリスト (変更なし) --- */
 .new-events { 
     list-style: none; 
     padding: 0; 
@@ -372,7 +427,7 @@ body {
     color: var(--primary); 
 }
 
-/* ローディングと「もっと見る」 */
+/* --- 8. ローディングと「もっと見る」 (変更なし) --- */
 .loading, .load-more { 
     grid-column: 1 / -1; 
     text-align: center; 
@@ -383,7 +438,7 @@ body {
     font-size: 0.95em; 
 }
 
-/* モーダル */
+/* --- 9. モーダル (変更なし) --- */
 .modal { 
     display: none; 
     position: fixed; 
@@ -442,7 +497,12 @@ body {
     background: #333; 
 }
 #email-signup-btn, #email-login-btn { 
-    background: #4CAF50; 
+    /* Primaryカラーを適用 */
+    background: var(--primary); 
+}
+#email-signup-btn {
+    background: #e0e0e0;
+    color: var(--text);
 }
 input[type="email"], input[type="password"] { 
     width: 100%; 
@@ -458,7 +518,7 @@ input[type="email"]:focus, input[type="password"]:focus {
     border-color: var(--primary); 
 }
 
-/* フッター */
+/* --- 10. フッター (変更なし) --- */
 .footer {
     background: #424242;
     color: #f0f0f0;
@@ -488,18 +548,21 @@ input[type="email"]:focus, input[type="password"]:focus {
     color: #9e9e9e;
 }
 
-/* レスポンシブ対応 */
+/* --- 11. レスポンシブ対応 --- */
 @media (max-width: 1100px) { 
-    .container { 
+    .main-wrapper { /* 修正 */
         grid-template-columns: 1fr; 
     } 
     .sidebar { 
         order: -1; 
         position: static; 
     } 
-    .category-nav { 
+    .category-nav-wrapper { /* 追加 */
         position: static; 
         top: auto; 
+    }
+    .header {
+        position: static; /* stickyを解除 */
     }
 }
 @media (max-width: 600px) { 
@@ -512,5 +575,14 @@ input[type="email"]:focus, input[type="password"]:focus {
     .category-nav { 
         justify-content: flex-start; 
         padding: 10px; 
+        overflow-x: auto;
     }
+    .featured-card {
+        width: 300px; /* スマホでのカード幅を調整 */
+    }
+    .event-grid {
+        grid-template-columns: 1fr; /* スマホでは1列表示 */
+    }
+    .prev-btn { margin-left: 5px; } 
+    .next-btn { margin-right: 5px; }
 }
