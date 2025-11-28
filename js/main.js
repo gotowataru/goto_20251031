@@ -198,7 +198,7 @@ const startCarousel = () => {
         checkLoop();
     };
 
-    let slideInterval = setInterval(autoSlide, 2000); // 2秒
+    let slideInterval = setInterval(autoSlide, 4000); // 4秒
 
     // --- 5. 左右ボタンのイベントリスナー ---
     const handleSlide = (direction) => {
@@ -206,7 +206,7 @@ const startCarousel = () => {
         let nextIndex = currentIndex + direction;
         slideTo(nextIndex);
         checkLoop();
-        slideInterval = setInterval(autoSlide, 2000); // 自動移動を再開
+        slideInterval = setInterval(autoSlide, 4000); // 自動移動を再開
     };
 
     nextBtn.onclick = () => handleSlide(1);
@@ -230,7 +230,7 @@ const startCarousel = () => {
             checkLoop();
             
             // 自動移動を再開
-            slideInterval = setInterval(autoSlide, 2000);
+            slideInterval = setInterval(autoSlide, 4000);
         }, 150); // 停止後150ms後に実行
     });
 };
@@ -460,3 +460,4 @@ document.querySelectorAll('.category-nav input[name="category"]').forEach(r => {
 
 // ページ起動
 loadInitialEvents();
+
