@@ -513,4 +513,71 @@ input[type="email"]:focus, input[type="password"]:focus {
         justify-content: flex-start; 
         padding: 10px; 
     }
+/* おすすめイベントカルーセル専用スタイル */
+.carousel-container {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
+
+.featured-grid {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 10px 60px;        /* 左右ボタン分の余白 */
+    scrollbar-width: none;
+}
+
+.featured-grid::-webkit-scrollbar {
+    display: none;
+}
+
+/* 左右ボタン */
+.carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s ease;
+    user-select: none;
+    backdrop-filter: blur(4px);
+}
+
+.carousel-control:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-control.prev {
+    left: 10px;
+}
+
+.carousel-control.next {
+    right: 10px;
+}
+
+/* スマホではボタンを少し小さく */
+@media (max-width: 768px) {
+    .carousel-control {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+    .featured-grid {
+        padding: 10px 50px;
+    }
+}
+
+}
+
