@@ -8,104 +8,110 @@
     --shadow-light: 0 5px 15px rgba(0,0,0,0.08);
 }
 
-/* ==================== 新しいヘッダー（ここだけ変更） ==================== */
-
+/* ==================== 最終決定版ヘッダー（detail.htmlと100%同じ見た目一致＋隙間ゼロ＋美しく1段） ==================== */
 .header-new {
     position: sticky;
     top: 0;
     z-index: 100;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     color: white;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    padding-bottom: 8px; /* カテゴリ部分との一体感を出すため少しだけ余白 */
 }
 
 .header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 18px 40px;
+    padding: 20px 40px 16px;   /* 上に余裕を持たせて隙間ゼロに */
     max-width: 1400px;
     margin: 0 auto;
 }
 
 .site-title {
     margin: 0;
-    font-size: 2em;
+    font-size: 2.1em;
     font-weight: 800;
     color: white;
+    letter-spacing: -0.5px;
 }
 
 #login-btn-header {
-    padding: 12px 28px;
-    background: rgba(255,255,255,0.25);
-    border: 2px solid rgba(255,255,255,0.4);
+    padding: 11px 28px;
+    background: rgba(255,255,255,0.22);
+    border: 2px solid rgba(255,255,255,0.35);
     border-radius: 50px;
     color: white;
     font-weight: bold;
-    font-size: 1em;
-    cursor: pointer;
-    transition: all 0.3s;
     backdrop-filter: blur(10px);
+    transition: all 0.3s;
 }
 
 #login-btn-header:hover {
     background: white;
     color: #5e35b1;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(94,53,177,0.4);
+    box-shadow: 0 8px 25px rgba(94,53,177,0.45);
 }
 
+/* カテゴリナビをヘッダー内に完全に一体化（白背景なし・隙間なし） */
 .category-nav-integrated {
-    padding: 14px 20px;
-    background: rgba(255,255,255,0.95);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(255,255,255,0.3);
+    padding: 8px 20px 12px;
+    background: rgba(255,255,255,0.15);   /* ほんのりガラス感 */
+    backdrop-filter: blur(12px);
     display: flex;
     justify-content: center;
-    flex-wrap: wrap;
-    gap: 16px;
+    flex-wrap: nowrap;        /* ← これで強制1段！ */
+    gap: 12px;
+    overflow-x: auto;         /* スマホで横スクロールOK */
+    scrollbar-width: none;
     max-width: 1400px;
     margin: 0 auto;
 }
+.category-nav-integrated::-webkit-scrollbar { display: none; }
 
 .category-nav-integrated .radio-label > span {
     display: block;
-    padding: 10px 22px;
+    padding: 9px 20px;
     border-radius: 30px;
-    background: rgba(255,255,255,0.3);
-    color: #333;
+    background: rgba(255,255,255,0.25);
+    color: white;
     font-weight: 600;
+    font-size: 0.94em;
+    min-width: fit-content;
+    white-space: nowrap;
     transition: all 0.25s;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
 }
 
 .category-nav-integrated .radio-label:hover > span {
-    background: white;
+    background: rgba(255,255,255,0.4);
     transform: translateY(-2px);
 }
 
 .category-nav-integrated input[type="radio"]:checked + span {
-    background: var(--primary);
-    color: white;
-    box-shadow: 0 6px 18px rgba(94,53,177,0.4);
+    background: white;
+    color: #5e35b1;
+    font-weight: 800;
+    box-shadow: 0 6px 20px rgba(94,53,177,0.5);
 }
 
-/* スマホ調整 */
+/* スマホでも絶対に1段＋見やすい */
 @media (max-width: 768px) {
-    .header-top { 
-        padding: 16px 20px; 
+    .header-top {
+        padding: 16px 20px 12px;
         flex-direction: column;
         text-align: center;
-        gap: 12px;
+        gap: 8px;
     }
-    .site-title { font-size: 1.7em; }
-    .category-nav-integrated { 
-        padding: 12px 15px; 
-        gap: 10px; 
+    .site-title { font-size: 1.8em; }
+    .category-nav-integrated {
+        padding: 8px 15px 10px;
+        gap: 10px;
     }
-    .category-nav-integrated .radio-label > span { 
-        padding: 9px 18px; 
-        font-size: 0.92em; 
+    .category-nav-integrated .radio-label > span {
+        padding: 8px 16px;
+        font-size: 0.9em;
     }
 }
 
@@ -624,6 +630,7 @@ input[type="email"]:focus, input[type="password"]:focus {
     .prev-btn { margin-left: 5px; } 
  .next-btn { margin-right: 5px; }
 }
+
 
 
 
