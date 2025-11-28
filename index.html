@@ -8,13 +8,14 @@
 </head>
 <body>
 
-    <header class="header">
-        <div class="header-content container"> <h1>イベント一覧</h1>
+    <!-- 変更ここから -->
+    <header class="header-new">
+        <div class="header-top container">
+            <h1 class="site-title">イベント一覧</h1>
             <button id="login-btn-header">ログイン / サインアップ</button>
         </div>
-    </header>
 
-    <div class="category-nav-wrapper"> <nav class="category-nav container">
+        <nav class="category-nav-integrated container">
             <label class="radio-label"><input type="radio" name="category" value="all" checked><span>すべて</span></label>
             <label class="radio-label"><input type="radio" name="category" value="matsuri"><span>祭り</span></label>
             <label class="radio-label"><input type="radio" name="category" value="music"><span>音楽</span></label>
@@ -24,20 +25,20 @@
             <label class="radio-label"><input type="radio" name="category" value="gourmet"><span>グルメ</span></label>
             <label class="radio-label"><input type="radio" name="category" value="exhibition"><span>展示・芸術</span></label>
         </nav>
-    </div>
+    </header>
+    <!-- 変更ここまで -->
 
-    <div class="container main-wrapper"> <div class="main">
+    <!-- ここから下は一切変更してません（元のコードそのまま） -->
+    <div class="container main-wrapper">
+        <div class="main">
             <section class="featured" id="featured-section" style="display:none;">
-                <h2 class="section-title">✨ おすすめイベント</h2>
-                
+                <h2 class="section-title">おすすめイベント</h2>
                 <div class="carousel-container">
                     <div class="carousel-controls">
                         <button id="prev-slide-btn" class="nav-btn prev-btn"> < </button>
                         <button id="next-slide-btn" class="nav-btn next-btn"> > </button>
                     </div>
-                    
-                    <div class="featured-grid" id="featured-grid">
-                        </div>
+                    <div class="featured-grid" id="featured-grid"></div>
                 </div>
             </section>
             
