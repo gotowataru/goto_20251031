@@ -151,7 +151,7 @@ const startCarousel = () => {
     // クローンを含めたカードリストをDOMから再取得
     const allCards = Array.from(grid.querySelectorAll('.featured-card')); 
     const cardWidth = cards[0].offsetWidth; // クローン前のカードの幅を使用
-    const GAP_SIZE = 20; 
+    const GAP_SIZE = 24; // CSSのgapに合わせて変更 
     
     // 初期位置を本来の最初のカード(インデックス1)に設定
     let currentIndex = 1;
@@ -460,4 +460,3 @@ document.querySelectorAll('.category-nav input[name="category"]').forEach(r => {
 
 // ページ起動
 loadInitialEvents();
-
