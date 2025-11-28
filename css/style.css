@@ -228,140 +228,118 @@ body {
 }
 /* ------------------------------------- */
 
-/* おすすめイベント（Featured）セクション - 古い定義は削除し、新しいものを採用 */
+/* おすすめイベント（Featured）セクション - 【修正後のデザインとサイズ調整】 */
 .featured { 
     margin-bottom: 40px; 
     position: relative; 
 }
 
-/* おすすめイベントカルーセル - 【変更後のデザイン】 */
+/* カルーセル全体のコンテナ: 背景と角丸を定義 */
 .carousel-container {
     position: relative;
     border-radius: 20px;
-    overflow: hidden;
-    /* 背景をグラデーションに変更して、高級感を出す */
+    /* overflow: hidden; はカードの角丸のために必要 */
+    overflow: hidden; 
     background: linear-gradient(135deg, #4527a0 0%, #667eea 100%);
-    padding: 20px 0; /* 上下余白で高級感。左右はグリッドのパディングに任せる */
+    padding: 20px 0;
     box-shadow: 0 20px 40px rgba(0,0,0,0.15);
     margin-bottom: 40px;
+    /* ★サイズ問題対策: 親の幅を確実に守る */
+    max-width: 100%; 
 }
 
+/* カルーセル要素の並びとスクロール設定 */
 .featured-grid {
     display: flex;
     gap: 24px;
     overflow-x: auto;
     scroll-behavior: smooth;
-    /* 左右にボタン分の余白をしっかり確保 */
-    padding: 10px 80px 20px 80px;
+    /* 左右にボタン分の余白を確保 */
+    padding: 10px 80px 20px 80px; 
     scrollbar-width: none;
     -ms-overflow-style: none;
-    /* グリッド自体は白で目立たせる */
     background: white;
     border-radius: 16px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    /* ★サイズ問題対策: 親要素の100%幅を使う */
+    width: 100%; 
 }
 
 .featured-grid::-webkit-scrollbar { display: none; }
 
-/* カード自体はそのまま */
+/* カードのサイズ設定 */
 .featured-card {
-    flex: 0 0 380px;
+    /* 1つのカードの固定幅を指定 */
+    flex: 0 0 380px; 
     border-radius: 18px;
     overflow: hidden;
     box-shadow: 0 15px 35px rgba(0,0,0,0.2);
     transition: all 0.4s ease;
     background: white;
 }
-
 .featured-card:hover {
     transform: translateY(-12px) scale(1.02);
     box-shadow: 0 25px 50px rgba(0,0,0,0.25);
 }
+.featured-card img { 
+    width: 100%; 
+    height: 240px; 
+    object-fit: cover; 
+}
+.featured-card .content { 
+    padding: 20px; 
+}
+.featured-card h3 { 
+    margin: 0 0 10px; 
+    color: var(--primary); 
+    font-size: 1.4em; 
+}
+.featured-label { 
+    position: absolute; 
+    top: 15px; 
+    left: 15px; 
+    background: var(--accent); 
+    color: white; 
+    padding: 6px 14px; 
+    border-radius: 20px; 
+    font-weight: bold; 
+    font-size: 0.9em; 
+}
 
-/* 左右ボタン - 【位置とデザインの変更】 */
+/* 左右ボタン - 【位置とデザインの最終確定】 */
 .carousel-control {
     position: absolute;
-    top: 50%; /* 上下中央 */
+    top: 50%;
     transform: translateY(-50%);
     width: 48px;
     height: 48px;
-    background: rgba(0, 0, 0, 0.4); /* 暗めの半透明 */
-    color: white; /* アイコンの色 */
-    border: 2px solid rgba(255, 255, 255, 0.6); /* 白い縁 */
+    background: rgba(0, 0, 0, 0.4);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.6);
     border-radius: 50%;
-    /* HTML内のテキストを非表示にし、flexでアイコンを中央に配置 */
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0; /* HTML内の←→を非表示にする */
+    font-size: 0; 
     cursor: pointer;
     z-index: 20;
     box-shadow: 0 5px 20px rgba(0,0,0,0.3);
     transition: all 0.3s ease;
     backdrop-filter: blur(5px);
 }
-
 .carousel-control:hover {
     background: rgba(0, 0, 0, 0.6);
     transform: translateY(-50%) scale(1.1);
 }
+.carousel-control.prev { left: 20px; }
+.carousel-control.next { right: 20px; }
 
-.carousel-control.prev {
-    left: 20px; /* 左端から20px */
-}
-
-.carousel-control.next {
-    right: 20px; /* 右端から20px */
-}
-
-/* アイコン用のSVGスタイル (これでカスタムアイコンを埋め込める) */
 .carousel-control svg {
-    fill: currentColor; /* ボタンのcolor属性 (白) を使う */
+    fill: currentColor;
     width: 24px;
     height: 24px;
 }
-
-/* レスポンシブ対応 - 画面幅が狭い場合のカルーセルの設定も修正 */
-@media (max-width: 1100px) { 
-    .container { 
-        grid-template-columns: 1fr; 
-    } 
-    .sidebar { 
-        order: -1; 
-        position: static; 
-    } 
-    .category-nav { 
-        position: static; 
-        top: auto; 
-    }
-}
-@media (max-width: 768px) {
-    .carousel-control {
-        width: 40px;
-        height: 40px;
-        left: 10px; /* スマホでは端に寄せる */
-        right: 10px;
-    }
-    .carousel-control svg {
-        width: 20px;
-        height: 20px;
-    }
-    .featured-grid { padding: 10px 50px 20px 50px; }
-    .featured-card { flex: 0 0 300px; }
-}
-
-@media (max-width: 600px) { 
-    .header { 
-        padding: 15px 20px; 
-        flex-direction: column; 
-        gap: 15px; 
-        text-align: center; 
-    } 
-    .category-nav { 
-        justify-content: flex-start; 
-        padding: 10px; 
-    }
-}
+/* ------------------------------------------------------------------- */
 
 
 /* イベントカード一覧 */
@@ -566,4 +544,54 @@ input[type="email"]:focus, input[type="password"]:focus {
     margin: 0;
     font-size: 0.85em;
     color: #9e9e9e;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 1100px) { 
+    .container { 
+        grid-template-columns: 1fr; 
+    } 
+    .sidebar { 
+        order: -1; 
+        position: static; 
+    } 
+    .category-nav { 
+        position: static; 
+        top: auto; 
+    }
+}
+@media (max-width: 768px) {
+    /* カルーセルコントロール */
+    .carousel-control {
+        width: 40px;
+        height: 40px;
+        left: 10px; 
+        right: 10px;
+    }
+    .carousel-control svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    /* カルーセルグリッド */
+    .featured-grid { 
+        padding: 10px 50px 20px 50px; 
+    }
+    
+    /* カードの幅を小さくする */
+    .featured-card { 
+        flex: 0 0 300px; 
+    }
+}
+@media (max-width: 600px) { 
+    .header { 
+        padding: 15px 20px; 
+        flex-direction: column; 
+        gap: 15px; 
+        text-align: center; 
+    } 
+    .category-nav { 
+        justify-content: flex-start; 
+        padding: 10px; 
+    }
 }
