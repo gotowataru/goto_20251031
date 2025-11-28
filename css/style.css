@@ -9,92 +9,104 @@
 }
 
 /* ==================== 新しいヘッダー（ここだけ変更） ==================== */
+
 .header-new {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-bottom: 1px solid #eee;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    color: white;
 }
 
 .header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 18px 20px;
+    padding: 18px 40px;
     max-width: 1400px;
     margin: 0 auto;
 }
 
 .site-title {
     margin: 0;
-    font-size: 1.9em;
+    font-size: 2em;
     font-weight: 800;
-    color: color: white;
+    color: white;
 }
 
 #login-btn-header {
-    padding: 11px 28px;
-    background: rgba(255,255,255,0.25); color: white;
-    color: white;
-    border: none;
+    padding: 12px 28px;
+    background: rgba(255,255,255,0.25);
+    border: 2px solid rgba(255,255,255,0.4);
     border-radius: 50px;
+    color: white;
     font-weight: bold;
     font-size: 1em;
     cursor: pointer;
     transition: all 0.3s;
+    backdrop-filter: blur(10px);
 }
 
 #login-btn-header:hover {
-    background: white; color: #5e35b1;
+    background: white;
+    color: #5e35b1;
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(94,53,177,0.3);
+    box-shadow: 0 8px 20px rgba(94,53,177,0.4);
 }
 
 .category-nav-integrated {
     padding: 14px 20px;
-    background: #f5f0ff;
-    border-top: 1px solid #e7e0ff;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255,255,255,0.3);
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 16px;
     max-width: 1400px;
     margin: 0 auto;
 }
 
-.category-nav-integrated input[type="radio"] { display: none; }
-
 .category-nav-integrated .radio-label > span {
     display: block;
-    padding: 9px 20px;
+    padding: 10px 22px;
     border-radius: 30px;
-    background: rgba(255,255,255,0.15);
-    color: var(--text);
+    background: rgba(255,255,255,0.3);
+    color: #333;
     font-weight: 600;
-    font-size: 0.94em;
     transition: all 0.25s;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.09);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
 }
 
 .category-nav-integrated .radio-label:hover > span {
-    background: #f0e6ff;
-    transform: translateY(-1px);
+    background: white;
+    transform: translateY(-2px);
 }
 
 .category-nav-integrated input[type="radio"]:checked + span {
     background: var(--primary);
     color: white;
-    box-shadow: 0 5px 15px rgba(94,53,177,0.35);
+    box-shadow: 0 6px 18px rgba(94,53,177,0.4);
 }
 
-/* スマホ時の調整 */
+/* スマホ調整 */
 @media (max-width: 768px) {
-    .header-top { padding: 14px 15px; }
-    .site-title { font-size: 1.6em; }
-    .category-nav-integrated { gap: 10px; padding: 12px 10px; }
-    .category-nav-integrated .radio-label > span { padding: 8px 16px; font-size: 0.9em; }
+    .header-top { 
+        padding: 16px 20px; 
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+    .site-title { font-size: 1.7em; }
+    .category-nav-integrated { 
+        padding: 12px 15px; 
+        gap: 10px; 
+    }
+    .category-nav-integrated .radio-label > span { 
+        padding: 9px 18px; 
+        font-size: 0.92em; 
+    }
 }
 
 /* ==================== ここから下は元のCSSを一切変更せず全部そのまま ==================== */
@@ -612,5 +624,6 @@ input[type="email"]:focus, input[type="password"]:focus {
     .prev-btn { margin-left: 5px; } 
  .next-btn { margin-right: 5px; }
 }
+
 
 
