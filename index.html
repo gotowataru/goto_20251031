@@ -25,10 +25,23 @@
     </nav>
     <div class="container">
         <div class="main">
-            <section class="featured" id="featured-section" style="display:none;">
-                <h2 style="color:var(--primary); font-size:2em; margin-bottom:20px;">おすすめイベント</h2>
-                <div class="featured-grid" id="featured-grid"></div>
-            </section>
+<section class="featured" id="featured-section" style="display:none;">
+    <h2 style="color:var(--primary); font-size:2em; margin-bottom:20px;">おすすめイベント</h2>
+    
+    <!-- カルーセルラッパー（ボタン付き） -->
+    <div class="carousel-container">
+        <button id="prev-slide-btn" class="carousel-control prev" aria-label="前のスライド">
+            ←
+        </button>
+        <button id="next-slide-btn" class="carousel-control next" aria-label="次のスライド">
+            →
+        </button>
+        
+        <div class="featured-grid" id="featured-grid">
+            <!-- JSでここにカードが挿入されます -->
+        </div>
+    </div>
+</section>
             <section>
                 <h2 style="color:var(--primary); font-size:1.8em; margin:30px 0 20px;">開催予定イベント</h2>
                 <div class="event-grid" id="event-grid">
