@@ -9,34 +9,15 @@
 }
 
 /* ==================== 新しいヘッダー（ここだけ変更） ==================== */
-/* --- サイバーパンク風 変数定義 --- */
-:root {
-    --primary: #00e5ff; /* ネオンシアン (アクティブ/ハイライト) */
-    --secondary: #ff00ff; /* ネオンマゼンタ (アクセント) */
-    --dark-bg: #1c1c2e; /* 濃い背景色 */
-    --medium-bg: #2e2e4f; /* 中間背景色 */
-    --light-bg: #404066; /* 明るい背景色 */
-    --text-glow: 0 0 5px var(--primary), 0 0 10px var(--primary);
-    --shadow-glow: 0 0 15px rgba(0, 229, 255, 0.6); /* 強めの光の影 */
-}
-
-/* 汎用フォントの調整 (未来的な雰囲気) */
-body {
-    font-family: 'Consolas', 'Courier New', monospace; /* モノスペース系でハッカー風 */
-}
-
-/* --- ヘッダー全体 (.header-cyberpunk) --- */
-.header-cyberpunk {
+.header-new {
     position: sticky;
     top: 0;
     z-index: 100;
-    /* ダークな背景とボトムの強調線 */
-    background: var(--dark-bg);
-    border-bottom: 2px solid var(--primary);
-    box-shadow: 0 4px 30px rgba(0, 229, 255, 0.2); /* 全体に淡いグロー */
+    background: white;
+    border-bottom: 1px solid #eee;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
-/* --- ヘッダー上段 (.header-top) --- */
 .header-top {
     display: flex;
     justify-content: space-between;
@@ -46,139 +27,74 @@ body {
     margin: 0 auto;
 }
 
-/* --- サイトタイトル (H1) --- */
 .site-title {
     margin: 0;
-    font-size: 2.2em;
+    font-size: 1.9em;
     font-weight: 800;
-    color: var(--primary); /* シアンネオン */
-    text-shadow: var(--text-glow); /* グローエフェクト */
-    letter-spacing: 2px;
-    position: relative;
-}
-
-/* グリッチ効果 (Optional: 擬似要素で表現) */
-.site-title::before, .site-title::after {
-    content: attr(data-text); /* HTMLの data-text 属性を使用 */
-    position: absolute;
-    top: 0;
-    left: 0;
-    overflow: hidden;
-    color: var(--secondary); /* マゼンタネオン */
-    text-shadow: var(--text-glow);
-    animation: glitch 1s infinite;
-}
-.site-title::after {
-    left: 2px;
-    text-shadow: none;
     color: var(--primary);
 }
 
-@keyframes glitch {
-    0% { clip: rect(20px, 9999px, 30px, 0); }
-    10% { clip: rect(70px, 9999px, 80px, 0); }
-    20% { clip: rect(40px, 9999px, 50px, 0); }
-    30% { clip: rect(10px, 9999px, 20px, 0); }
-    40% { clip: rect(90px, 9999px, 100px, 0); }
-    50% { clip: rect(5px, 9999px, 15px, 0); }
-    60% { clip: rect(60px, 9999px, 70px, 0); }
-    70% { clip: rect(30px, 9999px, 40px, 0); }
-    80% { clip: rect(80px, 9999px, 90px, 0); }
-    90% { clip: rect(100px, 9999px, 110px, 0); }
-    100% { clip: rect(20px, 9999px, 30px, 0); }
-}
-
-/* --- ログインボタン (#login-btn-header) --- */
 #login-btn-header {
     padding: 11px 28px;
-    background: var(--dark-bg);
-    color: var(--primary);
-    /* ネオン風の枠線 */
-    border: 2px solid var(--primary);
-    border-radius: 4px; /* 角ばったデザイン */
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 50px;
     font-weight: bold;
-    font-size: 0.9em;
+    font-size: 1em;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    text-transform: uppercase;
-    box-shadow: var(--shadow-glow);
-}
-#login-btn-header .btn-text {
-    color: var(--secondary); /* アクセントカラー */
-    margin-right: 5px;
+    transition: all 0.3s;
 }
 
 #login-btn-header:hover {
-    background: var(--primary);
-    color: var(--dark-bg);
-    transform: none; /* ホバーで変形なし */
-    box-shadow: 0 0 5px var(--primary), 0 0 20px var(--primary); /* 強めのネオングロー */
-    border-color: var(--primary);
+    background: #4527a0;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(94,53,177,0.3);
 }
 
-/* --- カテゴリナビゲーション (.category-nav-integrated) --- */
 .category-nav-integrated {
-    padding: 10px 20px; /* 縦幅を抑える */
-    background: var(--medium-bg);
-    border-top: 1px solid var(--light-bg);
+    padding: 14px 20px;
+    background: #f5f0ff;
+    border-top: 1px solid #e7e0ff;
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 10px; /* 間隔を狭める */
+    gap: 14px;
     max-width: 1400px;
     margin: 0 auto;
 }
 
 .category-nav-integrated input[type="radio"] { display: none; }
 
-/* --- カテゴリボタンの装飾 --- */
 .category-nav-integrated .radio-label > span {
     display: block;
-    padding: 8px 16px; 
-    border-radius: 2px; /* 角ばったデザイン */
-    background: var(--light-bg);
-    color: #eee; 
+    padding: 9px 20px;
+    border-radius: 30px;
+    background: white;
+    color: var(--text);
     font-weight: 600;
-    font-size: 0.9em;
-    transition: all 0.2s;
-    border: 1px solid transparent;
+    font-size: 0.94em;
+    transition: all 0.25s;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.09);
 }
 
 .category-nav-integrated .radio-label:hover > span {
-    background: #50507a;
-    color: var(--primary);
-    transform: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 5px rgba(0, 229, 255, 0.4);
+    background: #f0e6ff;
+    transform: translateY(-1px);
 }
 
 .category-nav-integrated input[type="radio"]:checked + span {
     background: var(--primary);
-    color: var(--dark-bg); /* 背景がシアンなので文字は暗く */
-    font-weight: bold;
-    box-shadow: var(--shadow-glow);
-    border-color: var(--primary);
+    color: white;
+    box-shadow: 0 5px 15px rgba(94,53,177,0.35);
 }
 
-/* --- レスポンシブ調整 --- */
+/* スマホ時の調整 */
 @media (max-width: 768px) {
-    .header-top { padding: 12px 15px; }
-    .site-title { font-size: 1.8em; }
-    .category-nav-integrated { 
-        gap: 8px; 
-        padding: 8px 10px; 
-        justify-content: flex-start;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
-    .category-nav-integrated .radio-label > span { 
-        padding: 6px 12px; 
-        font-size: 0.8em; 
-        flex-shrink: 0;
-    }
-    .site-title::before, .site-title::after {
-        animation: none; /* モバイルではグリッチを停止 */
-    }
+    .header-top { padding: 14px 15px; }
+    .site-title { font-size: 1.6em; }
+    .category-nav-integrated { gap: 10px; padding: 12px 10px; }
+    .category-nav-integrated .radio-label > span { padding: 8px 16px; font-size: 0.9em; }
 }
 
 /* ==================== ここから下は元のCSSを一切変更せず全部そのまま ==================== */
@@ -696,5 +612,3 @@ input[type="email"]:focus, input[type="password"]:focus {
     .prev-btn { margin-left: 5px; } 
  .next-btn { margin-right: 5px; }
 }
-
-
