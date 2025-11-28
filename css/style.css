@@ -9,92 +9,152 @@
 }
 
 /* ==================== 新しいヘッダー（ここだけ変更） ==================== */
+/* ==================== サイバーパンク風ヘッダー（完全コピペ用） ==================== */
 .header-new {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: white;
-    border-bottom: 1px solid #eee;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    background: linear-gradient(180deg, #0d001a 0%, #1a0033 100%);
+    border-bottom: 2px solid #ff00aa;
+    box-shadow: 
+        0 0 20px rgba(255, 0, 170, 0.6),
+        0 8px 30px rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    animation: headerGlow 6s ease-in-out infinite alternate;
+}
+
+@keyframes headerGlow {
+    0%   { box-shadow: 0 0 20px rgba(255, 0, 170, 0.6), 0 8px 30px rgba(0,0,0,0.8); }
+    50%  { box-shadow: 0 0 30px rgba(0, 255, 255, 0.8), 0 8px 40px rgba(0,0,0,0.9); }
+    100% { box-shadow: 0 0 25px rgba(255, 100, 255, 0.7), 0 8px 35px rgba(0,0,0,0.8); }
 }
 
 .header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 18px 20px;
+    padding: 20px 24px;
     max-width: 1400px;
     margin: 0 auto;
+    position: relative;
 }
 
+/* タイトルにネオングロー */
 .site-title {
     margin: 0;
-    font-size: 1.9em;
-    font-weight: 800;
-    color: var(--primary);
+    font-size: 2.1em;
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 
+        0 0 10px #ff00ff,
+        0 0 0 20px #ff00ff,
+        0 0 40px #ff00ff,
+        0 0 60px #ff00ff;
+    letter-spacing: 3px;
+    background: linear-gradient(90deg, #00ffff, #ff00ff, #00ffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: titleFlicker 4s infinite;
 }
 
+@keyframes titleFlicker {
+    0%,100% { opacity: 1; }
+    50%     { opacity: 0.95; }
+    70%     { opacity: 0.98; }
+}
+
+/* ログインボタンもネオン化 */
 #login-btn-header {
-    padding: 11px 28px;
-    background: var(--primary);
-    color: white;
-    border: none;
+    padding: 12px 32px;
+    background: transparent;
+    color: #00ffff;
+    border: 2px solid #00ffff;
     border-radius: 50px;
     font-weight: bold;
     font-size: 1em;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.4s;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+#login-btn-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0,255,255,0.3), transparent);
+    transition: 0.7s;
 }
 
 #login-btn-header:hover {
-    background: #4527a0;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(94,53,177,0.3);
+    background: rgba(0, 255, 255, 0.1);
+    color: #ff00ff;
+    border-color: #ff00ff;
+    box-shadow: 0 0 30px rgba(255, 0, 255, 0.8);
+    transform: translateY(-3px);
 }
 
+#login-btn-header:hover::before {
+    { left: 100%; }
+
+/* カテゴリバー（ネオンライン＋浮遊感） */
 .category-nav-integrated {
-    padding: 14px 20px;
-    background: #f5f0ff;
-    border-top: 1px solid #e7e0ff;
+    padding: 16px 20px;
+    background: rgba(15, 0, 40, 0.7);
+    border-top: 1px solid #00ffff;
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 16px;
     max-width: 1400px;
     margin: 0 auto;
+    backdrop-filter: blur(8px);
 }
 
 .category-nav-integrated input[type="radio"] { display: none; }
 
 .category-nav-integrated .radio-label > span {
-    display: block;
-    padding: 9px 20px;
+    padding: 10px 24px;
     border-radius: 30px;
-    background: white;
-    color: var(--text);
-    font-weight: 600;
-    font-size: 0.94em;
-    transition: all 0.25s;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.09);
+    background: rgba(0, 0, 0, 0.5);
+    color: #e0e0ff;
+    font-weight: 700;
+    font-size: 0.95em;
+    border: 1px solid #ff00ff;
+    transition: all 0.4s;
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+    backdrop-filter: blur(5px);
 }
 
 .category-nav-integrated .radio-label:hover > span {
-    background: #f0e6ff;
-    transform: translateY(-1px);
+    color: #00ffff;
+    border-color: #00ffff;
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+    transform: translateY(-3px);
 }
 
 .category-nav-integrated input[type="radio"]:checked + span {
-    background: var(--primary);
-    color: white;
-    box-shadow: 0 5px 15px rgba(94,53,177,0.35);
+    background: linear-gradient(145deg, #ff00aa, #00ffff);
+    color: #000;
+    border: none;
+    box-shadow: 
+        0 0 30px #ff00ff,
+        inset 0 0 20px rgba(255,255,255,0.3);
+    transform: translateY(-2px);
 }
 
-/* スマホ時の調整 */
+/* スマホ対応もサイバーパンク継続 */
 @media (max-width: 768px) {
-    .header-top { padding: 14px 15px; }
-    .site-title { font-size: 1.6em; }
-    .category-nav-integrated { gap: 10px; padding: 12px 10px; }
-    .category-nav-integrated .radio-label > span { padding: 8px 16px; font-size: 0.9em; }
+    .header-top { padding: 16px 15px; }
+    .site-title { font-size: 1.7em; letter-spacing: 2px; }
+    .category-nav-integrated { gap: 10px; padding: 14px 10px; }
+    .category-nav-integrated .radio-label > span { padding: 9px 18px; font-size: 0.9em; }
 }
 
 /* ==================== ここから下は元のCSSを一切変更せず全部そのまま ==================== */
@@ -612,3 +672,4 @@ input[type="email"]:focus, input[type="password"]:focus {
     .prev-btn { margin-left: 5px; } 
  .next-btn { margin-right: 5px; }
 }
+
