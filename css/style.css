@@ -595,3 +595,42 @@ input[type="email"]:focus, input[type="password"]:focus {
         padding: 10px; 
     }
 }
+
+/* イベント一覧の説明文セクション */
+.page-description-section {
+    /* ページのメインコンテンツの幅に合わせて中央に配置 */
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    
+    /* 視覚的な装飾 */
+    background: #e3f2fd; /* 薄い青の背景 */
+    border-left: 5px solid var(--primary); /* 左側にプライマリカラーのライン */
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.page-description-section h2 {
+    font-size: 1.5em;
+    color: var(--primary);
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 1px dotted #bbdefb;
+}
+
+.page-description-section p {
+    font-size: 1.0em;
+    line-height: 1.8;
+    color: #424242;
+    margin-bottom: 10px;
+}
+
+/* スマホ対応の調整 */
+@media (max-width: 1100px) { 
+    /* 1100px以下（サイドバーが下に移動するサイズ）では、説明文をメインエリアの幅いっぱいに広げる */
+    .page-description-section {
+        max-width: 100%;
+        margin: 40px 0;
+    }
+}
