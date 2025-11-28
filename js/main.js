@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/fireba
 import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, query, where, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
+// --- Firebase 設定 ---
 const firebaseConfig = {
     apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
     authDomain: "goto6234.firebaseapp.com",
@@ -15,13 +16,17 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// --- グローバル状態管理変数 ---
 let currentUser = null;
 let favoriteEventIds = [];
 let allEvents = [];
 let isLoading = false;
 let lastVisible = null;
 const PAGE_SIZE = 20;
+const CATEGORY_NAMES = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
+let filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
 
+// --- DOM要素とイベントリスナー（認証関連） ---
 const modal = document.getElementById('login-modal');
 const loginBtn = document.getElementById('login-btn-header');
 const closeBtn = document.querySelector('.close-btn');
@@ -47,11 +52,14 @@ document.getElementById('email-login-btn').onclick = () => {
     else alert("メールとパスワードを入力してください");
 };
 
-const categoryNames = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
-let filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
+// --- イベント表示とフィルター関連 ---
 
+/**
+ * イベントカードをレンダリングし、DOMに反映する
+ */
 const renderEvents = () => {
     const grid = document.getElementById('event-grid');
+    // クライアント側でのフィルタリング
     let filtered = allEvents.filter(e => {
         const matchCat = filters.category === "all" || e.category === filters.category;
         const keywords = filters.search.toLowerCase().split(/\s+/).filter(k => k);
@@ -70,7 +78,7 @@ const renderEvents = () => {
 
     grid.innerHTML = filtered.map(ev => {
         const isFav = favoriteEventIds.includes(ev.id);
-        const catLabel = ev.category ? `<span class="category-tag">${categoryNames[ev.category] || ev.category}</span>` : "";
+        const catLabel = ev.category ? `<span class="category-tag">${CATEGORY_NAMES[ev.category] || ev.category}</span>` : "";
         const img = ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${ev.name}" loading="lazy">` : `<div style="height:200px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;font-size:0.9em;">画像なし</div>`;
         const timeStr = ev.startTime ? `${ev.startTime} 〜 ${ev.endTime || ""}` : "終日";
         const displayDesc = ev.summary || (ev.description ? ev.description.substring(0, 80) + "..." : "");
@@ -98,6 +106,9 @@ const renderEvents = () => {
     });
 };
 
+/**
+ * お気に入り状態をトグルし、Firestoreとローカル状態を更新する
+ */
 const toggleFavorite = async (eventId) => {
     if (!currentUser) { modal.style.display = "block"; return; }
     const userRef = doc(db, "users", currentUser.uid);
@@ -117,53 +128,127 @@ const toggleFavorite = async (eventId) => {
     }
 };
 
+// --- カルーセル機能の改善 ---
+
+/**
+ * カルーセル機能を開始し、自動移動と左右ボタンを設定する
+ */
 const startCarousel = () => {
     const grid = document.getElementById('featured-grid');
-    if (!grid) return;
+    const cards = Array.from(grid.querySelectorAll('.featured-card')); // クローン前のカードリスト
+    const prevBtn = document.getElementById('prev-slide-btn');
+    const nextBtn = document.getElementById('next-slide-btn');
 
-    const cards = grid.querySelectorAll('.featured-card');
-    if (cards.length === 0) return;
+    if (cards.length === 0 || !grid) return;
 
-    const cardWidth = cards[0].offsetWidth; // 1枚のカードの幅を取得
-    let currentIndex = 0;
-    const intervalTime = 2000; // 2秒
+    // --- 1. 無限ループのためのクローン作成 ---
+    // (A, B, C) -> (C', A, B, C, A') の構造を作る
+    const firstClone = cards[0].cloneNode(true);
+    const lastClone = cards[cards.length - 1].cloneNode(true);
+    grid.prepend(lastClone);
+    grid.appendChild(firstClone);
+    
+    // クローンを含めたカードリストをDOMから再取得
+    const allCards = Array.from(grid.querySelectorAll('.featured-card')); 
+    const cardWidth = cards[0].offsetWidth; // クローン前のカードの幅を使用
+    const GAP_SIZE = 20; 
+    
+    // 初期位置を本来の最初のカード(インデックス1)に設定
+    let currentIndex = 1;
+    grid.style.scrollBehavior = 'smooth'; 
+    grid.scrollLeft = currentIndex * (cardWidth + GAP_SIZE);
 
-    // カルーセルをスライドさせる関数
-    const slide = () => {
-        currentIndex++;
-        // ループ処理: 最後のカードまで行ったら、最初のカードに戻る
-        if (currentIndex >= cards.length) {
-            // CSSアニメーションを無効にして瞬時に最初の位置に戻す
-            grid.style.transition = 'none';
-            grid.scrollLeft = 0;
-            currentIndex = 1;
-            
-            // わずかな遅延の後にCSSアニメーションを再度有効にする
+    // --- 2. スライド処理関数 ---
+    const slideTo = (index) => {
+        grid.style.scrollBehavior = 'smooth';
+        grid.scrollLeft = index * (cardWidth + GAP_SIZE);
+        currentIndex = index;
+    };
+
+    // --- 3. ループ処理 (違和感をなくす部分) ---
+    // スライドがクローンに達した後、アニメーションを切って瞬時に本来の位置に戻す
+    const checkLoop = () => {
+        if (currentIndex === 0) {
+            // 先頭のクローン (C') に到達 -> 本来の C へ瞬時に移動
             setTimeout(() => {
-                grid.style.transition = 'scroll-left 0.5s ease-in-out';
-                grid.scrollLeft = currentIndex * (cardWidth + 20); // 20pxはfeatured-gridのgap
-            }, 50);
-
-        } else {
-            grid.style.transition = 'scroll-left 0.5s ease-in-out';
-            // カードの幅 + gap(20px) 分だけスクロール
-            grid.scrollLeft = currentIndex * (cardWidth + 20); 
+                grid.style.scrollBehavior = 'auto'; // 一時的にアニメーションOFF
+                currentIndex = allCards.length - 2; // 本来の最後のカード(C)の位置
+                grid.scrollLeft = currentIndex * (cardWidth + GAP_SIZE);
+            }, 500); // CSSの transition time に合わせる
+            setTimeout(() => {
+                grid.style.scrollBehavior = 'smooth'; // アニメーションを元に戻す
+            }, 550);
+        } else if (currentIndex === allCards.length - 1) {
+            // 末尾のクローン (A') に到達 -> 本来の A へ瞬時に移動
+            setTimeout(() => {
+                grid.style.scrollBehavior = 'auto'; // 一時的にアニメーションOFF
+                currentIndex = 1; // 本来の最初のカード(A)の位置
+                grid.scrollLeft = currentIndex * (cardWidth + GAP_SIZE);
+            }, 500);
+            setTimeout(() => {
+                grid.style.scrollBehavior = 'smooth'; // アニメーションを元に戻す
+            }, 550);
         }
     };
 
-    // 最初のカードの幅を取得できることを確認してからインターバルを設定
-    if (cardWidth > 0) {
-        setInterval(slide, intervalTime);
-    }
+    // --- 4. 自動スライド機能 ---
+    const autoSlide = () => {
+        let nextIndex = currentIndex + 1;
+        slideTo(nextIndex);
+        checkLoop();
+    };
+
+    let slideInterval = setInterval(autoSlide, 2000); // 2秒
+
+    // --- 5. 左右ボタンのイベントリスナー ---
+    const handleSlide = (direction) => {
+        clearInterval(slideInterval); // 自動移動を一旦停止
+        let nextIndex = currentIndex + direction;
+        slideTo(nextIndex);
+        checkLoop();
+        slideInterval = setInterval(autoSlide, 2000); // 自動移動を再開
+    };
+
+    nextBtn.onclick = () => handleSlide(1);
+    prevBtn.onclick = () => handleSlide(-1);
+
+    // ユーザーが手動でスクロールした後の処理 (自動移動の再開)
+    grid.addEventListener('scroll', () => {
+        clearInterval(slideInterval);
+        
+        // スクロール停止を検知し、位置を調整する
+        clearTimeout(grid.scrollTimeout);
+        grid.scrollTimeout = setTimeout(() => {
+            const scrollPos = grid.scrollLeft;
+            // スクロール位置から最も近いカードのインデックスを再計算
+            const newIndex = Math.round(scrollPos / (cardWidth + GAP_SIZE));
+            
+            // 完全にカードの位置にスナップさせる (必須ではないが UX 向上)
+            slideTo(newIndex);
+            
+            // ループ処理を実行
+            checkLoop();
+            
+            // 自動移動を再開
+            slideInterval = setInterval(autoSlide, 2000);
+        }, 150); // 停止後150ms後に実行
+    });
 };
 
-
+/**
+ * おすすめイベントをロードし、カルーセルを開始する
+ */
 const loadFeatured = async () => {
     const q = query(collection(db, "events"), where("isFeatured", "==", true));
     const snap = await getDocs(q);
-    if (snap.empty) return;
+    
+    const grid = document.getElementById('featured-grid');
+    if (snap.empty || !grid) return;
+    
     document.getElementById('featured-section').style.display = "block";
-    document.getElementById('featured-grid').innerHTML = snap.docs.map(d => {
+    
+    // クローン前のイベントカードをレンダリング
+    grid.innerHTML = snap.docs.map(d => {
         const e = d.data(); e.id = d.id;
         const img = e.imageUrl ? `<img src="${e.imageUrl}" alt="${e.name}" loading="lazy">` : `<div style="height:240px;background:#eee;"></div>`;
         return `<div class="featured-card">
@@ -175,10 +260,13 @@ const loadFeatured = async () => {
         </div>`;
     }).join("");
     
-    // カルーセル機能の開始
+    // カルーセル機能の開始（クローン作成と動作開始はここで実行される）
     startCarousel(); 
 };
 
+/**
+ * 新着イベントをロードし、サイドバーに表示する
+ */
 const loadNewEvents = async () => {
     const q = query(collection(db, "events"), orderBy("createdAt", "desc"), limit(5));
     const snap = await getDocs(q);
@@ -188,6 +276,9 @@ const loadNewEvents = async () => {
     }).join("") || "<li>新着イベントはありません</li>";
 };
 
+/**
+ * サイドバーのタグ/主催者/会場フィルターボタンを生成する
+ */
 const generateSidebarFilters = () => {
     const tags = new Set(), organizers = new Set(), venues = new Set();
     allEvents.forEach(e => {
@@ -196,7 +287,6 @@ const generateSidebarFilters = () => {
         if (e.venue) venues.add(e.venue);
     });
     
-    // フィルターの表示件数
     const MAX_ITEMS = 10; 
 
     const createButtons = (containerId, items, type) => {
@@ -218,9 +308,13 @@ const generateSidebarFilters = () => {
             btn.className = "tag-btn";
             btn.textContent = item;
             
-            // 10件を超えたら非表示にするクラスを付与
             if (itemsCount >= MAX_ITEMS) {
                 btn.classList.add('hidden-tag');
+            }
+            
+            // 既存のフィルターが設定されていればactiveを付与
+            if (filters[type] === item) {
+                btn.classList.add('active');
             }
             
             btn.onclick = () => {
@@ -234,17 +328,14 @@ const generateSidebarFilters = () => {
             itemsCount++;
         });
 
-        // 10件を超えた場合、「もっと見る」ボタンを追加
         if (itemsCount > MAX_ITEMS) {
             const showMoreBtn = document.createElement('button');
             showMoreBtn.className = "show-more-btn";
             showMoreBtn.textContent = `もっと見る (${itemsCount - MAX_ITEMS}件)`;
             showMoreBtn.onclick = () => {
-                // 非表示のタグを表示する
                 container.querySelectorAll('.hidden-tag').forEach(tag => {
                     tag.classList.remove('hidden-tag');
                 });
-                // ボタン自身を非表示にする
                 showMoreBtn.style.display = 'none';
             };
             container.appendChild(showMoreBtn);
@@ -256,16 +347,21 @@ const generateSidebarFilters = () => {
     createButtons('venue-container', venues, 'venue');
 };
 
+/**
+ * 追加のイベントをロードし、無限スクロールを実装する
+ */
 const loadMoreEvents = async () => {
-    if (isLoading) return;
+    if (isLoading || !lastVisible) return; // lastVisibleがない場合は終わり
     isLoading = true;
     document.getElementById('load-more-trigger').innerHTML = '<span style="color:#999;">読み込み中...</span>';
 
+    // Firestoreのページネーションクエリ
     const q = query(collection(db, "events"), orderBy("date"), startAfter(lastVisible), limit(PAGE_SIZE));
     const snap = await getDocs(q);
 
     if (snap.empty) {
         document.getElementById('load-more-trigger').style.display = 'none';
+        document.getElementById('load-more-trigger').innerHTML = '<span style="color:#999;">これ以上イベントはありません</span>';
         isLoading = false;
         return;
     }
@@ -280,12 +376,16 @@ const loadMoreEvents = async () => {
     isLoading = false;
 };
 
+/**
+ * 初期イベントとすべての関連データをロードする
+ */
 const loadInitialEvents = async () => {
+    // 最初のクエリ
     const snap = await getDocs(query(collection(db, "events"), orderBy("date"), limit(PAGE_SIZE)));
     allEvents = snap.docs.map(d => { const data = d.data(); data.id = d.id; return data; });
     lastVisible = snap.docs[snap.docs.length - 1] || null;
 
-    // 初回読み込み時には、読み込み中のSVGを削除してイベントグリッドの内容を表示
+    // 初回ロード時には、読み込み中の表示を消す
     document.getElementById('event-grid').innerHTML = ""; 
 
     renderEvents();
@@ -293,17 +393,30 @@ const loadInitialEvents = async () => {
     loadNewEvents();
     generateSidebarFilters();
 
+    // IntersectionObserverで無限スクロールを監視
     const observer = new IntersectionObserver(entries => {
         if (entries[0].isIntersecting && !isLoading) loadMoreEvents();
     }, { rootMargin: "400px" });
     observer.observe(document.getElementById('load-more-trigger'));
+    
+    // lastVisibleがない場合（イベント総数がPAGE_SIZE以下の場合）、トリガーを非表示
+    if (!lastVisible) {
+        document.getElementById('load-more-trigger').style.display = 'none';
+        document.getElementById('load-more-trigger').innerHTML = '<span style="color:#999;">これ以上イベントはありません</span>';
+    }
 };
 
+// --- 起動とイベントリスナー ---
+
+// 認証状態の変化を監視
 onAuthStateChanged(auth, async user => {
     currentUser = user;
     if (user) {
+        // ユーザー名表示
         loginBtn.textContent = `${user.displayName || user.email.split('@')[0]} さん`;
-        loginBtn.onclick = () => location.href = 'mypage.html';
+        loginBtn.onclick = () => location.href = 'mypage.html'; // マイページへ遷移を想定
+        
+        // お気に入り情報の取得
         const snap = await getDoc(doc(db, 'users', user.uid));
         favoriteEventIds = snap.exists() ? snap.data().favorites || [] : [];
     } else {
@@ -311,9 +424,11 @@ onAuthStateChanged(auth, async user => {
         loginBtn.onclick = () => modal.style.display = 'block';
         favoriteEventIds = [];
     }
-    renderEvents();
+    // 認証状態が変化したらイベント表示を再レンダリング（お気に入りボタンの状態を更新するため）
+    renderEvents(); 
 });
 
+// 検索ボタン
 document.getElementById('search-btn').onclick = () => {
     filters.search = document.getElementById('search-input').value.trim();
     renderEvents();
@@ -321,6 +436,8 @@ document.getElementById('search-btn').onclick = () => {
 document.getElementById('search-input').addEventListener('keypress', e => {
     if (e.key === 'Enter') document.getElementById('search-btn').click();
 });
+
+// フィルタークリアボタン
 document.getElementById('clear-filters-btn').onclick = () => {
     filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
     document.getElementById('search-input').value = "";
@@ -332,14 +449,14 @@ document.getElementById('clear-filters-btn').onclick = () => {
     // タグ/主催者/会場フィルターのアクティブ状態をリセット
     document.querySelectorAll('.filter-tags .tag-btn.active').forEach(b => b.classList.remove('active'));
     
-    // 非表示の要素を再表示するロジック（ボタンを再表示させるために必要）
+    // 全イベントを再ロードして、フィルターボタンの状態（もっと見るボタンなど）もリセット
     loadInitialEvents(); 
 };
 
-// カテゴリフィルターのイベントリスナーを新しい nav 要素の input に設定
+// カテゴリフィルターのイベントリスナー
 document.querySelectorAll('.category-nav input[name="category"]').forEach(r => {
     r.onchange = () => { filters.category = r.value; renderEvents(); };
 });
 
-// 最初に20件だけ読み込んでスタート！
+// ページ起動
 loadInitialEvents();
