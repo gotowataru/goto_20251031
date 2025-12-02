@@ -3,312 +3,490 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理者イベント登録ページ | イベント管理</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>イベント登録 / 編集 (管理者)</title>
     <style>
-        :root { 
-            --primary: #4CAF50; /* 成功/メインカラー (緑) */
-            --primary-dark: #388E3C;
-            --accent: #FF9800; /* 強調カラー (オレンジ) */
-            --bg: #e8eaf6; /* 背景を少し青みがかった薄い色に */
-            --card-bg: white;
-            --text: #212121;
-            --input-border: #bdbdbd;
-        }
-        body { 
-            font-family: 'Roboto', 'Segoe UI', sans-serif; 
-            margin: 0; 
-            padding: 40px 20px; 
-            background: var(--bg); 
-            color: var(--text); 
-            line-height: 1.6;
-        }
-        .container { 
-            max-width: 900px; /* 幅を広げる */
-            margin: 0 auto; 
-            background: var(--card-bg); 
-            padding: 40px; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
-        }
-        h1 { 
-            color: var(--primary-dark); 
-            border-bottom: 4px solid var(--primary); 
-            padding-bottom: 15px; 
-            margin-bottom: 40px; 
-            font-size: 1.8em;
-        }
-        .form-group { margin-bottom: 25px; }
-        .form-group label { 
-            display: block; 
-            font-weight: bold; 
-            margin-bottom: 8px; 
-            color: var(--text); 
-            font-size: 1.1em;
-        }
-        .required-star { color: var(--accent); margin-left: 5px; }
+        :root { --primary: #5e35b1; --accent: #ff5252; --success: #43a047; --info: #4285F4; --warning: #ffb300; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7fa; padding: 20px; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { color: var(--primary); text-align: center; margin-bottom: 30px; font-size: 2em; border-bottom: 3px solid #eee; padding-bottom: 15px;}
         
-        /* 入力フィールドの共通スタイル */
-        .form-group input:not([type="checkbox"]):not([type="radio"]),
-        .form-group select,
-        .form-group textarea {
-            width: 100%; 
-            padding: 14px; 
-            border: 1px solid var(--input-border); 
-            border-radius: 8px; 
-            box-sizing: border-box; 
-            font-size: 1em;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
-            border-color: var(--primary); 
-            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3); /* フォーカス時に影を追加 */
-            outline: none; 
-        }
-        textarea { resize: vertical; min-height: 100px; }
-        
-        .submit-btn {
-            background: var(--primary); 
-            color: white; 
-            padding: 15px 35px; 
-            border: none; 
+        /* フォーム要素 */
+        label { display: block; margin-top: 15px; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input[type="text"], input[type="date"], input[type="time"], input[type="number"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 1.2em; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: background 0.3s, transform 0.1s;
-            margin-top: 20px;
+            box-sizing: border-box;
+            font-size: 1em;
+            transition: border-color 0.2s;
         }
-        .submit-btn:hover { 
-            background: var(--primary-dark); 
-            transform: translateY(-1px);
-        }
-        
-        #message { 
-            margin-top: 25px; 
-            padding: 15px; 
-            border-radius: 8px; 
-            font-weight: bold; 
-            display: none; 
-        }
-        .success { 
-            background: #e8f5e9; 
-            color: #2e7d32; 
-            border: 1px solid #c8e6c9;
-        }
-        .error { 
-            background: #ffebee; 
-            color: #c62828; 
-            border: 1px solid #ffcdd2;
-        }
+        input:focus, textarea:focus, select:focus { border-color: var(--primary); outline: none; }
+        textarea { resize: vertical; min-height: 100px; }
 
-        /* レスポンシブ対応 */
-        @media (max-width: 600px) {
-            .container { padding: 20px; }
-            h1 { font-size: 1.5em; margin-bottom: 30px; }
-            .submit-btn { width: 100%; padding: 12px; font-size: 1.1em; }
+        /* グリッドレイアウト */
+        .grid-2, .grid-3 { display: grid; gap: 20px; }
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        
+        /* コースセクション */
+        .course-section { border: 1px solid #ddd; border-radius: 10px; padding: 20px; margin-bottom: 20px; background: #f9f9f9; }
+        .course-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .course-header h3 { color: var(--info); margin: 0; }
+        .remove-course-btn { background: var(--accent); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+
+        #add-course-btn { background: var(--info); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+        #add-course-btn:hover { background: #3367d6; }
+
+        /* 送信ボタン */
+        #submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s, transform 0.2s;
         }
+        #submit-btn:hover { background: #388e3c; transform: translateY(-2px); }
+        #loading-message { text-align: center; color: var(--primary); margin-top: 10px; }
+        
+        /* 管理者フィールド（承認ステータスなど） */
+        .admin-fields { border-left: 5px solid var(--warning); padding-left: 15px; background: #fffde7; margin-top: 30px; padding-top: 10px;}
+        .admin-fields h2 { color: var(--warning); border-bottom: 1px dashed #ccc; padding-bottom: 5px; margin-bottom: 15px; }
+
     </style>
 </head>
 <body>
-
     <div class="container">
-        <h1>イベント登録フォーム</h1>
+        <h1 id="page-title">新規イベント登録</h1>
 
         <form id="event-form">
             
-            <div class="form-group">
-                <label for="name">イベント名 <span class="required-star">*</span></label>
-                <input type="text" id="name" required>
+            <div class="admin-fields">
+                <h2>イベント承認情報 (管理者用)</h2>
+                <div class="grid-3">
+                    <div>
+                        <label for="status">承認ステータス</label>
+                        <select id="status">
+                            <option value="pending">申請中 (Pending)</option>
+                            <option value="approved">承認済み (Approved)</option>
+                            <option value="rejected">却下 (Rejected)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="submittedBy">登録者UID</label>
+                        <input type="text" id="submittedBy" readonly title="ログインユーザーのUIDが自動で入ります">
+                    </div>
+                    <div>
+                        <label for="approvedAt">承認日時 (自動設定)</label>
+                        <input type="text" id="approvedAt" readonly value="N/A">
+                    </div>
+                </div>
+                <label for="adminNotes">管理者メモ / 却下理由</label>
+                <textarea id="adminNotes" placeholder="却下時の理由などを記入します。ユーザーには表示されません。"></textarea>
             </div>
 
-            <div class="form-group">
-                <label for="date">開催日 <span class="required-star">*</span></label>
-                <input type="date" id="date" required>
+
+            <h2>基本情報</h2>
+            <label for="name">イベント名 <span style="color:red;">*</span></label>
+            <input type="text" id="name" required>
+
+            <label for="summary">イベント概要 (一覧表示用 80字程度)</label>
+            <textarea id="summary" maxlength="80"></textarea>
+
+            <label for="description">詳細説明</label>
+            <textarea id="description"></textarea>
+
+            <label for="category">カテゴリ <span style="color:red;">*</span></label>
+            <select id="category" required>
+                <option value="">選択してください</option>
+                <option value="matsuri">祭り</option>
+                <option value="music">音楽</option>
+                <option value="learn">学び</option>
+                <option value="workshop">ワークショップ</option>
+                <option value="sports">スポーツ</option>
+                <option value="gourmet">グルメ</option>
+                <option value="exhibition">展示・芸術</option>
+            </select>
+
+            <label for="tags">タグ (コンマ区切り)</label>
+            <input type="text" id="tags" placeholder="例: 地域イベント, 家族向け, 無料">
+
+            <h2>日時・場所</h2>
+            <div class="grid-3">
+                <div>
+                    <label for="date">開催日 <span style="color:red;">*</span></label>
+                    <input type="date" id="date" required>
+                </div>
+                <div>
+                    <label for="startTime">開始時間</label>
+                    <input type="time" id="startTime">
+                </div>
+                <div>
+                    <label for="endTime">終了時間</label>
+                    <input type="time" id="endTime">
+                </div>
             </div>
+
+            <label for="venue">開催場所</label>
+            <input type="text" id="venue" placeholder="例: 〇〇ホール, 〇〇公園">
+
+            <label for="organizer">主催者名</label>
+            <input type="text" id="organizer">
+
+            <h2>コース・料金情報</h2>
+            <div id="courses-container">
+                </div>
+            <button type="button" id="add-course-btn">+ コースを追加</button>
+
+            <h2>その他の情報</h2>
+            <label for="imageUrl">メイン画像URL</label>
+            <input type="text" id="imageUrl" placeholder="画像のURLを貼り付けます">
+
+            <label for="officialUrl">公式ウェブサイトURL</label>
+            <input type="text" id="officialUrl">
             
-            <div class="form-group">
-                <label for="startTime">開始時間 (例: 10:00)</label>
-                <input type="time" id="startTime">
-            </div>
+            <label for="contactEmail">参加者からの問い合わせ先メール</label>
+            <input type="text" id="contactEmail" placeholder="例: info@example.com">
 
-            <div class="form-group">
-                <label for="endTime">終了時間 (例: 17:00)</label>
-                <input type="time" id="endTime">
-            </div>
 
-            <div class="form-group">
-                <label for="category">カテゴリ <span class="required-star">*</span></label>
-                <select id="category" required>
-                    <option value="">選択してください</option>
-                    <option value="matsuri">祭り</option>
-                    <option value="music">音楽</option>
-                    <option value="learn">学び</option>
-                    <option value="workshop">ワークショップ</option>
-                    <option value="sports">スポーツ</option>
-                    <option value="gourmet">グルメ</option>
-                    <option value="exhibition">展示・芸術</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="venue">会場</label>
-                <input type="text" id="venue">
-            </div>
-            
-            <div class="form-group">
-                <label for="organizer">主催者</label>
-                <input type="text" id="organizer">
-            </div>
-
-            <div class="form-group">
-                <label for="imageUrl">メイン画像URL (トップページ一覧用)</label>
-                <input type="url" id="imageUrl" placeholder="http://example.com/main.jpg">
-            </div>
-            
-            <div class="form-group">
-                <label for="subImages">ギャラリー画像URL <span style="font-weight: normal; color: #555;">(コンマ区切りで複数入力)</span></label>
-                <textarea id="subImages" placeholder="http://example.com/img1.jpg, http://example.com/img2.jpg, ..."></textarea>
-            </div>
-            <div class="form-group">
-                <label for="summary">要約 (一覧表示用、200文字まで)</label>
-                <textarea id="summary" maxlength="200"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="description">詳細本文 (詳細ページ用)</label>
-                <textarea id="description"></textarea>
-            </div>
-
-            <div class="form-group checkbox-group">
-                <label><input type="checkbox" id="isFeatured"> おすすめイベントとして表示する</label>
-            </div>
-
-            <div class="form-group">
-                <label for="tags">タグ (コンマ区切りで複数入力)</label>
-                <input type="text" id="tags" placeholder="例: 無料,ファミリー向け,初心者歓迎">
-            </div>
-
-            <button type="submit" class="submit-btn">✅ イベントを登録</button>
-            <div id="message"></div>
+            <button type="submit" id="submit-btn">イベントを登録/更新</button>
+            <div id="loading-message" style="display: none;">処理中...</div>
         </form>
+
+        <p style="text-align:center; margin-top:20px;"><a href="index.html" style="color:var(--primary); font-weight:bold;">イベント一覧に戻る</a></p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        // setDoc, doc, getDocs, query, where, documentId をインポート
-        import { getFirestore, collection, setDoc, doc, serverTimestamp, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-        // ★★★ Firebase Config: ここは index.html と同じ設定を使用してください ★★★
+        // --- Firebase 設定 ---
         const firebaseConfig = {
             apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
             authDomain: "goto6234.firebaseapp.com",
             projectId: "goto6234",
-            storageBucket: "goto6234.firebasestorage.app",
+            storageBucket: "goto6234.firebaseapp.com",
             messagingSenderId: "730149609843",
             appId: "1:730149609843:web:d11237de52723fc45b2506"
         };
-        // ★★★ 
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
-        const form = document.getElementById('event-form');
-        const messageElement = document.getElementById('message');
 
-        function showMessage(msg, type) {
-            messageElement.textContent = msg;
-            messageElement.className = ''; // クラスをリセット
-            messageElement.classList.add(type);
-            messageElement.style.display = 'block';
-            setTimeout(() => {
-                messageElement.style.display = 'none';
-            }, 5000); // 5秒後にメッセージを消す
+        let currentUser = null;
+        let isEditMode = false;
+        let currentEventId = null;
+
+        const coursesContainer = document.getElementById('courses-container');
+        const form = document.getElementById('event-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const loadingMsg = document.getElementById('loading-message');
+
+        // --- 1. コース情報の管理 ---
+
+        /**
+         * コース入力フォームのHTMLを生成する
+         */
+        const createCourseHtml = (index, courseData = {}) => {
+            const idPrefix = `course-${index}`;
+            const courseName = courseData.courseName || '';
+            const price = courseData.price === undefined ? '' : courseData.price;
+            const capacity = courseData.capacity === undefined ? '' : courseData.capacity;
+            const description = courseData.description || '';
+
+            return `
+                <div class="course-section" data-index="${index}">
+                    <div class="course-header">
+                        <h3>コース #${index + 1}</h3>
+                        <button type="button" class="remove-course-btn" data-index="${index}">削除</button>
+                    </div>
+                    <div class="grid-3">
+                        <div>
+                            <label for="${idPrefix}-name">コース名</label>
+                            <input type="text" id="${idPrefix}-name" class="course-name" value="${courseName}" required>
+                        </div>
+                        <div>
+                            <label for="${idPrefix}-price">料金 (円)</label>
+                            <input type="number" id="${idPrefix}-price" class="course-price" value="${price}" min="0" required>
+                        </div>
+                        <div>
+                            <label for="${idPrefix}-capacity">定員 (任意)</label>
+                            <input type="number" id="${idPrefix}-capacity" class="course-capacity" value="${capacity}" min="1">
+                        </div>
+                    </div>
+                    <label for="${idPrefix}-description">説明 (任意)</label>
+                    <textarea id="${idPrefix}-description" class="course-description">${description}</textarea>
+                </div>
+            `;
+        };
+
+        /**
+         * コースフォームを追加する
+         */
+        const addCourseForm = (courseData = {}) => {
+            const index = coursesContainer.children.length;
+            coursesContainer.insertAdjacentHTML('beforeend', createCourseHtml(index, courseData));
+            updateRemoveButtons();
+        };
+
+        /**
+         * 削除ボタンのリスナーを更新する
+         */
+        const updateRemoveButtons = () => {
+            document.querySelectorAll('.remove-course-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.preventDefault();
+                    const section = e.target.closest('.course-section');
+                    if (section) {
+                        section.remove();
+                        // フォーム削除後にインデックスを振り直す
+                        reIndexCourses();
+                    }
+                };
+            });
+        };
+
+        /**
+         * コースのインデックス（番号）を再設定し、見た目を更新する
+         */
+        const reIndexCourses = () => {
+            document.querySelectorAll('.course-section').forEach((section, index) => {
+                section.dataset.index = index;
+                section.querySelector('.course-header h3').textContent = `コース #${index + 1}`;
+                section.querySelectorAll('[id^="course-"]').forEach(el => {
+                    const oldId = el.id;
+                    const newId = oldId.replace(/course-\d+-/, `course-${index}-`);
+                    el.id = newId;
+                });
+            });
+        };
+
+        document.getElementById('add-course-btn').onclick = () => addCourseForm();
+
+        // 初期ロード時に最低1つのコースフォームを追加
+        if (coursesContainer.children.length === 0) {
+            addCourseForm({ courseName: '一般参加', price: 0 });
         }
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            // フォームデータの収集
-            const eventData = {
+        // --- 2. イベント登録/更新処理 ---
+
+        /**
+         * フォームのデータをオブジェクトとして取得する
+         */
+        const getFormData = () => {
+            const data = {
+                // 基本情報
                 name: document.getElementById('name').value.trim(),
-                date: document.getElementById('date').value,
-                startTime: document.getElementById('startTime').value.trim(),
-                endTime: document.getElementById('endTime').value.trim(),
+                summary: document.getElementById('summary').value.trim(),
+                description: document.getElementById('description').value.trim(),
                 category: document.getElementById('category').value,
+                tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t),
+                
+                // 日時・場所
+                date: document.getElementById('date').value,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
                 venue: document.getElementById('venue').value.trim(),
                 organizer: document.getElementById('organizer').value.trim(),
+
+                // その他の情報
                 imageUrl: document.getElementById('imageUrl').value.trim(),
-                summary: document.getElementById('summary').value.trim(),
-                description: document.getElementById('description').value,
-                isFeatured: document.getElementById('isFeatured').checked,
-                createdAt: serverTimestamp()
+                officialUrl: document.getElementById('officialUrl').value.trim(),
+                contactEmail: document.getElementById('contactEmail').value.trim(),
+                
+                // 承認・管理フロー用フィールド (submittedByは認証時に設定)
+                status: document.getElementById('status').value,
+                adminNotes: document.getElementById('adminNotes').value.trim(),
             };
 
-            // 【追加】ギャラリー画像（subImages）の処理
-            const subImagesInput = document.getElementById('subImages').value.trim();
-            eventData.subImages = subImagesInput
-                ? subImagesInput
-                    .split(',')
-                    .map(url => url.trim())
-                    .filter(url => url.length > 0 && (url.startsWith('http') || url.startsWith('https')))
-                : [];
-            // ---------------------------------------
+            // コース情報の収集
+            data.courses = [];
+            document.querySelectorAll('.course-section').forEach(section => {
+                const index = section.dataset.index;
+                const course = {
+                    courseName: document.getElementById(`course-${index}-name`).value.trim(),
+                    price: Number(document.getElementById(`course-${index}-price`).value) || 0,
+                    capacity: document.getElementById(`course-${index}-capacity`).value ? Number(document.getElementById(`course-${index}-capacity`).value) : null,
+                    description: document.getElementById(`course-${index}-description`).value.trim(),
+                };
+                if (course.courseName) {
+                    data.courses.push(course);
+                }
+            });
 
-            // タグの処理
-            const tagsInput = document.getElementById('tags').value.trim();
-            eventData.tags = tagsInput 
-                ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
-                : [];
+            // 承認日時を更新
+            if (data.status === 'approved' && !document.getElementById('approvedAt').dataset.originalValue) {
+                 // 新規承認の場合のみ、サーバータイムスタンプを設定
+                 data.approvedAt = serverTimestamp();
+            } else if (data.status !== 'approved') {
+                 // 承認が解除された場合、approvedAtをnullに戻す（更新クエリで処理）
+                 data.approvedAt = null;
+            } 
+            // 既存のapprovedAt値は後で上書きされるため、ここではサーバータイムスタンプ設定に集中
 
-            // 必須項目チェック
-            if (!eventData.name || !eventData.date || !eventData.category) {
-                showMessage("エラー: イベント名、開催日、カテゴリは必須です。", "error");
+            return data;
+        };
+
+        /**
+         * フォーム送信（登録/更新）処理
+         */
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            
+            if (!currentUser) {
+                alert('ログインが必要です。');
                 return;
             }
 
-            // --- ★★★ カスタムID生成ロジック ★★★ ---
-            const targetDate = eventData.date;
-            const idPrefix = `event-${targetDate}-`;
-            let maxSequence = 0;
+            const data = getFormData();
+            if (data.courses.length === 0) {
+                alert('コース情報を少なくとも1つ入力してください。');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            loadingMsg.style.display = 'block';
 
             try {
-                // 1. シンプルなクエリで、その日付の全イベントを取得
-                const q = query(
-                    collection(db, "events"),
-                    where("date", "==", targetDate) 
-                );
-                const snap = await getDocs(q);
-
-                // 2. 取得した全ドキュメントIDから最大の連番を見つける (JavaScriptで処理)
-                snap.docs.forEach(doc => {
-                    const id = doc.id;
-                    if (id.startsWith(idPrefix) && id.length > idPrefix.length) {
-                        const seqPart = id.substring(id.lastIndexOf('-') + 1);
-                        const sequence = parseInt(seqPart);
-                        
-                        if (!isNaN(sequence) && sequence > maxSequence) {
-                            maxSequence = sequence;
-                        }
+                if (isEditMode) {
+                    // 更新 (updateDoc)
+                    const docRef = doc(db, 'events', currentEventId);
+                    
+                    // 承認状態の変更とapprovedAtの処理
+                    if (data.status === 'approved' && !document.getElementById('approvedAt').dataset.originalValue) {
+                         data.approvedAt = serverTimestamp(); // 新規承認の場合
+                    } else if (data.status !== 'approved') {
+                         data.approvedAt = null; // 承認が解除された場合
+                    } else {
+                        // 編集だが承認状態に変更がない場合、approvedAtは変更しない（dataから削除）
+                        delete data.approvedAt; 
                     }
-                });
+
+                    await updateDoc(docRef, data);
+                    alert('イベント情報が更新されました！');
+
+                } else {
+                    // 新規登録 (setDoc with generated ID)
+                    data.createdAt = serverTimestamp();
+                    data.submittedBy = currentUser.uid; // 登録者UIDを確定
+
+                    const newDocRef = doc(collection(db, 'events'));
+                    await setDoc(newDocRef, data);
+                    
+                    alert('新しいイベントが申請されました！');
+
+                    // 新規登録後、フォームをリセットし、編集モードへ移行
+                    form.reset();
+                    location.href = `admin.html?editId=${newDocRef.id}`;
+                }
                 
-                const newSequence = maxSequence + 1;
+            } catch (error) {
+                console.error("Error submitting event:", error);
+                alert('イベントの登録/更新中にエラーが発生しました: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                loadingMsg.style.display = 'none';
+            }
+        };
 
-                // 3. 新しいIDを生成（4桁ゼロ埋め）
-                const sequenceStr = newSequence.toString().padStart(4, '0');
-                const customId = `${idPrefix}${sequenceStr}`; 
+        // --- 3. 編集モードの読み込み ---
 
-                // 4. Firestoreへのデータ送信
-                await setDoc(doc(db, "events", customId), eventData);
-                
-                showMessage(`イベントを登録しました！ (ID: ${customId})`, "success");
-                form.reset();
+        /**
+         * URLからクエリパラメータを取得する
+         */
+        const getUrlParameter = (name) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        };
 
-            } catch (e) {
-                console.error("イベント登録エラー: ", e);
-                showMessage(`イベント登録に失敗しました: ${e.message}`, "error");
+        /**
+         * 編集対象のイベントデータをフォームに読み込む
+         */
+        const loadEventForEdit = async (eventId) => {
+            const docRef = doc(db, 'events', eventId);
+            const snap = await getDoc(docRef);
+
+            if (!snap.exists()) {
+                alert('指定されたイベントが見つかりません。');
+                location.href = 'admin.html';
+                return;
+            }
+
+            const data = snap.data();
+            
+            // 編集モードフラグとIDを設定
+            isEditMode = true;
+            currentEventId = eventId;
+            document.getElementById('page-title').textContent = 'イベント編集・承認';
+            submitBtn.textContent = 'イベントを更新';
+            
+            // フォームにデータを設定
+            document.getElementById('name').value = data.name || '';
+            document.getElementById('summary').value = data.summary || '';
+            document.getElementById('description').value = data.description || '';
+            document.getElementById('category').value = data.category || '';
+            document.getElementById('tags').value = data.tags ? data.tags.join(', ') : '';
+            
+            document.getElementById('date').value = data.date || '';
+            document.getElementById('startTime').value = data.startTime || '';
+            document.getElementById('endTime').value = data.endTime || '';
+            document.getElementById('venue').value = data.venue || '';
+            document.getElementById('organizer').value = data.organizer || '';
+
+            document.getElementById('imageUrl').value = data.imageUrl || '';
+            document.getElementById('officialUrl').value = data.officialUrl || '';
+            document.getElementById('contactEmail').value = data.contactEmail || '';
+            
+            // 管理者フィールド
+            document.getElementById('status').value = data.status || 'pending';
+            document.getElementById('submittedBy').value = data.submittedBy || '不明';
+            document.getElementById('adminNotes').value = data.adminNotes || '';
+            
+            if (data.approvedAt) {
+                const date = data.approvedAt.toDate().toLocaleString();
+                document.getElementById('approvedAt').value = date;
+                document.getElementById('approvedAt').dataset.originalValue = date; // 既存値を保持
+            } else {
+                document.getElementById('approvedAt').value = '未承認';
+            }
+
+            // コース情報の読み込みと表示
+            coursesContainer.innerHTML = ''; // 一度クリア
+            if (data.courses && data.courses.length > 0) {
+                data.courses.forEach(c => addCourseForm(c));
+            } else {
+                 addCourseForm({ courseName: '一般参加', price: 0 }); // コースがなければデフォルトを追加
+            }
+        };
+
+        // --- 4. 起動処理 ---
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            const editId = getUrlParameter('editId');
+
+            if (user) {
+                // ログイン済みの場合はUIDを自動でセット（編集時は上書きされる可能性あり）
+                document.getElementById('submittedBy').value = user.uid;
+
+                if (editId) {
+                    loadEventForEdit(editId);
+                }
+            } else {
+                // 未ログインの場合、登録や編集はできない
+                alert('イベント登録・編集にはログインが必要です。');
+                location.href = 'index.html';
             }
         });
+
     </script>
 </body>
 </html>
