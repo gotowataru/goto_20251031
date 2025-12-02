@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>イベント管理ダッシュボード</title>
+    <style>
+        /* スタイルは admin.html のものをベースに調整 */
+        :root { 
+            --primary: #5e35b1; 
+            --accent: #ff5252; 
+            --success: #43a047; 
+            --info: #4285F4; 
+            --warning: #ffb300; 
+            --pending: var(--info);
+            --approved: var(--success);
+            --rejected: var(--accent);
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7fa; padding: 20px; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { color: var(--primary); text-align: center; margin-bottom: 30px; font-size: 2.5em; border-bottom: 3px solid #eee; padding-bottom: 15px;}
+        
+        /* フィルタータブ */
+        #filter-tabs { text-align: center; margin-bottom: 30px; }
+        .status-tab {
+            padding: 10px 20px; margin: 0 5px; border: 2px solid #ddd; border-radius: 25px; 
+            background: white; cursor: pointer; transition: all 0.2s; font-weight: bold;
+        }
+        .status-tab.active { color: white; border-color: var(--primary); background: var(--primary); }
+        .status-tab:hover:not(.active) { background: #f0f0f0; }
+
+        /* イベントリスト */
+        #events-list { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 20px; 
+        }
+        .event-card { 
+            background: #fff; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            padding: 20px; 
+            position: relative;
+            border-left: 5px solid; /* ステータスで色付け */
+        }
+        .event-card[data-status="pending"] { border-left-color: var(--pending); }
+        .event-card[data-status="approved"] { border-left-color: var(--approved); }
+        .event-card[data-status="rejected"] { border-left-color: var(--rejected); }
+        
+        .card-title { font-size: 1.4em; margin-top: 0; color: var(--primary); }
+        .card-meta { font-size: 0.9em; color: #777; margin-bottom: 10px;}
+        .card-meta strong { font-weight: bold; color: #555; }
+        .card-status { font-weight: bold; color: var(--pending); }
+
+        /* アクションボタン */
+        .card-actions { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;}
+        .action-btn { 
+            padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: bold; 
+            transition: opacity 0.2s;
+        }
+        .action-btn:hover { opacity: 0.8; }
+        .btn-approve { background: var(--approved); }
+        .btn-reject { background: var(--rejected); }
+        .btn-edit { background: var(--primary); }
+        .btn-notify { background: var(--info); }
+        
+        /* モーダル（編集フォーム） */
+        .modal { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); overflow-y: auto; padding: 20px 0;}
+        .modal-content { 
+            background: white; margin: 5% auto; padding: 30px; border-radius: 12px; width: 90%; max-width: 800px; 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5); position: relative;
+        }
+        .modal-close { position: absolute; top: 10px; right: 25px; font-size: 30px; font-weight: bold; cursor: pointer; color: #aaa; }
+        .modal-close:hover { color: #333; }
+        
+        /* フォーム要素 (admin.htmlのスタイルを再利用) */
+        label { display: block; margin-top: 15px; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input[type="text"], input[type="date"], input[type="time"], input[type="number"], textarea, select {
+            width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;
+        }
+        .admin-fields { border-left: 5px solid var(--warning); padding-left: 15px; background: #fffde7; margin-top: 15px; padding-top: 5px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>イベント管理ダッシュボード</h1>
+        <p style="text-align:center; color: var(--primary);">現在 <span id="event-count">0</span> 件のイベントが登録されています。</p>
+
+        <div id="filter-tabs">
+            <button class="status-tab active" data-filter="all">全て</button>
+            <button class="status-tab" data-filter="pending">申請中</button>
+            <button class="status-tab" data-filter="approved">承認済み</button>
+            <button class="status-tab" data-filter="rejected">却下</button>
+        </div>
+
+        <div id="events-list">
+            <p style="grid-column:1/-1; text-align:center; color:#777;">イベントを読み込み中...</p>
+        </div>
+
+        <p style="text-align:center; margin-top:30px;"><a href="index.html" style="color:var(--primary); font-weight:bold;">イベント一覧に戻る</a></p>
+    </div>
+
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2>イベント編集 <span id="editing-event-name"></span></h2>
+            <form id="edit-form">
+                
+                <div class="admin-fields">
+                    <h3>イベント承認情報</h3>
+                    <div class="grid-3">
+                        <div>
+                            <label for="modal-status">承認ステータス</label>
+                            <select id="modal-status"></select>
+                        </div>
+                        <div>
+                            <label for="modal-submittedBy">登録者UID</label>
+                            <input type="text" id="modal-submittedBy" readonly>
+                        </div>
+                        <div>
+                            <label for="modal-approvedAt">承認日時</label>
+                            <input type="text" id="modal-approvedAt" readonly>
+                        </div>
+                    </div>
+                    <label for="modal-adminNotes">管理者メモ / 却下理由</label>
+                    <textarea id="modal-adminNotes" placeholder="却下時の理由などを記入します。"></textarea>
+                </div>
+                
+                <hr>
+
+                <h3>基本情報</h3>
+                <label for="modal-name">イベント名</label>
+                <input type="text" id="modal-name" required>
+                
+                <label for="modal-summary">概要</label>
+                <textarea id="modal-summary"></textarea>
+
+                <div class="grid-2">
+                    <div>
+                        <label for="modal-date">開催日</label>
+                        <input type="date" id="modal-date">
+                    </div>
+                    <div>
+                        <label for="modal-category">カテゴリ</label>
+                        <select id="modal-category"></select>
+                    </div>
+                </div>
+
+                <label for="modal-venue">開催場所</label>
+                <input type="text" id="modal-venue">
+                
+                <h3>コース情報</h3>
+                <div id="modal-courses-container">
+                    </div>
+
+                <button type="submit" class="action-btn" style="background: var(--success); width: 100%; margin-top: 20px;">変更を保存</button>
+            </form>
+        </div>
+    </div>
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+        import { getFirestore, collection, query, getDocs, updateDoc, doc, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+        // --- Firebase 設定（要編集） ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
+            authDomain: "goto6234.firebaseapp.com",
+            projectId: "goto6234",
+            storageBucket: "goto6234.firebaseapp.com",
+            messagingSenderId: "730149609843",
+            appId: "1:730149609843:web:d11237de52723fc45b2506"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- DOM Elements ---
+        const eventsList = document.getElementById('events-list');
+        const eventCount = document.getElementById('event-count');
+        const modal = document.getElementById('edit-modal');
+        const modalForm = document.getElementById('edit-form');
+        const modalCoursesContainer = document.getElementById('modal-courses-container');
+        const modalStatusSelect = document.getElementById('modal-status');
+        
+        let allEvents = [];
+        let currentFilter = 'pending';
+        let editingEventId = null;
+
+        const STATUS_MAP = {
+            pending: '申請中',
+            approved: '承認済み',
+            rejected: '却下'
+        };
+        const CATEGORY_OPTIONS = [
+            { value: 'matsuri', label: '祭り' },
+            { value: 'music', label: '音楽' },
+            { value: 'learn', label: '学び' },
+            { value: 'workshop', label: 'ワークショップ' },
+            { value: 'sports', label: 'スポーツ' },
+            { value: 'gourmet', label: 'グルメ' },
+            { value: 'exhibition', label: '展示・芸術' }
+        ];
+
+        // --- 1. データ取得と描画 ---
+
+        /**
+         * 全イベントをFirestoreから取得
+         */
+        const fetchAllEvents = async () => {
+            eventsList.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:var(--primary);">イベントデータを取得中...</p>';
+            try {
+                // シンプルに全件取得（管理ページのため）
+                const q = query(collection(db, 'events'));
+                const snap = await getDocs(q);
+
+                allEvents = snap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // 初期フィルタリングと描画
+                renderEvents(currentFilter);
+            } catch (error) {
+                console.error("Error fetching events:", error);
+                eventsList.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:var(--accent);">データの取得に失敗しました。</p>';
+            }
+        };
+
+        /**
+         * フィルターに基づいてイベント一覧を描画する
+         */
+        const renderEvents = (filterStatus) => {
+            const filtered = allEvents.filter(e => 
+                filterStatus === 'all' || (e.status || 'pending') === filterStatus
+            );
+
+            eventCount.textContent = allEvents.length;
+            eventsList.innerHTML = '';
+
+            if (filtered.length === 0) {
+                eventsList.innerHTML = `<p style="grid-column:1/-1; text-align:center; font-size:1.2em;">${STATUS_MAP[filterStatus] || '全ての'}イベントはありません。</p>`;
+                return;
+            }
+
+            filtered.forEach(event => {
+                const status = event.status || 'pending';
+                const statusText = STATUS_MAP[status];
+                const adminNotesPreview = event.adminNotes ? `(メモ: ${event.adminNotes.substring(0, 30)}...)` : '';
+
+                let actions = '';
+                if (status === 'pending') {
+                    actions += `<button class="action-btn btn-approve" onclick="updateStatus('${event.id}', 'approved')">承認</button>`;
+                    actions += `<button class="action-btn btn-reject" onclick="openEditModal('${event.id}', 'rejected')">却下</button>`;
+                } else if (status === 'approved') {
+                    actions += `<button class="action-btn btn-reject" onclick="updateStatus('${event.id}', 'rejected')">却下に戻す</button>`;
+                } else if (status === 'rejected') {
+                    actions += `<button class="action-btn btn-approve" onclick="updateStatus('${event.id}', 'approved')">承認に変更</button>`;
+                }
+                // 通知機能はCloud Functionsが必要なため、プレースホルダーとして
+                actions += `<button class="action-btn btn-notify" onclick="alert('通知機能はCloud Functionsが必要です。')">メール通知</button>`;
+                actions += `<button class="action-btn btn-edit" onclick="openEditModal('${event.id}')">編集</button>`;
+
+
+                eventsList.innerHTML += `
+                    <div class="event-card" data-status="${status}">
+                        <h3 class="card-title">${event.name}</h3>
+                        <div class="card-meta">
+                            <p><strong>ステータス:</strong> <span class="card-status" style="color:var(--${status});">${statusText}</span></p>
+                            <p><strong>登録者:</strong> ${event.submittedBy}</p>
+                            <p><strong>開催日:</strong> ${event.date || '未定'}</p>
+                            <p><strong>コース数:</strong> ${event.courses?.length || 0} ${adminNotesPreview}</p>
+                        </div>
+                        <div class="card-actions">${actions}</div>
+                    </div>
+                `;
+            });
+        };
+
+        // --- 2. ステータス変更 (承認/却下) ---
+
+        /**
+         * イベントのステータスを更新する
+         */
+        window.updateStatus = async (eventId, newStatus) => {
+            if (!confirm(`イベントID ${eventId} を「${STATUS_MAP[newStatus]}」に変更しますか？`)) return;
+
+            const docRef = doc(db, 'events', eventId);
+            const updateData = { status: newStatus };
+
+            if (newStatus === 'approved') {
+                updateData.approvedAt = serverTimestamp();
+            } else if (newStatus === 'pending' || newStatus === 'rejected') {
+                updateData.approvedAt = null;
+            }
+            // 却下の場合はメモも推奨されるが、ここでは簡易化のためupdateDocを呼び出す
+
+            try {
+                await updateDoc(docRef, updateData);
+                alert(`ステータスを「${STATUS_MAP[newStatus]}」に更新しました。`);
+                // データを再取得して表示を更新
+                fetchAllEvents();
+            } catch (error) {
+                console.error("Error updating status:", error);
+                alert('ステータス更新に失敗しました。');
+            }
+        };
+
+        // --- 3. 編集モーダルと更新 ---
+
+        /**
+         * 編集モーダルを開く
+         */
+        window.openEditModal = (eventId, initialStatus = null) => {
+            const event = allEvents.find(e => e.id === eventId);
+            if (!event) return;
+
+            editingEventId = eventId;
+            document.getElementById('editing-event-name').textContent = ` - ${event.name}`;
+
+            // ステータスとカテゴリの選択肢を設定
+            modalStatusSelect.innerHTML = Object.entries(STATUS_MAP).map(([val, label]) => 
+                `<option value="${val}">${label}</option>`
+            ).join('');
+            document.getElementById('modal-category').innerHTML = CATEGORY_OPTIONS.map(c => 
+                `<option value="${c.value}">${c.label}</option>`
+            ).join('');
+            
+            // フォームにデータをロード
+            document.getElementById('modal-name').value = event.name || '';
+            document.getElementById('modal-summary').value = event.summary || '';
+            document.getElementById('modal-date').value = event.date || '';
+            document.getElementById('modal-category').value = event.category || '';
+            document.getElementById('modal-venue').value = event.venue || '';
+
+            // 管理者フィールド
+            document.getElementById('modal-status').value = initialStatus || event.status || 'pending';
+            document.getElementById('modal-submittedBy').value = event.submittedBy || 'N/A';
+            document.getElementById('modal-adminNotes').value = event.adminNotes || '';
+            document.getElementById('modal-approvedAt').value = event.approvedAt ? event.approvedAt.toDate().toLocaleString() : '未承認';
+            
+            // コース情報の表示（簡易版）
+            modalCoursesContainer.innerHTML = (event.courses || []).map((c, i) => `
+                <div style="border:1px dashed #ccc; padding:10px; margin-bottom:10px;">
+                    <strong>${c.courseName}</strong> (${c.price}円)
+                    <p style="margin:5px 0 0; font-size:0.9em; color:#666;">定員: ${c.capacity || '制限なし'}</p>
+                </div>
+            `).join('') || '<p>コース情報なし</p>';
+
+
+            modal.style.display = 'block';
+        };
+
+        /**
+         * モーダル内のフォーム送信（編集データ保存）
+         */
+        modalForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const originalEvent = allEvents.find(e => e.id === editingEventId);
+            if (!originalEvent) return;
+
+            const newStatus = document.getElementById('modal-status').value;
+            const updateData = {
+                name: document.getElementById('modal-name').value,
+                summary: document.getElementById('modal-summary').value,
+                date: document.getElementById('modal-date').value,
+                category: document.getElementById('modal-category').value,
+                venue: document.getElementById('modal-venue').value,
+                status: newStatus,
+                adminNotes: document.getElementById('modal-adminNotes').value,
+                // コース編集は複雑なためここでは省略し、管理者はFirestore直接編集を推奨
+            };
+
+            // 承認状態が変更された場合の approvedAt 処理
+            if (newStatus === 'approved' && originalEvent.status !== 'approved') {
+                updateData.approvedAt = serverTimestamp();
+            } else if (newStatus !== 'approved') {
+                updateData.approvedAt = null;
+            }
+
+            try {
+                await updateDoc(doc(db, 'events', editingEventId), updateData);
+                alert('イベントの編集内容を保存しました。');
+                modal.style.display = 'none';
+                fetchAllEvents();
+            } catch (error) {
+                console.error("Error saving edit:", error);
+                alert('編集内容の保存に失敗しました。');
+            }
+        };
+
+
+        // --- 4. 初期化とイベントリスナー ---
+
+        // フィルタリングタブのセットアップ
+        document.querySelectorAll('.status-tab').forEach(tab => {
+            tab.onclick = (e) => {
+                document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.filter;
+                renderEvents(currentFilter);
+            };
+        });
+
+        // モーダルクローズ処理
+        document.querySelector('.modal-close').onclick = () => { modal.style.display = 'none'; };
+        modal.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
+
+
+        // 認証チェックとデータロード
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // ここで管理者権限チェックを入れるのが理想的ですが、学習目的のため省略します
+                fetchAllEvents();
+            } else {
+                alert('このページは管理者専用です。ログインしてください。');
+                location.href = 'index.html'; // ログインページなどにリダイレクト
+            }
+        });
+    </script>
+</body>
+</html>
