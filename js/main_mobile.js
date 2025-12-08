@@ -27,63 +27,98 @@ const CATEGORY_NAMES = { matsuri: "祭り", music: "音楽", learn: "学び", wo
 let filters = { category: "all", search: "", tag: "", organizer: "", venue: "" }; 
 
 // ----------------------------------------------------------------------
-// 🚨 DOMContentLoaded: DOM読み込み後にすべての処理を開始
+// 🚨 DOMContentLoaded: DOM読み込み後にすべての処理を開始し、TypeErrorを回避
 // ----------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- DOM要素の取得（DOM読み込み完了後） ---
+    // 認証モーダル関連
     const modal = document.getElementById('login-modal');
     const loginBtn = document.getElementById('login-btn-header');
     const closeBtn = document.querySelector('.close-btn');
-
+    
+    // モバイルフィルター（ドロワー）関連
     const filterDrawer = document.getElementById('filter-drawer');
     const openFilterBtn = document.getElementById('open-filter-btn');
     const closeFilterBtn = document.getElementById('close-filter-btn');
     const applyFilterBtn = document.getElementById('apply-filter-btn');
     const mobileClearBtn = document.getElementById('clear-filters-btn-mobile');
+    
+    // 検索関連
     const searchInput = document.getElementById('search-input');
     const searchBtn = document.getElementById('search-btn');
 
     const googleProvider = new GoogleAuthProvider();
     const githubProvider = new GithubAuthProvider();
 
-    // --- 認証関連のイベントリスナー ---
-    loginBtn.onclick = () => { if (!currentUser) modal.style.display = 'block'; };
-    closeBtn.onclick = () => modal.style.display = 'none';
-    window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+    // --- 認証関連のイベントリスナー (エラー耐性を高めた設定) ---
+    
+    if (loginBtn && modal) {
+        loginBtn.onclick = () => { if (!currentUser) modal.style.display = 'block'; };
+    }
+    
+    if (closeBtn && modal) {
+        closeBtn.onclick = () => modal.style.display = 'none';
+    }
+    
+    if (modal) {
+        window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+    }
 
-    document.getElementById('google-login-btn').onclick = () => signInWithPopup(auth, googleProvider).then(() => modal.style.display = 'none').catch(e => alert(e.message));
-    document.getElementById('github-login-btn').onclick = () => signInWithPopup(auth, githubProvider).then(() => modal.style.display = 'none').catch(e => alert(e.message));
-    document.getElementById('email-signup-btn').onclick = () => {
-        const email = document.getElementById('email-input').value.trim();
-        const pass = document.getElementById('password-input').value;
-        if (email && pass.length >= 6) createUserWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(e => alert(e.message));
-        else alert("メールと6文字以上のパスワードを入力してください");
-    };
-    document.getElementById('email-login-btn').onclick = () => {
-        const email = document.getElementById('email-input').value.trim();
-        const pass = document.getElementById('password-input').value;
-        if (email && pass) signInWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(e => alert(e.message));
-        else alert("メールとパスワードを入力してください");
-    };
+    const googleLoginBtn = document.getElementById('google-login-btn');
+    if (googleLoginBtn && modal) {
+        googleLoginBtn.onclick = () => signInWithPopup(auth, googleProvider).then(() => modal.style.display = 'none').catch(e => alert(e.message));
+    }
+    
+    const githubLoginBtn = document.getElementById('github-login-btn');
+    if (githubLoginBtn && modal) {
+        githubLoginBtn.onclick = () => signInWithPopup(auth, githubProvider).then(() => modal.style.display = 'none').catch(e => alert(e.message));
+    }
 
+    const emailSignupBtn = document.getElementById('email-signup-btn');
+    if (emailSignupBtn && modal) {
+        emailSignupBtn.onclick = () => {
+            const email = document.getElementById('email-input').value.trim();
+            const pass = document.getElementById('password-input').value;
+            if (email && pass.length >= 6) createUserWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(e => alert(e.message));
+            else alert("メールと6文字以上のパスワードを入力してください");
+        };
+    }
+
+    const emailLoginBtn = document.getElementById('email-login-btn');
+    if (emailLoginBtn && modal) {
+        emailLoginBtn.onclick = () => {
+            const email = document.getElementById('email-input').value.trim();
+            const pass = document.getElementById('password-input').value;
+            if (email && pass) signInWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(e => alert(e.message));
+            else alert("メールとパスワードを入力してください");
+        };
+    }
+    
     // --- モバイルドロワー機能 ---
-    openFilterBtn.onclick = () => {
-        filterDrawer.classList.add('is-open');
-        document.body.style.overflow = 'hidden';
-    };
+    
+    if (openFilterBtn && filterDrawer) {
+        openFilterBtn.onclick = () => {
+            filterDrawer.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+        };
+    }
 
-    closeFilterBtn.onclick = () => {
-        filterDrawer.classList.remove('is-open');
-        document.body.style.overflow = '';
-    };
+    if (closeFilterBtn && filterDrawer) {
+        closeFilterBtn.onclick = () => {
+            filterDrawer.classList.remove('is-open');
+            document.body.style.overflow = '';
+        };
+    }
 
-    applyFilterBtn.onclick = () => {
-        renderEvents();
-        filterDrawer.classList.remove('is-open');
-        document.body.style.overflow = '';
-    };
+    if (applyFilterBtn && filterDrawer) {
+        applyFilterBtn.onclick = () => {
+            renderEvents();
+            filterDrawer.classList.remove('is-open');
+            document.body.style.overflow = '';
+        };
+    }
 
     // --- イベント表示とフィルター関連 (関数定義) ---
 
@@ -92,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     const renderEvents = () => {
         const grid = document.getElementById('event-grid');
+        
         let filtered = allEvents.filter(e => {
             const matchCat = filters.category === "all" || e.category === filters.category;
             const keywords = filters.search.toLowerCase().split(/\s+/).filter(k => k);
@@ -105,45 +141,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (filtered.length === 0) {
-            grid.innerHTML = "<p style='grid-column:1/-1;text-align:center;padding:100px;color:#999;font-size:1.3em;'>該当するイベントがありません</p>";
+            if (grid) grid.innerHTML = "<p style='grid-column:1/-1;text-align:center;padding:100px;color:#999;font-size:1.3em;'>該当するイベントがありません</p>";
             return;
         }
 
-        grid.innerHTML = filtered.map(ev => {
-            const isFav = favoriteEventIds.includes(ev.id);
-            const catLabel = ev.category ? `<span class="category-tag">${CATEGORY_NAMES[ev.category] || ev.category}</span>` : "";
-            const img = ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${ev.name}" loading="lazy">` : `<div style="height:200px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;font-size:0.9em;">画像なし</div>`;
-            const timeStr = ev.startTime ? `${ev.startTime} 〜 ${ev.endTime || ""}` : "終日";
-            const displayDesc = ev.summary || (ev.description ? ev.description.substring(0, 80) + "..." : "");
+        if (grid) {
+            grid.innerHTML = filtered.map(ev => {
+                const isFav = favoriteEventIds.includes(ev.id);
+                const catLabel = ev.category ? `<span class="category-tag">${CATEGORY_NAMES[ev.category] || ev.category}</span>` : "";
+                const img = ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${ev.name}" loading="lazy">` : `<div style="height:200px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;font-size:0.9em;">画像なし</div>`;
+                const timeStr = ev.startTime ? `${ev.startTime} 〜 ${ev.endTime || ""}` : "終日";
+                const displayDesc = ev.summary || (ev.description ? ev.description.substring(0, 80) + "..." : "");
 
-            return `
-                <div class="event-card">
-                    <a href="detail.html?id=${ev.id}" style="text-decoration:none;color:inherit;display:block;flex:1;">
-                        ${img}
-                        <div class="content">
-                            ${catLabel}
-                            <h2>${ev.name}</h2>
-                            <div class="meta"><strong>${ev.date}</strong> ${timeStr}</div>
-                            <p>${displayDesc}</p>
-                        </div>
-                    </a>
-                    <button class="favorite-btn ${isFav ? 'is-favorite' : ''}" data-id="${ev.id}">
-                        ${isFav ? 'お気に入り解除' : 'お気に入りに追加'}
-                    </button>
-                </div>
-            `;
-        }).join("");
+                return `
+                    <div class="event-card">
+                        <a href="detail.html?id=${ev.id}" style="text-decoration:none;color:inherit;display:block;flex:1;">
+                            ${img}
+                            <div class="content">
+                                ${catLabel}
+                                <h2>${ev.name}</h2>
+                                <div class="meta"><strong>${ev.date}</strong> ${timeStr}</div>
+                                <p>${displayDesc}</p>
+                            </div>
+                        </a>
+                        <button class="favorite-btn ${isFav ? 'is-favorite' : ''}" data-id="${ev.id}">
+                            ${isFav ? 'お気に入り解除' : 'お気に入りに追加'}
+                        </button>
+                    </div>
+                `;
+            }).join("");
 
-        document.querySelectorAll('.favorite-btn').forEach(btn => {
-            btn.onclick = e => { e.preventDefault(); e.stopPropagation(); toggleFavorite(btn.dataset.id); };
-        });
+            document.querySelectorAll('.favorite-btn').forEach(btn => {
+                btn.onclick = e => { e.preventDefault(); e.stopPropagation(); toggleFavorite(btn.dataset.id); };
+            });
+        }
     };
 
     /**
      * お気に入り状態をトグルし、Firestoreとローカル状態を更新する
      */
     const toggleFavorite = async (eventId) => {
-        if (!currentUser) { modal.style.display = "block"; return; }
+        if (!currentUser) { if (modal) modal.style.display = "block"; return; }
         const userRef = doc(db, "users", currentUser.uid);
         const isFav = favoriteEventIds.includes(eventId);
         try {
@@ -166,11 +204,11 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     const startCarousel = () => {
         const grid = document.getElementById('featured-grid');
-        const cards = Array.from(grid.querySelectorAll('.featured-card')); 
+        const cards = Array.from(grid ? grid.querySelectorAll('.featured-card') : []); 
         const prevBtn = document.getElementById('prev-slide-btn');
         const nextBtn = document.getElementById('next-slide-btn');
 
-        if (cards.length === 0 || !grid) return;
+        if (cards.length === 0 || !grid || !prevBtn || !nextBtn) return;
 
         // 無限ループのためのクローン作成
         const firstClone = cards[0].cloneNode(true);
@@ -258,9 +296,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const snap = await getDocs(q);
          
         const grid = document.getElementById('featured-grid');
-        if (snap.empty || !grid) return;
+        const section = document.getElementById('featured-section');
+        
+        if (snap.empty || !grid || !section) return;
          
-        document.getElementById('featured-section').style.display = "block";
+        section.style.display = "block";
          
         grid.innerHTML = snap.docs.map(d => {
             const e = d.data(); e.id = d.id;
@@ -297,11 +337,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById(containerId);
             const filterGroup = document.getElementById(containerId.replace('-container', '-filter'));
 
-            if (!container || items.size === 0) {
-                 filterGroup.style.display = "none";
+            if (!container) return; // コンテナが存在しない場合は処理をスキップ
+            
+            if (items.size === 0) {
+                 if (filterGroup) filterGroup.style.display = "none";
                  return;
             }
-            filterGroup.style.display = "block";
+            if (filterGroup) filterGroup.style.display = "block";
+            
             container.innerHTML = "";
              
             const sortedItems = Array.from(items).sort();
@@ -316,7 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.classList.add('hidden-tag');
                 }
                  
-                // 既存のフィルターが設定されていればactiveを付与
                 if (filters[type] === item) {
                     btn.classList.add('active');
                 }
@@ -359,16 +401,18 @@ document.addEventListener('DOMContentLoaded', () => {
      * 追加のイベントをロードし、無限スクロールを実装する
      */
     const loadMoreEvents = async () => {
-        if (isLoading || !lastVisible) return;
+        const loadTrigger = document.getElementById('load-more-trigger');
+        if (isLoading || !lastVisible || !loadTrigger) return;
+        
         isLoading = true;
-        document.getElementById('load-more-trigger').innerHTML = '<span style="color:#999;">読み込み中...</span>';
+        loadTrigger.innerHTML = '<span style="color:#999;">読み込み中...</span>';
 
         const q = query(collection(db, "events"), where("status", "==", "approved"), orderBy("date"), startAfter(lastVisible), limit(PAGE_SIZE));
         const snap = await getDocs(q);
 
         if (snap.empty) {
-            document.getElementById('load-more-trigger').style.display = 'none';
-            document.getElementById('load-more-trigger').innerHTML = '<span style="color:#999;">これ以上イベントはありません</span>';
+            loadTrigger.style.display = 'none';
+            loadTrigger.innerHTML = '<span style="color:#999;">これ以上イベントはありません</span>';
             isLoading = false;
             return;
         }
@@ -379,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderEvents();
         generateSidebarFilters();
-        document.getElementById('load-more-trigger').innerHTML = '<span>もっと見る</span>';
+        loadTrigger.innerHTML = '<span>もっと見る</span>';
         isLoading = false;
     };
 
@@ -391,68 +435,82 @@ document.addEventListener('DOMContentLoaded', () => {
         allEvents = snap.docs.map(d => { const data = d.data(); data.id = d.id; return data; });
         lastVisible = snap.docs[snap.docs.length - 1] || null;
 
-        document.getElementById('event-grid').innerHTML = ""; 
+        const grid = document.getElementById('event-grid');
+        const loadTrigger = document.getElementById('load-more-trigger');
+
+        if (grid) grid.innerHTML = ""; 
 
         renderEvents();
         loadFeatured();
-        // loadNewEvents() はモバイル版HTMLではDOM操作がないためスキップ
         generateSidebarFilters();
 
-        const observer = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && !isLoading) loadMoreEvents();
-        }, { rootMargin: "400px" });
-        observer.observe(document.getElementById('load-more-trigger'));
-         
-        if (!lastVisible) {
-            document.getElementById('load-more-trigger').style.display = 'none';
-            document.getElementById('load-more-trigger').innerHTML = '<span style="color:#999;">これ以上イベントはありません</span>';
-        } else {
-            document.getElementById('load-more-trigger').style.display = 'block';
+        if (loadTrigger) {
+            const observer = new IntersectionObserver(entries => {
+                if (entries[0].isIntersecting && !isLoading) loadMoreEvents();
+            }, { rootMargin: "400px" });
+            observer.observe(loadTrigger);
+             
+            if (!lastVisible) {
+                loadTrigger.style.display = 'none';
+                loadTrigger.innerHTML = '<span style="color:#999;">これ以上イベントはありません</span>';
+            } else {
+                loadTrigger.style.display = 'block';
+            }
         }
     };
 
-    // --- 起動とイベントリスナー ---
+    // --- 起動とイベントリスナー（認証、検索、フィルター） ---
 
     // 認証状態の変化を監視
     onAuthStateChanged(auth, async user => {
         currentUser = user;
         if (user) {
-            loginBtn.textContent = `${user.displayName || user.email.split('@')[0]} さん`;
-            loginBtn.onclick = () => location.href = 'mypage.html'; 
+            if (loginBtn) {
+                loginBtn.textContent = `${user.displayName || user.email.split('@')[0]} さん`;
+                loginBtn.onclick = () => location.href = 'mypage.html'; 
+            }
              
             const snap = await getDoc(doc(db, 'users', user.uid));
             favoriteEventIds = snap.exists() ? snap.data().favorites || [] : [];
         } else {
-            loginBtn.textContent = 'ログイン';
-            loginBtn.onclick = () => modal.style.display = 'block';
+            if (loginBtn) {
+                loginBtn.textContent = 'ログイン';
+                loginBtn.onclick = () => { if (modal) modal.style.display = 'block'; };
+            }
             favoriteEventIds = [];
         }
         renderEvents(); 
     });
 
     // モバイル用フィルタークリアボタンのロジック
-    mobileClearBtn.onclick = () => {
-        filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
-        searchInput.value = "";
-         
-        // カテゴリのラジオボタンをリセット
-        const allRadio = document.querySelector('.category-nav input[name="category"][value="all"]');
-        if (allRadio) allRadio.checked = true;
-        
-        // ドロワー内のタグボタンのアクティブ状態をすべてリセット
-        document.querySelectorAll('.filter-tags .tag-btn.active').forEach(b => b.classList.remove('active'));
-        
-        loadInitialEvents(); 
-    };
+    if (mobileClearBtn) {
+        mobileClearBtn.onclick = () => {
+            filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
+            if (searchInput) searchInput.value = "";
+             
+            // カテゴリのラジオボタンをリセット
+            const allRadio = document.querySelector('.category-nav input[name="category"][value="all"]');
+            if (allRadio) allRadio.checked = true;
+            
+            // ドロワー内のタグボタンのアクティブ状態をすべてリセット
+            document.querySelectorAll('.filter-tags .tag-btn.active').forEach(b => b.classList.remove('active'));
+            
+            loadInitialEvents(); 
+        };
+    }
 
     // 検索ボタン
-    searchBtn.onclick = () => {
-        filters.search = searchInput.value.trim();
-        renderEvents();
-    };
-    searchInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') searchBtn.click();
-    });
+    if (searchBtn) {
+        searchBtn.onclick = () => {
+            if (searchInput) filters.search = searchInput.value.trim();
+            renderEvents();
+        };
+    }
+    if (searchInput && searchBtn) {
+        searchInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter') searchBtn.click();
+        });
+    }
 
     // カテゴリフィルターのイベントリスナー
     document.querySelectorAll('.category-nav input[name="category"]').forEach(r => {
