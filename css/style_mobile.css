@@ -1,59 +1,429 @@
 /* ------------------------------------- */
-/* 🌟 モバイルドロワーフィルター専用スタイル 🌟 */
+/* 基本色・テーマ変数                     */
+/* ------------------------------------- */
+:root {
+    --primary: #5e35b1;
+    --primary-light: #ede7f6;
+    --text: #333;
+    --gray: #777;
+    --bg: #f5f5f5;
+}
+
+/* ------------------------------------- */
+/* 全体レイアウト                         */
+/* ------------------------------------- */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+/* ------------------------------------- */
+/* ヘッダー                               */
+/* ------------------------------------- */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(135deg, #5e35b1, #7b1fa2);
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.header .header-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.login-btn-mobile {
+    padding: 8px 12px;
+    border-radius: 20px;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* フィルターボタン */
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.25);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 50px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+.filter-btn svg {
+    fill: white;
+    width: 18px;
+    height: 18px;
+}
+
+/* ------------------------------------- */
+/* カテゴリナビ                           */
+/* ------------------------------------- */
+.category-nav {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    gap: 8px;
+    padding: 8px 10px 4px;
+    background: white;
+    border-bottom: 1px solid #eee;
+}
+.category-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.radio-label {
+    flex: 0 0 auto;
+}
+.radio-label input {
+    display: none;
+}
+.radio-label span {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    font-size: 0.8rem;
+    color: #555;
+    background: #fafafa;
+}
+.radio-label input:checked + span {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* ------------------------------------- */
+/* コンテナ・メイン                       */
+/* ------------------------------------- */
+.container-mobile {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 10px 20px;
+}
+.main-mobile {
+    padding-top: 12px;
+}
+
+/* ------------------------------------- */
+/* 検索バー                               */
+/* ------------------------------------- */
+.search-container-mobile {
+    display: flex;
+    margin: 6px 0 16px;
+}
+.search-container-mobile input {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    font-size: 0.9rem;
+}
+.search-container-mobile button {
+    padding: 0 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+/* ------------------------------------- */
+/* おすすめイベント（カルーセル）         */
+/* ------------------------------------- */
+.featured {
+    margin-bottom: 18px;
+}
+.featured-title {
+    font-size: 1.1rem;
+    margin: 0 0 8px;
+    color: var(--primary);
+}
+.carousel-container {
+    position: relative;
+}
+.carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    border: none;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.carousel-control svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--primary);
+}
+.carousel-control.prev {
+    left: 4px;
+}
+.carousel-control.next {
+    right: 4px;
+}
+
+.featured-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 16px;
+    scroll-snap-type: x mandatory;
+    padding: 4px 4px 10px 4px;
+}
+.featured-card {
+    flex: 0 0 80%;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    position: relative;
+    scroll-snap-align: center;
+}
+.featured-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+}
+.featured-card .content {
+    padding: 10px;
+}
+.featured-card h3 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+}
+.featured-card p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #555;
+}
+.featured-label {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(94,53,177,0.9);
+    color: white;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    border-radius: 999px;
+}
+
+/* ------------------------------------- */
+/* イベント一覧                           */
+/* ------------------------------------- */
+.event-list-title {
+    font-size: 1.1rem;
+    margin: 8px 0 10px;
+    color: var(--primary);
+}
+
+.event-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+/* ローディング表示 */
+.loading {
+    text-align: center;
+    padding: 40px 0;
+    color: #777;
+    font-size: 0.9rem;
+}
+
+/* イベントカード */
+.event-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+}
+.event-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+.event-card .content {
+    padding: 10px 12px;
+}
+.event-card h2 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+}
+.event-card p {
+    margin: 6px 0 0;
+    font-size: 0.85rem;
+    color: #555;
+}
+.event-card .meta {
+    font-size: 0.8rem;
+    color: #777;
+    margin-top: 2px;
+}
+.category-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--primary-light);
+    color: var(--primary);
+    margin-bottom: 4px;
+}
+
+/* お気に入りボタン */
+.favorite-btn {
+    border: none;
+    border-top: 1px solid #eee;
+    background: #fafafa;
+    padding: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--primary);
+    font-weight: bold;
+}
+.favorite-btn.is-favorite {
+    background: #ffe0b2;
+    color: #e65100;
+}
+
+/* もっと見る */
+.load-more {
+    text-align: center;
+    padding: 12px 0 24px;
+    font-size: 0.9rem;
+    color: var(--primary);
+}
+
+/* ------------------------------------- */
+/* モバイルドロワーフィルター             */
 /* ------------------------------------- */
 .drawer-mobile {
-    position: fixed;
+    position: fixed !important;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1000;
+    z-index: 9999 !important;
     background: white;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    /* 初期状態は非表示（画面外） */
-    transform: translateX(100%); 
-    transition: transform 0.4s ease-out;
+    transform: translateX(100%) !important;
+    transition: transform 0.35s ease-out !important;
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* コンテンツがはみ出さないように */
+    overflow: hidden;
 }
 
 .drawer-mobile.is-open {
-    transform: translateX(0); /* 表示状態 */
+    transform: translateX(0) !important;
 }
 
 .drawer-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    padding: 16px 18px;
     border-bottom: 1px solid #eee;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
-
 .drawer-header h2 {
     margin: 0;
     color: var(--primary);
-    font-size: 1.4em;
+    font-size: 1.1rem;
 }
-
 #close-filter-btn {
     background: none;
     border: none;
-    font-size: 32px;
+    font-size: 28px;
     color: var(--gray);
     cursor: pointer;
     line-height: 1;
 }
 
 .drawer-content {
-    padding: 20px;
-    flex-grow: 1; /* 残りのスペースを占有 */
-    overflow-y: auto; /* コンテンツが多い場合にスクロール可能にする */
+    padding: 16px 18px;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+/* フィルターグループ */
+.filter-group {
+    margin-bottom: 16px;
+}
+.filter-group h3 {
+    margin: 0 0 8px;
+    font-size: 0.9rem;
+    color: #555;
+}
+.filter-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.tag-btn {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #f2f2f2;
+    font-size: 0.8rem;
+    cursor: pointer;
+    color: #555;
+}
+.tag-btn.active {
+    background: var(--primary);
+    color: white;
+}
+.hidden-tag {
+    display: none;
+}
+.show-more-btn {
+    margin-top: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #ddd;
+    background: white;
+    font-size: 0.8rem;
+    color: #555;
+    cursor: pointer;
 }
 
 .drawer-footer {
-    padding: 15px 20px;
+    padding: 10px 16px 16px;
     border-top: 1px solid #eee;
     display: flex;
     gap: 10px;
@@ -62,11 +432,11 @@
 }
 
 .action-btn {
-    padding: 14px;
+    padding: 10px;
     border-radius: 8px;
     font-weight: bold;
     cursor: pointer;
-    font-size: 1em;
+    font-size: 0.9rem;
     width: 50%;
 }
 .action-btn.primary {
@@ -81,72 +451,65 @@
 }
 
 /* ------------------------------------- */
-/* 🌟 メインレイアウトの調整 🌟 */
+/* ログインモーダル                       */
 /* ------------------------------------- */
-.header .header-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background: rgba(0,0,0,0.4);
 }
-.filter-btn {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 10px 15px;
-    background: rgba(255,255,255,0.25);
-    border: 1px solid rgba(255,255,255,0.4);
-    border-radius: 50px;
-    color: white;
-    font-weight: bold;
+.modal-content {
+    background: #fff;
+    margin: 80px auto;
+    padding: 20px 18px 24px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 360px;
+    position: relative;
+}
+.close-btn {
+    position: absolute;
+    right: 12px;
+    top: 8px;
+    font-size: 24px;
     cursor: pointer;
 }
-.filter-btn svg {
-    fill: white;
-    width: 20px;
-    height: 20px;
-}
-
-/* ページ全体のレイアウトを単一カラムに強制 */
-.container-mobile {
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 0 10px; /* 左右に少しパディング */
-}
-.main-mobile {
-    padding: 15px 0; /* paddingを調整 */
-    background: none; /* メインエリアの白い背景を削除 */
-    box-shadow: none; /* メインエリアの影を削除 */
-}
-
-/* 検索バーを調整 */
-.search-container-mobile {
+.auth-buttons {
     display: flex;
-    margin: 10px 0 20px;
+    flex-direction: column;
+    gap: 8px;
+    margin: 10px 0;
 }
-.search-container-mobile input {
-    flex: 1;
-    padding: 12px;
-    border: 2px solid #ddd;
-    border-right: none;
-    border-radius: 8px 0 0 8px;
+.auth-buttons button {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    background: #fafafa;
+    cursor: pointer;
+    font-size: 0.9rem;
 }
-.search-container-mobile button {
-    padding: 0 15px;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 0 8px 8px 0;
-    white-space: nowrap;
-}
-
-/* イベントグリッドをスマホ向けに調整 */
-.event-grid {
-    /* 常に単一カラムに表示 */
-    grid-template-columns: 1fr; 
-}
-.event-card {
-    /* スマホで横幅いっぱいに使う */
-    margin: 0 5px; 
+.modal-content input[type="email"],
+.modal-content input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    margin: 6px 0;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 0.9rem;
 }
 
-/* (元の style.css の他のスタイルを mobile.css にコピー＆ペーストし、必要に応じて上記で上書きします) */
+/* ------------------------------------- */
+/* フッター                               */
+/* ------------------------------------- */
+.footer {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #777;
+    padding: 12px 0 16px;
+}
