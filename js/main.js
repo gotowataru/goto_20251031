@@ -309,7 +309,7 @@ const initCalendar = () => {
     flatpickr("#calendar-input", {
         inline: true,
         locale: "ja",
-        dateFormat: "Y-m-d",
+        dateFormat: "Y/m/d",
         onChange: (selectedDates, dateStr) => {
             filters.date = dateStr;
             renderEvents();
@@ -360,3 +360,4 @@ document.querySelectorAll('.category-nav input[name="category"]').forEach(r => {
 
 loadInitialEvents();
 initCalendar();
+
