@@ -24,15 +24,15 @@ let isLoading = false;
 let lastVisible = null;
 const PAGE_SIZE = 20;
 const CATEGORY_NAMES = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
-// フィルター変数に tag, organizer, venue を追加
-let filters = { category: "all", search: "", tag: "", organizer: "", venue: "" }; 
+// フィルター変数に date を追加
+let filters = { category: "all", search: "", tag: "", organizer: "", venue: "", date: "" }; 
 
 // --- DOM要素とイベントリスナー（認証関連） ---
 const modal = document.getElementById('login-modal');
 const loginBtn = document.getElementById('login-btn-header');
 const closeBtn = document.querySelector('.close-btn');
-loginBtn.onclick = () => { if (!currentUser) modal.style.display = 'block'; };
-closeBtn.onclick = () => modal.style.display = 'none';
+if(loginBtn) loginBtn.onclick = () => { if (!currentUser) modal.style.display = 'block'; };
+if(closeBtn) closeBtn.onclick = () => modal.style.display = 'none';
 window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
 
 const googleProvider = new GoogleAuthProvider();
@@ -53,33 +53,26 @@ document.getElementById('email-login-btn').onclick = () => {
     else alert("メールとパスワードを入力してください");
 };
 
-// --- イベント表示とフィルター関連 ---
-
 /**
  * イベントカードをレンダリングし、DOMに反映する
  */
 const renderEvents = () => {
     const grid = document.getElementById('event-grid');
-    // クライアント側でのフィルタリング
+    if(!grid) return;
+
     let filtered = allEvents.filter(e => {
-        // 1. カテゴリフィルター
         const matchCat = filters.category === "all" || e.category === filters.category;
-        
-        // 2. 検索フィルター (name, description, summary, venue, organizer を対象に)
         const keywords = filters.search.toLowerCase().split(/\s+/).filter(k => k);
         const targetText = [e.name, e.description, e.summary, e.venue, e.organizer].join(" ").toLowerCase();
         const matchSearch = keywords.length === 0 || keywords.every(k => targetText.includes(k));
-        
-        // 3. タグフィルター (tags が配列であることを確認)
         const matchTag = !filters.tag || (Array.isArray(e.tags) && e.tags.includes(filters.tag));
-        
-        // 4. 主催者フィルター
         const matchOrg = !filters.organizer || e.organizer === filters.organizer;
-        
-        // 5. 会場フィルター
         const matchVenue = !filters.venue || e.venue === filters.venue;
+        
+        // 日付フィルターの追加
+        const matchDate = !filters.date || e.date === filters.date;
 
-        return matchCat && matchSearch && matchTag && matchOrg && matchVenue;
+        return matchCat && matchSearch && matchTag && matchOrg && matchVenue && matchDate;
     });
 
     if (filtered.length === 0) {
@@ -92,7 +85,6 @@ const renderEvents = () => {
         const catLabel = ev.category ? `<span class="category-tag">${CATEGORY_NAMES[ev.category] || ev.category}</span>` : "";
         const img = ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${ev.name}" loading="lazy">` : `<div style="height:200px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;font-size:0.9em;">画像なし</div>`;
         const timeStr = ev.startTime ? `${ev.startTime} 〜 ${ev.endTime || ""}` : "終日";
-        // 概要フィールドを優先して表示
         const displayDesc = ev.summary || (ev.description ? ev.description.substring(0, 80) + "..." : "");
 
         return `
@@ -118,9 +110,6 @@ const renderEvents = () => {
     });
 };
 
-/**
- * お気に入り状態をトグルし、Firestoreとローカル状態を更新する (既存)
- */
 const toggleFavorite = async (eventId) => {
     if (!currentUser) { modal.style.display = "block"; return; }
     const userRef = doc(db, "users", currentUser.uid);
@@ -140,26 +129,21 @@ const toggleFavorite = async (eventId) => {
     }
 };
 
-// --- カルーセル機能の改善 (既存) ---
-
-/**
- * カルーセル機能を開始し、自動移動と左右ボタンを設定する
- */
+// --- カルーセル機能 ---
 const startCarousel = () => {
     const grid = document.getElementById('featured-grid');
-    const cards = Array.from(grid.querySelectorAll('.featured-card')); // クローン前のカードリスト
+    if (!grid) return;
+    const cards = Array.from(grid.querySelectorAll('.featured-card'));
     const prevBtn = document.getElementById('prev-slide-btn');
     const nextBtn = document.getElementById('next-slide-btn');
 
-    if (cards.length === 0 || !grid) return;
+    if (cards.length === 0) return;
 
-    // --- 1. 無限ループのためのクローン作成 ---
     const firstClone = cards[0].cloneNode(true);
     const lastClone = cards[cards.length - 1].cloneNode(true);
     grid.prepend(lastClone);
     grid.appendChild(firstClone);
     
-    // クローンを含めたカードリストをDOMから再取得
     const allCards = Array.from(grid.querySelectorAll('.featured-card')); 
     const cardWidth = cards[0].offsetWidth; 
     const GAP_SIZE = 24; 
@@ -168,14 +152,12 @@ const startCarousel = () => {
     grid.style.scrollBehavior = 'smooth'; 
     grid.scrollLeft = currentIndex * (cardWidth + GAP_SIZE);
 
-    // --- 2. スライド処理関数 ---
     const slideTo = (index) => {
         grid.style.scrollBehavior = 'smooth';
         grid.scrollLeft = index * (cardWidth + GAP_SIZE);
         currentIndex = index;
     };
 
-    // --- 3. ループ処理 (違和感をなくす部分) ---
     const checkLoop = () => {
         if (currentIndex === 0) {
             setTimeout(() => {
@@ -183,74 +165,32 @@ const startCarousel = () => {
                 currentIndex = allCards.length - 2; 
                 grid.scrollLeft = currentIndex * (cardWidth + GAP_SIZE);
             }, 500); 
-            setTimeout(() => {
-                grid.style.scrollBehavior = 'smooth'; 
-            }, 550);
         } else if (currentIndex === allCards.length - 1) {
             setTimeout(() => {
                 grid.style.scrollBehavior = 'auto'; 
                 currentIndex = 1; 
                 grid.scrollLeft = currentIndex * (cardWidth + GAP_SIZE);
             }, 500);
-            setTimeout(() => {
-                grid.style.scrollBehavior = 'smooth'; 
-            }, 550);
         }
     };
 
-    // --- 4. 自動スライド機能 ---
     const autoSlide = () => {
-        let nextIndex = currentIndex + 1;
-        slideTo(nextIndex);
+        slideTo(currentIndex + 1);
         checkLoop();
     };
 
-    let slideInterval = setInterval(autoSlide, 4000); // 4秒
+    let slideInterval = setInterval(autoSlide, 4000);
 
-    // --- 5. 左右ボタンのイベントリスナー ---
-    const handleSlide = (direction) => {
-        clearInterval(slideInterval); 
-        let nextIndex = currentIndex + direction;
-        slideTo(nextIndex);
-        checkLoop();
-        slideInterval = setInterval(autoSlide, 4000); 
-    };
-
-    nextBtn.onclick = () => handleSlide(1);
-    prevBtn.onclick = () => handleSlide(-1);
-
-    // ユーザーが手動でスクロールした後の処理 (自動移動の再開)
-    grid.addEventListener('scroll', () => {
-        clearInterval(slideInterval);
-        
-        clearTimeout(grid.scrollTimeout);
-        grid.scrollTimeout = setTimeout(() => {
-            const scrollPos = grid.scrollLeft;
-            const newIndex = Math.round(scrollPos / (cardWidth + GAP_SIZE));
-            
-            slideTo(newIndex);
-            
-            checkLoop();
-            
-            slideInterval = setInterval(autoSlide, 4000);
-        }, 150); 
-    });
+    nextBtn.onclick = () => { clearInterval(slideInterval); slideTo(currentIndex + 1); checkLoop(); slideInterval = setInterval(autoSlide, 4000); };
+    prevBtn.onclick = () => { clearInterval(slideInterval); slideTo(currentIndex - 1); checkLoop(); slideInterval = setInterval(autoSlide, 4000); };
 };
 
-/**
- * おすすめイベントをロードし、カルーセルを開始する (既存)
- */
 const loadFeatured = async () => {
-    // 承認済みのイベントのみを表示するように変更 (isFeaturedは管理者のみ設定可能とする)
     const q = query(collection(db, "events"), where("isFeatured", "==", true), where("status", "==", "approved")); 
     const snap = await getDocs(q);
-    
     const grid = document.getElementById('featured-grid');
     if (snap.empty || !grid) return;
-    
     document.getElementById('featured-section').style.display = "block";
-    
-    // クローン前のイベントカードをレンダリング
     grid.innerHTML = snap.docs.map(d => {
         const e = d.data(); e.id = d.id;
         const img = e.imageUrl ? `<img src="${e.imageUrl}" alt="${e.name}" loading="lazy">` : `<div style="height:240px;background:#eee;"></div>`;
@@ -262,29 +202,23 @@ const loadFeatured = async () => {
             </a>
         </div>`;
     }).join("");
-    
     startCarousel(); 
 };
 
-/**
- * 新着イベントをロードし、サイドバーに表示する (承認済みのみを対象とするように変更)
- */
 const loadNewEvents = async () => {
     const q = query(collection(db, "events"), where("status", "==", "approved"), orderBy("createdAt", "desc"), limit(5));
     const snap = await getDocs(q);
-    document.getElementById('new-events-list').innerHTML = snap.docs.map(d => {
-        const e = d.data();
-        return `<li><a href="detail.html?id=${d.id}">${e.name}</a><br><small>${e.date}</small></li>`;
-    }).join("") || "<li>新着イベントはありません</li>";
+    const container = document.getElementById('new-events-list');
+    if(container) {
+        container.innerHTML = snap.docs.map(d => {
+            const e = d.data();
+            return `<li><a href="detail.html?id=${d.id}">${e.name}</a><br><small>${e.date}</small></li>`;
+        }).join("") || "<li>新着イベントはありません</li>";
+    }
 };
 
-/**
- * サイドバーのタグ/主催者/会場フィルターボタンを生成する
- */
 const generateSidebarFilters = () => {
     const tags = new Set(), organizers = new Set(), venues = new Set();
-    
-    // 承認済みのイベントのみをフィルターの対象とする
     const approvedEvents = allEvents.filter(e => e.status === "approved" || !e.status); 
 
     approvedEvents.forEach(e => {
@@ -294,18 +228,12 @@ const generateSidebarFilters = () => {
     });
     
     const MAX_ITEMS = 10; 
-
     const createButtons = (containerId, items, type) => {
         const container = document.getElementById(containerId);
         const filterGroup = document.getElementById(containerId.replace('-container', '-filter'));
-
-        if (!container || items.size === 0) {
-             filterGroup.style.display = "none";
-             return;
-        }
+        if (!container || items.size === 0) { if(filterGroup) filterGroup.style.display = "none"; return; }
         filterGroup.style.display = "block";
         container.innerHTML = "";
-        
         const sortedItems = Array.from(items).sort();
         let itemsCount = 0;
 
@@ -313,25 +241,12 @@ const generateSidebarFilters = () => {
             const btn = document.createElement('span');
             btn.className = "tag-btn";
             btn.textContent = item;
-            
-            if (itemsCount >= MAX_ITEMS) {
-                btn.classList.add('hidden-tag');
-            }
-            
-            // 既存のフィルターが設定されていればactiveを付与
-            if (filters[type] === item) {
-                btn.classList.add('active');
-            }
-            
+            if (itemsCount >= MAX_ITEMS) btn.classList.add('hidden-tag');
+            if (filters[type] === item) btn.classList.add('active');
             btn.onclick = () => {
                 const isActive = btn.classList.contains('active');
                 container.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-                if (!isActive) { 
-                    filters[type] = item; 
-                    btn.classList.add('active'); 
-                } else { 
-                    filters[type] = ""; 
-                }
+                if (!isActive) { filters[type] = item; btn.classList.add('active'); } else { filters[type] = ""; }
                 renderEvents();
             };
             container.appendChild(btn);
@@ -343,61 +258,39 @@ const generateSidebarFilters = () => {
             showMoreBtn.className = "show-more-btn";
             showMoreBtn.textContent = `もっと見る (${itemsCount - MAX_ITEMS}件)`;
             showMoreBtn.onclick = () => {
-                container.querySelectorAll('.hidden-tag').forEach(tag => {
-                    tag.classList.remove('hidden-tag');
-                });
+                container.querySelectorAll('.hidden-tag').forEach(tag => tag.classList.remove('hidden-tag'));
                 showMoreBtn.style.display = 'none';
             };
             container.appendChild(showMoreBtn);
         }
     };
-    
-    // タグ、主催者、会場のフィルターボタンを生成
     createButtons('tags-container', tags, 'tag');
     createButtons('organizer-container', organizers, 'organizer');
     createButtons('venue-container', venues, 'venue');
 };
 
-/**
- * 追加のイベントをロードし、無限スクロールを実装する (既存)
- */
 const loadMoreEvents = async () => {
     if (isLoading || !lastVisible) return;
     isLoading = true;
-    document.getElementById('load-more-trigger').innerHTML = '<span style="color:#999;">読み込み中...</span>';
-
-    // 承認済みのイベントのみを対象とする
+    const trigger = document.getElementById('load-more-trigger');
+    trigger.innerHTML = '<span style="color:#999;">読み込み中...</span>';
     const q = query(collection(db, "events"), where("status", "==", "approved"), orderBy("date"), startAfter(lastVisible), limit(PAGE_SIZE));
     const snap = await getDocs(q);
-
-    if (snap.empty) {
-        document.getElementById('load-more-trigger').style.display = 'none';
-        document.getElementById('load-more-trigger').innerHTML = '<span style="color:#999;">これ以上イベントはありません</span>';
-        isLoading = false;
-        return;
-    }
-
+    if (snap.empty) { trigger.style.display = 'none'; isLoading = false; return; }
     const newEvents = snap.docs.map(d => { const data = d.data(); data.id = d.id; return data; });
     allEvents = [...allEvents, ...newEvents];
     lastVisible = snap.docs[snap.docs.length - 1];
-
     renderEvents();
     generateSidebarFilters();
-    document.getElementById('load-more-trigger').innerHTML = '<span>もっと見る</span>';
+    trigger.innerHTML = '<span>もっと見る</span>';
     isLoading = false;
 };
 
-/**
- * 初期イベントとすべての関連データをロードする
- */
 const loadInitialEvents = async () => {
-    // 承認済みのイベントのみを対象とする
     const snap = await getDocs(query(collection(db, "events"), where("status", "==", "approved"), orderBy("date"), limit(PAGE_SIZE)));
     allEvents = snap.docs.map(d => { const data = d.data(); data.id = d.id; return data; });
     lastVisible = snap.docs[snap.docs.length - 1] || null;
-
     document.getElementById('event-grid').innerHTML = ""; 
-
     renderEvents();
     loadFeatured();
     loadNewEvents();
@@ -408,23 +301,28 @@ const loadInitialEvents = async () => {
     }, { rootMargin: "400px" });
     observer.observe(document.getElementById('load-more-trigger'));
     
-    if (!lastVisible) {
-        document.getElementById('load-more-trigger').style.display = 'none';
-        document.getElementById('load-more-trigger').innerHTML = '<span style="color:#999;">これ以上イベントはありません</span>';
-    } else {
-        document.getElementById('load-more-trigger').style.display = 'block';
-    }
+    document.getElementById('load-more-trigger').style.display = lastVisible ? 'block' : 'none';
 };
 
-// --- 起動とイベントリスナー ---
+// --- カレンダー初期化 ---
+const initCalendar = () => {
+    flatpickr("#calendar-input", {
+        inline: true,
+        locale: "ja",
+        dateFormat: "Y-m-d",
+        onChange: (selectedDates, dateStr) => {
+            filters.date = dateStr;
+            renderEvents();
+        }
+    });
+};
 
-// 認証状態の変化を監視 (既存)
+// --- 起動とリスナー ---
 onAuthStateChanged(auth, async user => {
     currentUser = user;
     if (user) {
         loginBtn.textContent = `${user.displayName || user.email.split('@')[0]} さん`;
         loginBtn.onclick = () => location.href = 'mypage.html'; 
-        
         const snap = await getDoc(doc(db, 'users', user.uid));
         favoriteEventIds = snap.exists() ? snap.data().favorites || [] : [];
     } else {
@@ -435,7 +333,6 @@ onAuthStateChanged(auth, async user => {
     renderEvents(); 
 });
 
-// 検索ボタン (既存)
 document.getElementById('search-btn').onclick = () => {
     filters.search = document.getElementById('search-input').value.trim();
     renderEvents();
@@ -444,22 +341,22 @@ document.getElementById('search-input').addEventListener('keypress', e => {
     if (e.key === 'Enter') document.getElementById('search-btn').click();
 });
 
-// フィルタークリアボタン (既存)
 document.getElementById('clear-filters-btn').onclick = () => {
-    filters = { category: "all", search: "", tag: "", organizer: "", venue: "" };
+    filters = { category: "all", search: "", tag: "", organizer: "", venue: "", date: "" };
     document.getElementById('search-input').value = "";
-    
     const allRadio = document.querySelector('.category-nav input[name="category"][value="all"]');
     if (allRadio) allRadio.checked = true;
     
-    // 全イベントを再ロードして、フィルターボタンの状態（もっと見るボタンなど）もリセット
+    // カレンダーのリセット
+    const fp = document.querySelector("#calendar-input")._flatpickr;
+    if (fp) fp.clear();
+
     loadInitialEvents(); 
 };
 
-// カテゴリフィルターのイベントリスナー (既存)
 document.querySelectorAll('.category-nav input[name="category"]').forEach(r => {
     r.onchange = () => { filters.category = r.value; renderEvents(); };
 });
 
-// ページ起動
 loadInitialEvents();
+initCalendar();
