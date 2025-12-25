@@ -86,9 +86,52 @@ body {
 .sidebar { height: fit-content; position: sticky; top: 150px; }
 
 /* カレンダー専用スタイル */
-#calendar-container { margin-bottom: 20px; display: flex; justify-content: center; }
-.flatpickr-calendar { box-shadow: none !important; border: 1px solid #eee !important; width: 100% !important; }
-.flatpickr-day.selected { background: var(--primary) !important; border-color: var(--primary) !important; }
+.flatpickr-calendar {
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 10px 25px rgba(94, 53, 177, 0.1) !important; /* ほのかな紫の影 */
+    border-radius: 15px !important;
+    padding: 10px;
+    font-family: inherit;
+}
+
+/* 曜日ヘッダー部分 */
+span.flatpickr-weekday {
+    color: var(--primary) !important;
+    font-weight: bold !important;
+}
+
+/* 各日付のスタイル */
+.flatpickr-day {
+    border-radius: 8px !important; /* 四角ではなく少し丸く */
+    transition: all 0.2s ease;
+}
+
+/* 選択された日の色（メインの紫に合わせる） */
+.flatpickr-day.selected, 
+.flatpickr-day.selected:hover {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 4px 10px rgba(94, 53, 177, 0.4);
+    transform: scale(1.05); /* 選択時に少し大きく */
+}
+
+/* 今日（Today）の日付 */
+.flatpickr-day.today {
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+}
+
+/* ホバー（マウスを乗せた時） */
+.flatpickr-day:hover {
+    background: #f0ebf7 !important;
+}
+
+/* 月の切り替え矢印 */
+.flatpickr-months .flatpickr-prev-month:hover svg, 
+.flatpickr-months .flatpickr-next-month:hover svg {
+    fill: var(--primary) !important;
+}
 
 /* 検索とフィルター */
 .search-container { display: flex; margin-bottom: 10px; }
@@ -175,3 +218,4 @@ input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin
 
 @media (max-width: 1100px) { .container { grid-template-columns: 1fr; } .sidebar { order: -1; position: static; } }
 @media (max-width: 768px) { .featured-grid { padding: 10px 50px 20px 50px; } .featured-card { flex: 0 0 300px; } }
+
