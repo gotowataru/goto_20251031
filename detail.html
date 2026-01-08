@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="page-title">イベント詳細</title>
     <style>
-        :root { --primary: #5e35b1; --accent: #ff5252; --bg: #f8f9ff; --text: #333; --gray: #757575; }
+        :root { --primary: #5e35b1; --accent: #ff5252; --bg: #f8f9ff; --text: #333; --gray: #757575; --star: #f39c12; }
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); min-height: 100vh; }
 
@@ -41,30 +41,46 @@
         .gallery-item { display: block; overflow: hidden; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s; text-decoration: none; position: relative; }
         .gallery-item:hover { transform: scale(1.02); }
         .gallery-item img { width: 100%; height: 180px; object-fit: cover; display: block; }
-        .gallery-item::after { content: '拡大'; position: absolute; bottom: 0; right: 0; background: rgba(0,0,0,0.6); color: white; padding: 4px 10px; font-size: 0.8em; border-radius: 10px 0 0 0; }
+
+        /* --- レビューセクションのスタイル --- */
+        .reviews-section { margin-top: 60px; border-top: 3px solid #eee; padding-top: 40px; }
+        .review-form { background: #f0f2f5; padding: 25px; border-radius: 16px; margin-bottom: 40px; }
+        .review-form h3 { margin-top: 0; color: var(--primary); }
+        .review-form select, .review-form textarea { 
+            width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 1em; outline: none;
+        }
+        .review-form textarea { height: 120px; resize: vertical; }
+        #submit-review-btn { 
+            background: var(--primary); color: white; border: none; padding: 12px 30px; 
+            border-radius: 50px; cursor: pointer; font-weight: bold; transition: transform 0.2s, opacity 0.2s; 
+        }
+        #submit-review-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        #submit-review-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        .review-item { background: white; padding: 20px; border-radius: 12px; border-bottom: 1px solid #eee; margin-bottom: 10px; }
+        .review-rating { color: var(--star); font-size: 1.2em; margin-bottom: 5px; }
+        .review-meta { font-size: 0.85em; color: var(--gray); margin-bottom: 10px; }
+        .review-comment { line-height: 1.6; color: #444; white-space: pre-wrap; }
 
         .action-area { text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #eee; }
         #detail-favorite-btn { padding: 16px 40px; font-size: 1.1em; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 15px rgba(0,0,0,0.1); display: inline-flex; align-items: center; gap: 10px; }
         #detail-favorite-btn:not(.is-favorite) { background: #ffd740; color: #333; }
         #detail-favorite-btn.is-favorite { background: var(--accent); color: white; animation: pulse 0.5s; }
-        #detail-favorite-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 20px rgba(0,0,0,0.2); }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        .back-link { display: block; margin-top: 20px; color: var(--primary); text-decoration: none; font-weight: bold; }
-        .back-link:hover { text-decoration: underline; }
 
+        .back-link { display: block; margin-top: 20px; color: var(--primary); text-decoration: none; font-weight: bold; }
         .modal { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
         .modal-content { background: white; margin: 8% auto; padding: 40px; border-radius: 20px; width: 90%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalIn 0.4s; position: relative; }
         @keyframes modalIn { from { transform: translateY(-100px); opacity: 0; } to { transform: none; opacity: 1; } }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 32px; color: #aaa; cursor: pointer; }
-        .auth-buttons button { width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 50px; color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; transition: opacity 0.2s; }
+        .auth-buttons button { width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 50px; color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; }
         #google-login-btn { background: #DB4437; } #github-login-btn { background: #333; }
         #email-signup-btn, #email-login-btn { background: #4CAF50; }
-        input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 50px; box-sizing: border-box; font-size: 1em; outline: none; }
-        input[type="email"]:focus, input[type="password"]:focus { border-color: var(--primary); }
+        input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 50px; box-sizing: border-box; font-size: 1em; }
 
         @media (max-width: 600px) {
             .header { padding: 15px 20px; flex-direction: column; text-align: center; }
-            .container { padding: 20px; margin: 20px; }
+            .container { padding: 20px; margin: 15px; }
             .info-grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -79,6 +95,18 @@
     <div class="container">
         <div id="event-detail-container">
             <p style="text-align:center; padding:60px; font-size:1.3em; color:#777;">読み込み中...</p>
+        </div>
+
+        <div id="reviews-section-wrapper" class="reviews-section" style="display:none;">
+            <h3 class="gallery-title">参加者のレビュー</h3>
+            <div id="review-form-area"></div>
+            <div id="reviews-display">レビューを読み込んでいます...</div>
+        </div>
+
+        <div class="action-area">
+            <button id="detail-favorite-btn" style="display:none;"><span>⭐</span> お気に入りに追加</button>
+            <br>
+            <a href="index.html" class="back-link">← イベント一覧に戻る</a>
         </div>
     </div>
 
@@ -103,7 +131,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
@@ -120,77 +148,137 @@
         
         const container = document.getElementById('event-detail-container');
         const pageTitle = document.getElementById('page-title');
-
-        const getErrorMessage = (code) => {
-            switch(code) {
-                case 'auth/invalid-email': return 'メールアドレスの形式が正しくありません。';
-                case 'auth/user-not-found': return 'ユーザーが見つかりません。';
-                case 'auth/wrong-password': return 'パスワードが間違っています。';
-                case 'auth/email-already-in-use': return 'このメールアドレスは既に使用されています。';
-                default: return `エラーが発生しました: ${code}`;
-            }
-        };
-
         const modal = document.getElementById('login-modal');
         const loginBtn = document.getElementById('login-btn-header');
         const closeBtn = document.querySelector('.close-btn');
+
+        let currentUser = null;
+        let isFavorite = false;
+        let eventId = new URLSearchParams(location.search).get('id');
+        const categoryNames = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
+
+        // --- 認証関連 ---
         loginBtn.onclick = () => { if (!currentUser) modal.style.display = 'block'; };
         closeBtn.onclick = () => modal.style.display = 'none';
         window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
 
         const googleProvider = new GoogleAuthProvider();
         const githubProvider = new GithubAuthProvider();
-        const handleAuthError = (e) => alert(getErrorMessage(e.code || e.message));
 
-        document.getElementById('google-login-btn').onclick = () => signInWithPopup(auth, googleProvider).then(() => modal.style.display = 'none').catch(handleAuthError);
-        document.getElementById('github-login-btn').onclick = () => signInWithPopup(auth, githubProvider).then(() => modal.style.display = 'none').catch(handleAuthError);
+        document.getElementById('google-login-btn').onclick = () => signInWithPopup(auth, googleProvider).then(() => modal.style.display = 'none').catch(e => alert(e.message));
+        document.getElementById('github-login-btn').onclick = () => signInWithPopup(auth, githubProvider).then(() => modal.style.display = 'none').catch(e => alert(e.message));
         document.getElementById('email-signup-btn').onclick = () => {
             const email = document.getElementById('email-input').value.trim();
             const pass = document.getElementById('password-input').value;
-            if (email && pass.length >= 6) createUserWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(handleAuthError);
-            else alert("メールと6文字以上のパスワードを入力してください");
+            if (email && pass.length >= 6) createUserWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(e => alert(e.message));
+            else alert("パスワードは6文字以上必要です");
         };
         document.getElementById('email-login-btn').onclick = () => {
             const email = document.getElementById('email-input').value.trim();
             const pass = document.getElementById('password-input').value;
-            if (email && pass) signInWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(handleAuthError);
-            else alert("メールとパスワードを入力してください");
+            if (email && pass) signInWithEmailAndPassword(auth, email, pass).then(() => modal.style.display = 'none').catch(e => alert(e.message));
         };
 
-        let currentUser = null;
-        let isFavorite = false;
-        let eventId = null;
-        const categoryNames = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
+        // --- レビュー投稿機能 ---
+        const submitReview = async () => {
+            const rating = document.getElementById('review-rating').value;
+            const comment = document.getElementById('review-comment').value.trim();
+            const btn = document.getElementById('submit-review-btn');
 
-        onAuthStateChanged(auth, async user => {
-            currentUser = user;
-            if (user) {
-                loginBtn.textContent = `${user.displayName || user.email.split('@')[0]} さん`;
-                loginBtn.onclick = () => location.href = 'mypage.html';
-                if(eventId) await checkFavoriteStatus();
-            } else {
-                loginBtn.textContent = 'ログイン / サインアップ';
-                loginBtn.onclick = () => modal.style.display = 'block';
-                isFavorite = false;
-                updateFavoriteButton();
+            if (!comment) return alert("コメントを入力してください");
+            
+            btn.disabled = true;
+            try {
+                const reviewsRef = collection(db, 'events', eventId, 'reviews');
+                await addDoc(reviewsRef, {
+                    reviewerUid: currentUser.uid,
+                    reviewerName: currentUser.displayName || currentUser.email.split('@')[0],
+                    reviewRating: parseInt(rating),
+                    reviewComment: comment,
+                    postedAt: serverTimestamp()
+                });
+                document.getElementById('review-comment').value = "";
+                alert("投稿ありがとうございます！");
+            } catch (e) {
+                console.error(e);
+                alert("投稿に失敗しました");
+            } finally {
+                btn.disabled = false;
             }
-        });
+        };
 
+        // レビューUIの描画
+        const renderReviewUI = () => {
+            const formArea = document.getElementById('review-form-area');
+            if (currentUser) {
+                formArea.innerHTML = `
+                    <div class="review-form">
+                        <h3>このイベントの感想を投稿する</h3>
+                        <label>評価：</label>
+                        <select id="review-rating">
+                            <option value="5">★★★★★ (5)</option>
+                            <option value="4">★★★★☆ (4)</option>
+                            <option value="3" selected>★★★☆☆ (3)</option>
+                            <option value="2">★★☆☆☆ (2)</option>
+                            <option value="1">★☆☆☆☆ (1)</option>
+                        </select>
+                        <textarea id="review-comment" placeholder="イベントはいかがでしたか？（会場の雰囲気や内容など）"></textarea>
+                        <button id="submit-review-btn">レビューを投稿する</button>
+                    </div>
+                `;
+                document.getElementById('submit-review-btn').onclick = submitReview;
+            } else {
+                formArea.innerHTML = `
+                    <div class="review-form" style="text-align:center;">
+                        <p>レビューを投稿するにはログインが必要です</p>
+                        <button onclick="document.getElementById('login-modal').style.display='block'" 
+                            style="background:var(--primary); color:white; border:none; padding:10px 25px; border-radius:50px; cursor:pointer; font-weight:bold;">
+                            ログインして投稿する
+                        </button>
+                    </div>
+                `;
+            }
+        };
+
+        // レビューのリアルタイム表示
+        const initReviewsRealtime = () => {
+            const reviewsRef = collection(db, 'events', eventId, 'reviews');
+            const q = query(reviewsRef, orderBy('postedAt', 'desc'));
+
+            onSnapshot(q, (snapshot) => {
+                const displayArea = document.getElementById('reviews-display');
+                if (snapshot.empty) {
+                    displayArea.innerHTML = '<p style="color:#999; text-align:center; padding:20px;">まだレビューはありません。最初の投稿者になりましょう！</p>';
+                    return;
+                }
+
+                displayArea.innerHTML = snapshot.docs.map(doc => {
+                    const r = doc.data();
+                    const date = r.postedAt ? r.postedAt.toDate().toLocaleDateString() : '投稿中...';
+                    const stars = '★'.repeat(r.reviewRating) + '☆'.repeat(5 - r.reviewRating);
+                    return `
+                        <div class="review-item">
+                            <div class="review-rating">${stars}</div>
+                            <div class="review-meta"><strong>${r.reviewerName}</strong> | ${date}</div>
+                            <div class="review-comment">${r.reviewComment}</div>
+                        </div>
+                    `;
+                }).join('');
+            });
+        };
+
+        // --- お気に入り機能 ---
         const checkFavoriteStatus = async () => {
             if (!currentUser || !eventId) return;
-            try {
-                const snap = await getDoc(doc(db, 'users', currentUser.uid));
-                if (snap.exists()) {
-                    const favs = snap.data().favorites || [];
-                    isFavorite = favs.includes(eventId);
-                } else { isFavorite = false; }
-                updateFavoriteButton();
-            } catch (e) { console.error(e); }
+            const snap = await getDoc(doc(db, 'users', currentUser.uid));
+            isFavorite = snap.exists() ? (snap.data().favorites || []).includes(eventId) : false;
+            updateFavoriteButton();
         };
 
         const updateFavoriteButton = () => {
             const btn = document.getElementById('detail-favorite-btn');
             if(!btn) return;
+            btn.style.display = 'inline-flex';
             if (isFavorite) {
                 btn.classList.add('is-favorite');
                 btn.innerHTML = '<span>❤️</span> お気に入り解除';
@@ -208,15 +296,12 @@
             try {
                 if (!isFavorite) { await updateDoc(userRef, { favorites: arrayRemove(eventId) }); }
                 else { await setDoc(userRef, { favorites: arrayUnion(eventId) }, { merge: true }); }
-            } catch (e) { 
-                console.error(e); alert('処理に失敗しました');
-                isFavorite = !isFavorite; updateFavoriteButton();
-            }
+            } catch (e) { console.error(e); isFavorite = !isFavorite; updateFavoriteButton(); }
         };
 
+        // --- メイン読み込み処理 ---
         const loadEventDetail = async () => {
-            eventId = new URLSearchParams(location.search).get('id');
-            if (!eventId) { container.innerHTML = '<p style="text-align:center;color:red;">イベントIDが指定されていません</p>'; return; }
+            if (!eventId) { container.innerHTML = '<p style="text-align:center;color:red;">不正なアクセスです</p>'; return; }
 
             try {
                 const snap = await getDoc(doc(db, 'events', eventId));
@@ -224,81 +309,58 @@
 
                 const data = snap.data();
                 const timeDisplay = data.startTime ? `${data.startTime} 〜 ${data.endTime || ""}` : "終日";
-                const imgHtml = data.imageUrl 
-                    ? `<img src="${data.imageUrl}" class="detail-image" alt="${data.name}">` 
-                    : `<div style="height:300px;background:#eee;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#999;margin-bottom:30px;">画像なし</div>`;
+                const imgHtml = data.imageUrl ? `<img src="${data.imageUrl}" class="detail-image" alt="${data.name}">` : `<div style="height:300px;background:#eee;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#999;margin-bottom:30px;">画像なし</div>`;
                 const catLabel = categoryNames[data.category] || data.category || "未分類";
                 
-                let tagsHtml = '';
-                if (data.tags && Array.isArray(data.tags) && data.tags.length > 0) {
-                    tagsHtml = `<div class="tags-area">${data.tags.map(t => `<span class="tag-chip">#${t}</span>`).join('')}</div>`;
-                }
-
-                let galleryHtml = '';
-                if (data.subImages && Array.isArray(data.subImages) && data.subImages.length > 0) {
-                    const items = data.subImages.map(url => `
-                        <a href="${url}" target="_blank" class="gallery-item">
-                            <img src="${url}" alt="詳細画像" loading="lazy">
-                        </a>
-                    `).join('');
-                    galleryHtml = `
-                        <div class="gallery-section">
-                            <h3 class="gallery-title">ギャラリー・関連情報</h3>
-                            <div class="gallery-grid">${items}</div>
-                        </div>
-                    `;
-                }
+                let tagsHtml = (data.tags || []).map(t => `<span class="tag-chip">#${t}</span>`).join('');
+                let galleryHtml = (data.subImages || []).map(url => `
+                    <a href="${url}" target="_blank" class="gallery-item"><img src="${url}" alt="詳細" loading="lazy"></a>
+                `).join('');
 
                 container.innerHTML = `
                     <div class="event-header">
                         <span class="category-badge">${catLabel}</span>
                         <h1>${data.name}</h1>
                     </div>
-                    
                     ${imgHtml}
-
                     <div class="info-grid">
-                        <div class="info-item">
-                            <h3>Date</h3>
-                            <p>${data.date}</p>
-                        </div>
-                        <div class="info-item">
-                            <h3>Time</h3>
-                            <p>${timeDisplay}</p>
-                        </div>
-                        <div class="info-item">
-                            <h3>Venue</h3>
-                            <p>${data.venue || "未定"}</p>
-                        </div>
-                        <div class="info-item">
-                            <h3>Organizer</h3>
-                            <p>${data.organizer || "-"}</p>
-                        </div>
+                        <div class="info-item"><h3>Date</h3><p>${data.date}</p></div>
+                        <div class="info-item"><h3>Time</h3><p>${timeDisplay}</p></div>
+                        <div class="info-item"><h3>Venue</h3><p>${data.venue || "未定"}</p></div>
+                        <div class="info-item"><h3>Organizer</h3><p>${data.organizer || "-"}</p></div>
                     </div>
-
-                    ${tagsHtml}
-
+                    <div class="tags-area">${tagsHtml}</div>
                     <h2>イベント概要</h2>
                     <div class="description">${data.description || "詳細情報はありません。"}</div>
-
-                    ${galleryHtml}
-
-                    <div class="action-area">
-                        <button id="detail-favorite-btn"><span>⭐</span> お気に入りに追加</button>
-                        <br>
-                        <a href="index.html" class="back-link">← イベント一覧に戻る</a>
-                    </div>
+                    ${galleryHtml ? `<div class="gallery-section"><h3 class="gallery-title">ギャラリー</h3><div class="gallery-grid">${galleryHtml}</div></div>` : ''}
                 `;
 
                 pageTitle.textContent = `${data.name} | イベント詳細`;
-                document.getElementById('detail-favorite-btn').addEventListener('click', toggleFavorite);
+                document.getElementById('reviews-section-wrapper').style.display = 'block';
+                document.getElementById('detail-favorite-btn').onclick = toggleFavorite;
+
+                renderReviewUI();
+                initReviewsRealtime();
                 if(currentUser) await checkFavoriteStatus();
 
             } catch (e) {
                 console.error(e);
-                container.innerHTML = '<p style="text-align:center;color:red;">読み込みエラーが発生しました</p>';
+                container.innerHTML = '<p style="text-align:center;color:red;">データの取得に失敗しました</p>';
             }
         };
+
+        onAuthStateChanged(auth, user => {
+            currentUser = user;
+            if (user) {
+                loginBtn.textContent = `${user.displayName || user.email.split('@')[0]} さん`;
+                loginBtn.onclick = () => location.href = 'mypage.html';
+                checkFavoriteStatus();
+            } else {
+                loginBtn.textContent = 'ログイン / サインアップ';
+                loginBtn.onclick = () => modal.style.display = 'block';
+            }
+            renderReviewUI(); // ログイン状態が変わったらフォームも再描画
+        });
 
         loadEventDetail();
     </script>
