@@ -85,137 +85,72 @@ body {
 }
 .sidebar { height: fit-content; position: sticky; top: 150px; }
 
-/* カレンダー専用スタイル */
-.flatpickr-calendar {
-    background: #ffffff !important;
-    border: none !important;
-    box-shadow: 0 10px 25px rgba(94, 53, 177, 0.1) !important; /* ほのかな紫の影 */
-    border-radius: 15px !important;
-    padding: 10px;
-    font-family: inherit;
-}
-
-/* 曜日ヘッダー部分 */
-span.flatpickr-weekday {
-    color: var(--primary) !important;
-    font-weight: bold !important;
-}
-
-/* 各日付のスタイル */
-.flatpickr-day {
-    border-radius: 8px !important; /* 四角ではなく少し丸く */
-    transition: all 0.2s ease;
-}
-
-/* 選択された日の色（メインの紫に合わせる） */
-.flatpickr-day.selected, 
-.flatpickr-day.selected:hover {
-    background: var(--primary) !important;
-    border-color: var(--primary) !important;
-    box-shadow: 0 4px 10px rgba(94, 53, 177, 0.4);
-    transform: scale(1.05); /* 選択時に少し大きく */
-}
-
-/* 今日（Today）の日付 */
-.flatpickr-day.today {
-    border-color: var(--accent) !important;
-    color: var(--accent) !important;
-}
-
-/* ホバー（マウスを乗せた時） */
-.flatpickr-day:hover {
-    background: #f0ebf7 !important;
-}
-
-/* 月の切り替え矢印 */
-.flatpickr-months .flatpickr-prev-month:hover svg, 
-.flatpickr-months .flatpickr-next-month:hover svg {
-    fill: var(--primary) !important;
-}
-
-/* 検索とフィルター */
+/* 検索・フィルター・タグ */
 .search-container { display: flex; margin-bottom: 10px; }
-#search-input {
-    flex: 1; padding: 16px; border: 2px solid #ddd; border-right: none; 
-    border-radius: 30px 0 0 30px; font-size: 1em; outline: none;
-}
-#search-btn {
-    padding: 0 24px; background: var(--primary); color: white; border: none; 
-    border-radius: 0 30px 30px 0; cursor: pointer; font-weight: bold;
-}
-#clear-filters-btn {
-    width: 100%; padding: 8px; background: #f0f0f0; color: var(--gray); 
-    border: none; border-radius: 8px; cursor: pointer; margin-top: 5px;
-}
-
+#search-input { flex: 1; padding: 16px; border: 2px solid #ddd; border-right: none; border-radius: 30px 0 0 30px; font-size: 1em; outline: none; }
+#search-btn { padding: 0 24px; background: var(--primary); color: white; border: none; border-radius: 0 30px 30px 0; cursor: pointer; font-weight: bold; }
+#clear-filters-btn { width: 100%; padding: 8px; background: #f0f0f0; color: var(--gray); border: none; border-radius: 8px; cursor: pointer; margin-top: 5px; }
 .filter-group { margin-bottom: 25px; }
-.filter-group h3 { 
-    margin: 0 0 12px; color: var(--primary); 
-    border-bottom: 2px solid #eee; padding-bottom: 8px; 
-}
-
+.filter-group h3 { margin: 0 0 12px; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; }
 .filter-tags { display: flex; flex-wrap: wrap; gap: 8px; }
 .tag-btn { padding: 8px 16px; background: #eee; border-radius: 20px; font-size: 0.9em; cursor: pointer; }
 .tag-btn.active { background: var(--primary); color: white; }
 .hidden-tag { display: none !important; }
+.show-more-btn { width: 100%; padding: 10px; margin-top: 15px; background: #f0f0f0; color: var(--primary); border: 1px solid #ddd; border-radius: 8px; font-weight: bold; }
 
-.show-more-btn {
-    width: 100%; padding: 10px; margin-top: 15px; background: #f0f0f0; 
-    color: var(--primary); border: 1px solid #ddd; border-radius: 8px; font-weight: bold;
-}
+/* カレンダー（フラットピッカー用） */
+.flatpickr-calendar { background: #ffffff !important; border: none !important; box-shadow: 0 10px 25px rgba(94, 53, 177, 0.1) !important; border-radius: 15px !important; padding: 10px; }
+.flatpickr-day.selected { background: var(--primary) !important; border-color: var(--primary) !important; }
 
-/* おすすめイベント */
+/* おすすめイベント（カルーセル） */
 .featured { margin-bottom: 40px; position: relative; }
-.carousel-container {
-    position: relative; border-radius: 20px; overflow: hidden; 
-    background: linear-gradient(135deg, #4527a0 0%, #667eea 100%); padding: 20px 0;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15); margin-bottom: 40px;
-}
-.featured-grid {
-    display: flex; gap: 24px; overflow-x: auto; scroll-behavior: smooth;
-    padding: 10px 80px 20px 80px; scrollbar-width: none; background: white;
-}
+.carousel-container { position: relative; border-radius: 20px; overflow: hidden; background: linear-gradient(135deg, #4527a0 0%, #667eea 100%); padding: 20px 0; box-shadow: 0 20px 40px rgba(0,0,0,0.15); margin-bottom: 40px; }
+.featured-grid { display: flex; gap: 24px; overflow-x: auto; scroll-behavior: smooth; padding: 10px 80px 20px 80px; scrollbar-width: none; background: white; }
 .featured-grid::-webkit-scrollbar { display: none; }
-.featured-card { flex: 0 0 380px; border-radius: 18px; overflow: hidden; background: white; transition: 0.4s; }
-.featured-card:hover { transform: translateY(-12px); }
+.featured-card { flex: 0 0 380px; border-radius: 18px; overflow: hidden; background: white; transition: 0.4s; position: relative; }
 .featured-card img { width: 100%; height: 240px; object-fit: cover; }
 .featured-card .content { padding: 20px; }
-.featured-label { position: absolute; top: 15px; left: 15px; background: var(--accent); color: white; padding: 6px 14px; border-radius: 20px; font-weight: bold; }
+.featured-label { position: absolute; top: 15px; left: 15px; background: var(--accent); color: white; padding: 6px 14px; border-radius: 20px; font-weight: bold; z-index: 10; }
+.carousel-control { position: absolute; top: 50%; transform: translateY(-50%); width: 48px; height: 48px; background: rgba(0, 0, 0, 0.4); color: white; border: 2px solid rgba(255, 255, 255, 0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 20; }
+.carousel-control.prev { left: 20px; } .carousel-control.next { right: 20px; }
 
-.carousel-control {
-    position: absolute; top: 50%; transform: translateY(-50%); width: 48px; height: 48px;
-    background: rgba(0, 0, 0, 0.4); color: white; border: 2px solid rgba(255, 255, 255, 0.6);
-    border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 20;
-}
-.carousel-control.prev { left: 20px; }
-.carousel-control.next { right: 20px; }
-
-/* イベントカード一覧 */
+/* イベントカード本体 */
 .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
-.event-card { position: relative; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; transition: 0.3s; }
+.event-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; transition: 0.3s; }
 .event-card:hover { transform: translateY(-8px); }
 .event-card img { width: 100%; height: 200px; object-fit: cover; }
 .event-card .content { padding: 18px; flex: 1; }
 .category-tag { padding: 4px 10px; background: #e0e0e0; border-radius: 20px; font-size: 0.8em; }
+
+/* --- 【重要】レビュー評価用スタイル --- */
+.event-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    font-size: 0.95em;
+    font-weight: bold;
+}
+.event-rating .stars { color: #f39c12; letter-spacing: 1px; }
+.event-rating .avg-num { color: var(--text); }
+.event-rating .rev-count { color: var(--gray); font-weight: normal; font-size: 0.85em; }
+
+.event-card .meta { color: var(--gray); font-size: 0.9em; margin-bottom: 8px; }
 .favorite-btn { width: 100%; padding: 12px; border: none; background: #ffd740; font-weight: bold; cursor: pointer; border-radius: 0 0 16px 16px; }
 .favorite-btn.is-favorite { background: var(--accent); color: white; }
 
-/* モーダル・フッター・レスポンシブ (省略なし) */
+/* モーダル・フッター */
 .modal { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
-.modal-content { background: white; margin: 8% auto; padding: 40px; border-radius: 20px; width: 90%; max-width: 480px; animation: modalIn 0.4s; position: relative; }
-@keyframes modalIn { from { transform: translateY(-100px); opacity: 0; } to { transform: none; opacity: 1; } }
-.close-btn { position: absolute; top: 15px; right: 20px; font-size: 32px; color: #aaa; cursor: pointer; }
+.modal-content { background: white; margin: 8% auto; padding: 40px; border-radius: 20px; width: 90%; max-width: 480px; position: relative; }
+.close-btn { position: absolute; top: 15px; right: 20px; font-size: 32px; cursor: pointer; }
 .auth-buttons button { width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; }
 #google-login-btn { background: #DB4437; } #github-login-btn { background: #333; }
 #email-signup-btn, #email-login-btn { background: #4CAF50; }
 input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 50px; outline: none; }
-
 .footer { background: #424242; color: #f0f0f0; text-align: center; padding: 30px 20px; margin-top: 40px; }
 .footer-links { display: flex; justify-content: center; gap: 30px; margin-bottom: 15px; }
 .footer-links a { color: #bdbdbd; text-decoration: none; }
-
 .page-description-section { max-width: 900px; margin: 40px auto; padding: 30px; background: #e3f2fd; border-left: 5px solid var(--primary); border-radius: 8px; }
 
 @media (max-width: 1100px) { .container { grid-template-columns: 1fr; } .sidebar { order: -1; position: static; } }
 @media (max-width: 768px) { .featured-grid { padding: 10px 50px 20px 50px; } .featured-card { flex: 0 0 300px; } }
-
