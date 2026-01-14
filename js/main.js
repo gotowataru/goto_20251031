@@ -24,10 +24,149 @@ let isLoading = false;
 let lastVisible = null;
 const PAGE_SIZE = 20;
 const CATEGORY_NAMES = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
-// フィルター変数に date を追加
 let filters = { category: "all", search: "", tag: "", organizer: "", venue: "", date: "" }; 
 
-// --- DOM要素とイベントリスナー（認証関連） ---
+// --- 共通関数：レビュー統計の取得 ---
+const getReviewStats = async (eventId) => {
+    try {
+        const reviewsRef = collection(db, "events", eventId, "reviews");
+        const snap = await getDocs(reviewsRef);
+        if (snap.empty) return { avg: 0, count: 0 };
+
+        let total = 0;
+        snap.forEach(doc => {
+            total += doc.data().reviewRating || 0;
+        });
+        return {
+            avg: (total / snap.size).toFixed(1),
+            count: snap.size
+        };
+    } catch (e) {
+        console.error("レビュー取得エラー:", e);
+        return { avg: 0, count: 0 };
+    }
+};
+
+// --- レンダリング関連 ---
+const renderEvents = () => {
+    const grid = document.getElementById('event-grid');
+    if(!grid) return;
+
+    let filtered = allEvents.filter(e => {
+        const matchCat = filters.category === "all" || e.category === filters.category;
+        const keywords = filters.search.toLowerCase().split(/\s+/).filter(k => k);
+        const targetText = [e.name, e.description, e.summary, e.venue, e.organizer].join(" ").toLowerCase();
+        const matchSearch = keywords.length === 0 || keywords.every(k => targetText.includes(k));
+        const matchTag = !filters.tag || (Array.isArray(e.tags) && e.tags.includes(filters.tag));
+        const matchOrg = !filters.organizer || e.organizer === filters.organizer;
+        const matchVenue = !filters.venue || e.venue === filters.venue;
+        const matchDate = !filters.date || e.date === filters.date;
+        return matchCat && matchSearch && matchTag && matchOrg && matchVenue && matchDate;
+    });
+
+    if (filtered.length === 0) {
+        grid.innerHTML = "<p style='grid-column:1/-1;text-align:center;padding:100px;color:#999;font-size:1.3em;'>該当するイベントがありません</p>";
+        return;
+    }
+
+    grid.innerHTML = filtered.map(ev => {
+        const isFav = favoriteEventIds.includes(ev.id);
+        const catLabel = ev.category ? `<span class="category-tag">${CATEGORY_NAMES[ev.category] || ev.category}</span>` : "";
+        const img = ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${ev.name}" loading="lazy">` : `<div style="height:200px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;font-size:0.9em;">画像なし</div>`;
+        const timeStr = ev.startTime ? `${ev.startTime} 〜 ${ev.endTime || ""}` : "終日";
+        const displayDesc = ev.summary || (ev.description ? ev.description.substring(0, 80) + "..." : "");
+
+        // レビュー表示用のHTML生成
+        let ratingHtml = "";
+        if (ev.stats && ev.stats.count > 0) {
+            const starNum = Math.round(ev.stats.avg);
+            const stars = '★'.repeat(starNum) + '☆'.repeat(5 - starNum);
+            ratingHtml = `
+                <div class="event-rating">
+                    <span class="stars">${stars}</span>
+                    <span class="avg-num">${ev.stats.avg}</span>
+                    <span class="rev-count">(${ev.stats.count}件)</span>
+                </div>
+            `;
+        } else {
+            ratingHtml = `<div class="event-rating"><span class="rev-count">まだレビューがありません</span></div>`;
+        }
+
+        return `
+            <div class="event-card">
+                <a href="detail.html?id=${ev.id}" style="text-decoration:none;color:inherit;display:block;flex:1;">
+                    ${img}
+                    <div class="content">
+                        ${catLabel}
+                        <h2>${ev.name}</h2>
+                        ${ratingHtml}
+                        <div class="meta"><strong>${ev.date}</strong> ${timeStr}</div>
+                        <p>${displayDesc}</p>
+                    </div>
+                </a>
+                <button class="favorite-btn ${isFav ? 'is-favorite' : ''}" data-id="${ev.id}">
+                    ${isFav ? 'お気に入り解除' : 'お気に入りに追加'}
+                </button>
+            </div>
+        `;
+    }).join("");
+
+    document.querySelectorAll('.favorite-btn').forEach(btn => {
+        btn.onclick = e => { e.preventDefault(); e.stopPropagation(); toggleFavorite(btn.dataset.id); };
+    });
+};
+
+// --- データ読み込み ---
+const loadInitialEvents = async () => {
+    const snap = await getDocs(query(collection(db, "events"), where("status", "==", "approved"), orderBy("date"), limit(PAGE_SIZE)));
+    
+    allEvents = await Promise.all(snap.docs.map(async d => {
+        const data = d.data();
+        data.id = d.id;
+        data.stats = await getReviewStats(d.id); 
+        return data;
+    }));
+
+    lastVisible = snap.docs[snap.docs.length - 1] || null;
+    document.getElementById('event-grid').innerHTML = ""; 
+    renderEvents();
+    loadFeatured();
+    loadNewEvents();
+    generateSidebarFilters();
+
+    const observer = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && !isLoading) loadMoreEvents();
+    }, { rootMargin: "400px" });
+    observer.observe(document.getElementById('load-more-trigger'));
+    
+    document.getElementById('load-more-trigger').style.display = lastVisible ? 'block' : 'none';
+};
+
+const loadMoreEvents = async () => {
+    if (isLoading || !lastVisible) return;
+    isLoading = true;
+    const trigger = document.getElementById('load-more-trigger');
+    trigger.innerHTML = '<span style="color:#999;">読み込み中...</span>';
+    const q = query(collection(db, "events"), where("status", "==", "approved"), orderBy("date"), startAfter(lastVisible), limit(PAGE_SIZE));
+    const snap = await getDocs(q);
+    if (snap.empty) { trigger.style.display = 'none'; isLoading = false; return; }
+
+    const newEvents = await Promise.all(snap.docs.map(async d => {
+        const data = d.data();
+        data.id = d.id;
+        data.stats = await getReviewStats(d.id);
+        return data;
+    }));
+
+    allEvents = [...allEvents, ...newEvents];
+    lastVisible = snap.docs[snap.docs.length - 1];
+    renderEvents();
+    generateSidebarFilters();
+    trigger.innerHTML = '<span>もっと見る</span>';
+    isLoading = false;
+};
+
+// --- 以降、認証・カルーセル・フィルタの既存コード ---
 const modal = document.getElementById('login-modal');
 const loginBtn = document.getElementById('login-btn-header');
 const closeBtn = document.querySelector('.close-btn');
@@ -53,63 +192,6 @@ document.getElementById('email-login-btn').onclick = () => {
     else alert("メールとパスワードを入力してください");
 };
 
-/**
- * イベントカードをレンダリングし、DOMに反映する
- */
-const renderEvents = () => {
-    const grid = document.getElementById('event-grid');
-    if(!grid) return;
-
-    let filtered = allEvents.filter(e => {
-        const matchCat = filters.category === "all" || e.category === filters.category;
-        const keywords = filters.search.toLowerCase().split(/\s+/).filter(k => k);
-        const targetText = [e.name, e.description, e.summary, e.venue, e.organizer].join(" ").toLowerCase();
-        const matchSearch = keywords.length === 0 || keywords.every(k => targetText.includes(k));
-        const matchTag = !filters.tag || (Array.isArray(e.tags) && e.tags.includes(filters.tag));
-        const matchOrg = !filters.organizer || e.organizer === filters.organizer;
-        const matchVenue = !filters.venue || e.venue === filters.venue;
-        
-        // 日付フィルターの追加
-        const matchDate = !filters.date || e.date === filters.date;
-
-        return matchCat && matchSearch && matchTag && matchOrg && matchVenue && matchDate;
-    });
-
-    if (filtered.length === 0) {
-        grid.innerHTML = "<p style='grid-column:1/-1;text-align:center;padding:100px;color:#999;font-size:1.3em;'>該当するイベントがありません</p>";
-        return;
-    }
-
-    grid.innerHTML = filtered.map(ev => {
-        const isFav = favoriteEventIds.includes(ev.id);
-        const catLabel = ev.category ? `<span class="category-tag">${CATEGORY_NAMES[ev.category] || ev.category}</span>` : "";
-        const img = ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${ev.name}" loading="lazy">` : `<div style="height:200px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;font-size:0.9em;">画像なし</div>`;
-        const timeStr = ev.startTime ? `${ev.startTime} 〜 ${ev.endTime || ""}` : "終日";
-        const displayDesc = ev.summary || (ev.description ? ev.description.substring(0, 80) + "..." : "");
-
-        return `
-            <div class="event-card">
-                <a href="detail.html?id=${ev.id}" style="text-decoration:none;color:inherit;display:block;flex:1;">
-                    ${img}
-                    <div class="content">
-                        ${catLabel}
-                        <h2>${ev.name}</h2>
-                        <div class="meta"><strong>${ev.date}</strong> ${timeStr}</div>
-                        <p>${displayDesc}</p>
-                    </div>
-                </a>
-                <button class="favorite-btn ${isFav ? 'is-favorite' : ''}" data-id="${ev.id}">
-                    ${isFav ? 'お気に入り解除' : 'お気に入りに追加'}
-                </button>
-            </div>
-        `;
-    }).join("");
-
-    document.querySelectorAll('.favorite-btn').forEach(btn => {
-        btn.onclick = e => { e.preventDefault(); e.stopPropagation(); toggleFavorite(btn.dataset.id); };
-    });
-};
-
 const toggleFavorite = async (eventId) => {
     if (!currentUser) { modal.style.display = "block"; return; }
     const userRef = doc(db, "users", currentUser.uid);
@@ -129,58 +211,37 @@ const toggleFavorite = async (eventId) => {
     }
 };
 
-// --- カルーセル機能 ---
 const startCarousel = () => {
     const grid = document.getElementById('featured-grid');
     if (!grid) return;
     const cards = Array.from(grid.querySelectorAll('.featured-card'));
     const prevBtn = document.getElementById('prev-slide-btn');
     const nextBtn = document.getElementById('next-slide-btn');
-
     if (cards.length === 0) return;
-
     const firstClone = cards[0].cloneNode(true);
     const lastClone = cards[cards.length - 1].cloneNode(true);
     grid.prepend(lastClone);
     grid.appendChild(firstClone);
-    
     const allCards = Array.from(grid.querySelectorAll('.featured-card')); 
     const cardWidth = cards[0].offsetWidth; 
     const GAP_SIZE = 24; 
-    
     let currentIndex = 1;
     grid.style.scrollBehavior = 'smooth'; 
     grid.scrollLeft = currentIndex * (cardWidth + GAP_SIZE);
-
     const slideTo = (index) => {
         grid.style.scrollBehavior = 'smooth';
         grid.scrollLeft = index * (cardWidth + GAP_SIZE);
         currentIndex = index;
     };
-
     const checkLoop = () => {
         if (currentIndex === 0) {
-            setTimeout(() => {
-                grid.style.scrollBehavior = 'auto'; 
-                currentIndex = allCards.length - 2; 
-                grid.scrollLeft = currentIndex * (cardWidth + GAP_SIZE);
-            }, 500); 
+            setTimeout(() => { grid.style.scrollBehavior = 'auto'; currentIndex = allCards.length - 2; grid.scrollLeft = currentIndex * (cardWidth + GAP_SIZE); }, 500); 
         } else if (currentIndex === allCards.length - 1) {
-            setTimeout(() => {
-                grid.style.scrollBehavior = 'auto'; 
-                currentIndex = 1; 
-                grid.scrollLeft = currentIndex * (cardWidth + GAP_SIZE);
-            }, 500);
+            setTimeout(() => { grid.style.scrollBehavior = 'auto'; currentIndex = 1; grid.scrollLeft = currentIndex * (cardWidth + GAP_SIZE); }, 500);
         }
     };
-
-    const autoSlide = () => {
-        slideTo(currentIndex + 1);
-        checkLoop();
-    };
-
+    const autoSlide = () => { slideTo(currentIndex + 1); checkLoop(); };
     let slideInterval = setInterval(autoSlide, 4000);
-
     nextBtn.onclick = () => { clearInterval(slideInterval); slideTo(currentIndex + 1); checkLoop(); slideInterval = setInterval(autoSlide, 4000); };
     prevBtn.onclick = () => { clearInterval(slideInterval); slideTo(currentIndex - 1); checkLoop(); slideInterval = setInterval(autoSlide, 4000); };
 };
@@ -220,13 +281,11 @@ const loadNewEvents = async () => {
 const generateSidebarFilters = () => {
     const tags = new Set(), organizers = new Set(), venues = new Set();
     const approvedEvents = allEvents.filter(e => e.status === "approved" || !e.status); 
-
     approvedEvents.forEach(e => {
         if (Array.isArray(e.tags)) e.tags.forEach(t => tags.add(t));
         if (e.organizer) organizers.add(e.organizer);
         if (e.venue) venues.add(e.venue);
     });
-    
     const MAX_ITEMS = 10; 
     const createButtons = (containerId, items, type) => {
         const container = document.getElementById(containerId);
@@ -236,7 +295,6 @@ const generateSidebarFilters = () => {
         container.innerHTML = "";
         const sortedItems = Array.from(items).sort();
         let itemsCount = 0;
-
         sortedItems.forEach(item => {
             const btn = document.createElement('span');
             btn.className = "tag-btn";
@@ -252,15 +310,11 @@ const generateSidebarFilters = () => {
             container.appendChild(btn);
             itemsCount++;
         });
-
         if (itemsCount > MAX_ITEMS) {
             const showMoreBtn = document.createElement('button');
             showMoreBtn.className = "show-more-btn";
             showMoreBtn.textContent = `もっと見る (${itemsCount - MAX_ITEMS}件)`;
-            showMoreBtn.onclick = () => {
-                container.querySelectorAll('.hidden-tag').forEach(tag => tag.classList.remove('hidden-tag'));
-                showMoreBtn.style.display = 'none';
-            };
+            showMoreBtn.onclick = () => { container.querySelectorAll('.hidden-tag').forEach(tag => tag.classList.remove('hidden-tag')); showMoreBtn.style.display = 'none'; };
             container.appendChild(showMoreBtn);
         }
     };
@@ -269,55 +323,13 @@ const generateSidebarFilters = () => {
     createButtons('venue-container', venues, 'venue');
 };
 
-const loadMoreEvents = async () => {
-    if (isLoading || !lastVisible) return;
-    isLoading = true;
-    const trigger = document.getElementById('load-more-trigger');
-    trigger.innerHTML = '<span style="color:#999;">読み込み中...</span>';
-    const q = query(collection(db, "events"), where("status", "==", "approved"), orderBy("date"), startAfter(lastVisible), limit(PAGE_SIZE));
-    const snap = await getDocs(q);
-    if (snap.empty) { trigger.style.display = 'none'; isLoading = false; return; }
-    const newEvents = snap.docs.map(d => { const data = d.data(); data.id = d.id; return data; });
-    allEvents = [...allEvents, ...newEvents];
-    lastVisible = snap.docs[snap.docs.length - 1];
-    renderEvents();
-    generateSidebarFilters();
-    trigger.innerHTML = '<span>もっと見る</span>';
-    isLoading = false;
-};
-
-const loadInitialEvents = async () => {
-    const snap = await getDocs(query(collection(db, "events"), where("status", "==", "approved"), orderBy("date"), limit(PAGE_SIZE)));
-    allEvents = snap.docs.map(d => { const data = d.data(); data.id = d.id; return data; });
-    lastVisible = snap.docs[snap.docs.length - 1] || null;
-    document.getElementById('event-grid').innerHTML = ""; 
-    renderEvents();
-    loadFeatured();
-    loadNewEvents();
-    generateSidebarFilters();
-
-    const observer = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting && !isLoading) loadMoreEvents();
-    }, { rootMargin: "400px" });
-    observer.observe(document.getElementById('load-more-trigger'));
-    
-    document.getElementById('load-more-trigger').style.display = lastVisible ? 'block' : 'none';
-};
-
-// --- カレンダー初期化 ---
 const initCalendar = () => {
     flatpickr("#calendar-input", {
-        inline: true,
-        locale: "ja",
-        dateFormat: "Y/m/d",
-        onChange: (selectedDates, dateStr) => {
-            filters.date = dateStr;
-            renderEvents();
-        }
+        inline: true, locale: "ja", dateFormat: "Y/m/d",
+        onChange: (selectedDates, dateStr) => { filters.date = dateStr; renderEvents(); }
     });
 };
 
-// --- 起動とリスナー ---
 onAuthStateChanged(auth, async user => {
     currentUser = user;
     if (user) {
@@ -333,31 +345,20 @@ onAuthStateChanged(auth, async user => {
     renderEvents(); 
 });
 
-document.getElementById('search-btn').onclick = () => {
-    filters.search = document.getElementById('search-input').value.trim();
-    renderEvents();
-};
-document.getElementById('search-input').addEventListener('keypress', e => {
-    if (e.key === 'Enter') document.getElementById('search-btn').click();
-});
-
+document.getElementById('search-btn').onclick = () => { filters.search = document.getElementById('search-input').value.trim(); renderEvents(); };
+document.getElementById('search-input').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('search-btn').click(); });
 document.getElementById('clear-filters-btn').onclick = () => {
     filters = { category: "all", search: "", tag: "", organizer: "", venue: "", date: "" };
     document.getElementById('search-input').value = "";
     const allRadio = document.querySelector('.category-nav input[name="category"][value="all"]');
     if (allRadio) allRadio.checked = true;
-    
-    // カレンダーのリセット
     const fp = document.querySelector("#calendar-input")._flatpickr;
     if (fp) fp.clear();
-
     loadInitialEvents(); 
 };
-
 document.querySelectorAll('.category-nav input[name="category"]').forEach(r => {
     r.onchange = () => { filters.category = r.value; renderEvents(); };
 });
 
 loadInitialEvents();
 initCalendar();
-
