@@ -1,4 +1,4 @@
-// --- Gemini API をブラウザから直接叩く版 ---
+// --- Gemini API をブラウザから直接叩く版（v1beta + gemini-pro） ---
 // ※ APIキーは公開されるので研究用途以外では絶対に使わないこと
 const GEMINI_API_KEY = "YOUR_API_KEY_HERE"; 
 
@@ -60,11 +60,11 @@ export class AIChatManager {
 
     // --- Gemini API を fetch で直接叩く ---
     async callGeminiAPI(prompt) {
-        const endpoint = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
+        const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 
         const headers = {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${GEMINI_API_KEY}`
+            "x-goog-api-key": GEMINI_API_KEY
         };
 
         const body = {
