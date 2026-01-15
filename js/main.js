@@ -2,6 +2,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/fireba
 import { getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, query, where, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
+// --- AI機能のインポート ---
+import { AIChatManager } from "./gemini.js";
+
 // --- Firebase 設定 ---
 const firebaseConfig = {
     apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
@@ -19,12 +22,15 @@ const db = getFirestore(app);
 // --- グローバル状態管理変数 ---
 let currentUser = null;
 let favoriteEventIds = [];
-let allEvents = [];
+window.allEvents = []; // AIからも参照できるように window に紐付け
 let isLoading = false;
 let lastVisible = null;
 const PAGE_SIZE = 20;
 const CATEGORY_NAMES = { matsuri: "祭り", music: "音楽", learn: "学び", workshop: "ワークショップ", sports: "スポーツ", gourmet: "グルメ", exhibition: "展示・芸術" };
 let filters = { category: "all", search: "", tag: "", organizer: "", venue: "", date: "" }; 
+
+// AIマネージャーの初期化
+const aiChat = new AIChatManager(db, auth);
 
 // --- 共通関数：レビュー統計の取得 ---
 const getReviewStats = async (eventId) => {
@@ -52,7 +58,7 @@ const renderEvents = () => {
     const grid = document.getElementById('event-grid');
     if(!grid) return;
 
-    let filtered = allEvents.filter(e => {
+    let filtered = window.allEvents.filter(e => {
         const matchCat = filters.category === "all" || e.category === filters.category;
         const keywords = filters.search.toLowerCase().split(/\s+/).filter(k => k);
         const targetText = [e.name, e.description, e.summary, e.venue, e.organizer].join(" ").toLowerCase();
@@ -76,7 +82,6 @@ const renderEvents = () => {
         const timeStr = ev.startTime ? `${ev.startTime} 〜 ${ev.endTime || ""}` : "終日";
         const displayDesc = ev.summary || (ev.description ? ev.description.substring(0, 80) + "..." : "");
 
-        // レビュー表示用のHTML生成
         let ratingHtml = "";
         if (ev.stats && ev.stats.count > 0) {
             const starNum = Math.round(ev.stats.avg);
@@ -120,7 +125,7 @@ const renderEvents = () => {
 const loadInitialEvents = async () => {
     const snap = await getDocs(query(collection(db, "events"), where("status", "==", "approved"), orderBy("date"), limit(PAGE_SIZE)));
     
-    allEvents = await Promise.all(snap.docs.map(async d => {
+    window.allEvents = await Promise.all(snap.docs.map(async d => {
         const data = d.data();
         data.id = d.id;
         data.stats = await getReviewStats(d.id); 
@@ -158,7 +163,7 @@ const loadMoreEvents = async () => {
         return data;
     }));
 
-    allEvents = [...allEvents, ...newEvents];
+    window.allEvents = [...window.allEvents, ...newEvents];
     lastVisible = snap.docs[snap.docs.length - 1];
     renderEvents();
     generateSidebarFilters();
@@ -166,7 +171,7 @@ const loadMoreEvents = async () => {
     isLoading = false;
 };
 
-// --- 以降、認証・カルーセル・フィルタの既存コード ---
+// --- 認証・UI制御 ---
 const modal = document.getElementById('login-modal');
 const loginBtn = document.getElementById('login-btn-header');
 const closeBtn = document.querySelector('.close-btn');
@@ -211,6 +216,7 @@ const toggleFavorite = async (eventId) => {
     }
 };
 
+// --- カルーセル・表示機能 ---
 const startCarousel = () => {
     const grid = document.getElementById('featured-grid');
     if (!grid) return;
@@ -218,21 +224,25 @@ const startCarousel = () => {
     const prevBtn = document.getElementById('prev-slide-btn');
     const nextBtn = document.getElementById('next-slide-btn');
     if (cards.length === 0) return;
+    
     const firstClone = cards[0].cloneNode(true);
     const lastClone = cards[cards.length - 1].cloneNode(true);
     grid.prepend(lastClone);
     grid.appendChild(firstClone);
+    
     const allCards = Array.from(grid.querySelectorAll('.featured-card')); 
     const cardWidth = cards[0].offsetWidth; 
     const GAP_SIZE = 24; 
     let currentIndex = 1;
-    grid.style.scrollBehavior = 'smooth'; 
+    grid.style.scrollBehavior = 'auto'; 
     grid.scrollLeft = currentIndex * (cardWidth + GAP_SIZE);
+
     const slideTo = (index) => {
         grid.style.scrollBehavior = 'smooth';
         grid.scrollLeft = index * (cardWidth + GAP_SIZE);
         currentIndex = index;
     };
+
     const checkLoop = () => {
         if (currentIndex === 0) {
             setTimeout(() => { grid.style.scrollBehavior = 'auto'; currentIndex = allCards.length - 2; grid.scrollLeft = currentIndex * (cardWidth + GAP_SIZE); }, 500); 
@@ -240,8 +250,10 @@ const startCarousel = () => {
             setTimeout(() => { grid.style.scrollBehavior = 'auto'; currentIndex = 1; grid.scrollLeft = currentIndex * (cardWidth + GAP_SIZE); }, 500);
         }
     };
+
     const autoSlide = () => { slideTo(currentIndex + 1); checkLoop(); };
     let slideInterval = setInterval(autoSlide, 4000);
+    
     nextBtn.onclick = () => { clearInterval(slideInterval); slideTo(currentIndex + 1); checkLoop(); slideInterval = setInterval(autoSlide, 4000); };
     prevBtn.onclick = () => { clearInterval(slideInterval); slideTo(currentIndex - 1); checkLoop(); slideInterval = setInterval(autoSlide, 4000); };
 };
@@ -280,7 +292,7 @@ const loadNewEvents = async () => {
 
 const generateSidebarFilters = () => {
     const tags = new Set(), organizers = new Set(), venues = new Set();
-    const approvedEvents = allEvents.filter(e => e.status === "approved" || !e.status); 
+    const approvedEvents = window.allEvents.filter(e => e.status === "approved" || !e.status); 
     approvedEvents.forEach(e => {
         if (Array.isArray(e.tags)) e.tags.forEach(t => tags.add(t));
         if (e.organizer) organizers.add(e.organizer);
@@ -324,12 +336,15 @@ const generateSidebarFilters = () => {
 };
 
 const initCalendar = () => {
-    flatpickr("#calendar-input", {
-        inline: true, locale: "ja", dateFormat: "Y/m/d",
-        onChange: (selectedDates, dateStr) => { filters.date = dateStr; renderEvents(); }
-    });
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr("#calendar-input", {
+            inline: true, locale: "ja", dateFormat: "Y/m/d",
+            onChange: (selectedDates, dateStr) => { filters.date = dateStr; renderEvents(); }
+        });
+    }
 };
 
+// --- アプリ起動 ---
 onAuthStateChanged(auth, async user => {
     currentUser = user;
     if (user) {
