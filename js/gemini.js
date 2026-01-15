@@ -1,10 +1,9 @@
-import { GoogleGenerativeAI } from "https://cdn.skypack.dev/@google/generative-ai";
-import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+// --- Gemini API をブラウザから直接叩く版 ---
+// ※ APIキーは公開されるので研究用途以外では絶対に使わないこと
+const GEMINI_API_KEY = "YOUR_API_KEY_HERE"; 
 
-// --- Gemini API 設定 ---
-// Google AI Studioで取得した最新のAPIキーを貼り付けてください
-const GEMINI_API_KEY = "AIzaSyBnEl1VJ9qhAHNrCwQs7yrsQZuVElk3qKM"; 
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+// Firestore
+import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 /**
  * AIチャット機能を初期化・管理するクラス
@@ -13,17 +12,15 @@ export class AIChatManager {
     constructor(db, auth) {
         this.db = db;
         this.auth = auth;
-        // DOM要素の取得
+
+        // DOM要素
         this.chatContainer = document.getElementById('ai-chat-container');
         this.chatMessages = document.getElementById('ai-chat-messages');
         this.chatInput = document.getElementById('ai-chat-input');
         this.sendBtn = document.getElementById('ai-chat-send');
         this.toggleBtn = document.getElementById('ai-chat-toggle');
         this.closeBtn = document.getElementById('close-chat-btn');
-        
-        // 生成モデルの初期化 (安定版の指定形式)
-        this.model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        
+
         this.initEventListeners();
     }
 
@@ -48,33 +45,63 @@ export class AIChatManager {
         }
     }
 
-    // メッセージを画面に表示する
+    // メッセージを画面に表示
     addMessage(role, text) {
         const div = document.createElement('div');
         div.className = `msg ${role}`;
         div.textContent = text;
         this.chatMessages.appendChild(div);
-        
-        // 常に最新のメッセージまでスクロール
+
         this.chatMessages.scrollTo({
             top: this.chatMessages.scrollHeight,
             behavior: 'smooth'
         });
     }
 
+    // --- Gemini API を fetch で直接叩く ---
+    async callGeminiAPI(prompt) {
+        const endpoint = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
+
+        const headers = {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${GEMINI_API_KEY}`
+        };
+
+        const body = {
+            contents: [
+                {
+                    parts: [{ text: prompt }]
+                }
+            ]
+        };
+
+        const res = await fetch(endpoint, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(body)
+        });
+
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(`Gemini API Error: ${res.status} ${errText}`);
+        }
+
+        const data = await res.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || "（返答を取得できませんでした）";
+    }
+
+    // --- メイン処理 ---
     async askAI() {
         const userText = this.chatInput.value.trim();
         if (!userText) return;
 
-        // ユーザーのメッセージを表示
         this.addMessage('user', userText);
         this.chatInput.value = '';
 
-        // main.js の window.allEvents から最新のイベント情報を取得
+        // main.js の window.allEvents からイベント情報を取得
         const currentEvents = window.allEvents || [];
-        
-        // AIに渡す背景知識（コンテキスト）の構築
-        const eventContext = currentEvents.map(e => 
+
+        const eventContext = currentEvents.map(e =>
             `- ${e.name} (日付:${e.date}, 会場:${e.venue || '未定'}, カテゴリ:${e.category || 'その他'})`
         ).join('\n');
 
@@ -86,23 +113,22 @@ ${eventContext}
 
 ユーザーの質問：${userText}`;
 
+        // ローディング表示
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'msg ai loading-msg';
+        loadingDiv.textContent = '考え中...';
+        this.chatMessages.appendChild(loadingDiv);
+
         try {
-            // ローディング表示（簡易版）
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'msg ai loading-msg';
-            loadingDiv.textContent = '考え中...';
-            this.chatMessages.appendChild(loadingDiv);
+            const aiResponse = await this.callGeminiAPI(prompt);
 
-            // Gemini API 呼び出し
-            const result = await this.model.generateContent(prompt);
-            const response = await result.response;
-            const aiResponse = response.text();
-
-            // ローディング表示を削除してAIの回答を表示
+            // ローディング削除
             this.chatMessages.removeChild(loadingDiv);
+
+            // AIの返答表示
             this.addMessage('ai', aiResponse);
 
-            // ログイン中であれば会話履歴をFirestoreの「chats」コレクションに保存
+            // Firestore 保存
             const user = this.auth.currentUser;
             if (user) {
                 await addDoc(collection(this.db, "chats"), {
@@ -114,12 +140,12 @@ ${eventContext}
                 });
             }
         } catch (e) {
-            console.error("Gemini API Error:", e);
-            // 既存のローディング表示があれば削除
+            console.error(e);
+
             const loadingMsg = this.chatMessages.querySelector('.loading-msg');
             if (loadingMsg) this.chatMessages.removeChild(loadingMsg);
-            
-            this.addMessage('ai', "申し訳ありません。通信エラーが発生しました。APIキーの設定や制限を確認してください。");
+
+            this.addMessage('ai', "申し訳ありません。Gemini API との通信でエラーが発生しました。");
         }
     }
 }
