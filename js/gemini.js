@@ -1,6 +1,6 @@
 // --- Gemini API をブラウザから直接叩く版（v1beta + gemini-pro） ---
 // ※ APIキーは公開されるので研究用途以外では絶対に使わないこと
-const GEMINI_API_KEY = "YOUR_API_KEY_HERE"; 
+const GEMINI_API_KEY = "AIzaSyBnEl1VJ9qhAHNrCwQs7yrsQZuVElk3qKM"; 
 
 // Firestore
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
