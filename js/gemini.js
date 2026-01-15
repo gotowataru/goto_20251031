@@ -1,11 +1,10 @@
-import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+import { GoogleGenerativeAI } from "https://cdn.skypack.dev/@google/generative-ai";
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 // --- Gemini API 設定 ---
-// ※ 勉強用のためここに記述しますが、本来は環境変数などで管理します
+// Google AI Studioで取得した最新のAPIキーを貼り付けてください
 const GEMINI_API_KEY = "AIzaSyBnEl1VJ9qhAHNrCwQs7yrsQZuVElk3qKM"; 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 /**
  * AIチャット機能を初期化・管理するクラス
@@ -14,6 +13,7 @@ export class AIChatManager {
     constructor(db, auth) {
         this.db = db;
         this.auth = auth;
+        // DOM要素の取得
         this.chatContainer = document.getElementById('ai-chat-container');
         this.chatMessages = document.getElementById('ai-chat-messages');
         this.chatInput = document.getElementById('ai-chat-input');
@@ -21,68 +21,105 @@ export class AIChatManager {
         this.toggleBtn = document.getElementById('ai-chat-toggle');
         this.closeBtn = document.getElementById('close-chat-btn');
         
+        // 生成モデルの初期化 (安定版の指定形式)
+        this.model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        
         this.initEventListeners();
     }
 
     initEventListeners() {
-        if (this.toggleBtn) this.toggleBtn.onclick = () => this.chatContainer.classList.toggle('ai-chat-closed');
-        if (this.closeBtn) this.closeBtn.onclick = () => this.chatContainer.classList.add('ai-chat-closed');
-        if (this.sendBtn) this.sendBtn.onclick = () => this.askAI();
+        if (this.toggleBtn) {
+            this.toggleBtn.onclick = () => {
+                this.chatContainer.classList.toggle('ai-chat-closed');
+            };
+        }
+        if (this.closeBtn) {
+            this.closeBtn.onclick = () => {
+                this.chatContainer.classList.add('ai-chat-closed');
+            };
+        }
+        if (this.sendBtn) {
+            this.sendBtn.onclick = () => this.askAI();
+        }
         if (this.chatInput) {
-            this.chatInput.onkeypress = (e) => { if (e.key === 'Enter') this.askAI(); };
+            this.chatInput.onkeypress = (e) => {
+                if (e.key === 'Enter') this.askAI();
+            };
         }
     }
 
+    // メッセージを画面に表示する
     addMessage(role, text) {
         const div = document.createElement('div');
         div.className = `msg ${role}`;
         div.textContent = text;
         this.chatMessages.appendChild(div);
-        this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+        
+        // 常に最新のメッセージまでスクロール
+        this.chatMessages.scrollTo({
+            top: this.chatMessages.scrollHeight,
+            behavior: 'smooth'
+        });
     }
 
     async askAI() {
-        // 現在の最新イベント情報を main.js 側のグローバル変数から取得するための工夫が必要
-        // 今回は window オブジェクト経由または引数経由を想定
-        const currentEvents = window.allEvents || [];
         const userText = this.chatInput.value.trim();
-        
         if (!userText) return;
 
+        // ユーザーのメッセージを表示
         this.addMessage('user', userText);
         this.chatInput.value = '';
 
-        // コンテキスト（背景知識）の作成
+        // main.js の window.allEvents から最新のイベント情報を取得
+        const currentEvents = window.allEvents || [];
+        
+        // AIに渡す背景知識（コンテキスト）の構築
         const eventContext = currentEvents.map(e => 
-            `- ${e.name} (日時:${e.date}, 会場:${e.venue || '未定'}, カテゴリ:${e.category || '不明'})`
+            `- ${e.name} (日付:${e.date}, 会場:${e.venue || '未定'}, カテゴリ:${e.category || 'その他'})`
         ).join('\n');
 
-        const prompt = `あなたは親切なイベント案内人です。以下の最新イベント情報を踏まえて、ユーザーの質問に回答してください。
-もし該当するイベントがない場合は、似たカテゴリを勧めるか、「現在募集中のリストにはありません」と伝えてください。
+        const prompt = `あなたは親切なイベント案内人です。以下の「最新のイベントリスト」に基づいてユーザーの質問に日本語で答えてください。
+リストにないイベントについては「現在のリストにはありません」と答えつつ、似たものがあれば提案してください。
 
-【イベントリスト】
+【最新のイベントリスト】
 ${eventContext}
 
 ユーザーの質問：${userText}`;
 
         try {
-            const result = await model.generateContent(prompt);
-            const aiResponse = result.response.text();
+            // ローディング表示（簡易版）
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'msg ai loading-msg';
+            loadingDiv.textContent = '考え中...';
+            this.chatMessages.appendChild(loadingDiv);
+
+            // Gemini API 呼び出し
+            const result = await this.model.generateContent(prompt);
+            const response = await result.response;
+            const aiResponse = response.text();
+
+            // ローディング表示を削除してAIの回答を表示
+            this.chatMessages.removeChild(loadingDiv);
             this.addMessage('ai', aiResponse);
 
-            // ログイン中ならFirestoreに会話を保存
+            // ログイン中であれば会話履歴をFirestoreの「chats」コレクションに保存
             const user = this.auth.currentUser;
             if (user) {
                 await addDoc(collection(this.db, "chats"), {
                     userId: user.uid,
+                    userName: user.displayName || user.email,
                     message: userText,
                     reply: aiResponse,
                     createdAt: serverTimestamp()
                 });
             }
         } catch (e) {
-            console.error("Gemini Error:", e);
-            this.addMessage('ai', "通信エラーが発生しました。しばらく経ってから再度お試しください。");
+            console.error("Gemini API Error:", e);
+            // 既存のローディング表示があれば削除
+            const loadingMsg = this.chatMessages.querySelector('.loading-msg');
+            if (loadingMsg) this.chatMessages.removeChild(loadingMsg);
+            
+            this.addMessage('ai', "申し訳ありません。通信エラーが発生しました。APIキーの設定や制限を確認してください。");
         }
     }
 }
