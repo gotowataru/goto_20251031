@@ -1,6 +1,6 @@
 /* ============================================
       Gemini API（Cloudflare Worker）連携
-      AIチャットUI制御（完全独立）
+      AIチャットUI制御（完全独立版）
 ============================================ */
 
 // Cloudflare Worker のエンドポイント
@@ -61,9 +61,31 @@ function extractEvents() {
 
 /* ================================
       Gemini（Cloudflare Worker）へ送信
-================================ */
+=============================== */
 async function askGemini(userMessage) {
     const events = extractEvents();
+    
+    // 現在の日付を取得（「今月」「今週末」の判断に必須）
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+
+    // AIへの具体的な指示（プロンプト）
+    const systemPrompt = `
+# 役割
+あなたはイベント案内専門のAIコンシェルジュです。
+
+# コンテキスト
+- 今日の日付: ${todayStr}
+- 現在掲載中のイベント情報:
+${JSON.stringify(events, null, 2)}
+
+# 回答ルール
+1. ユーザーの質問に対し、提供されたイベント情報の中から最適なものを提案してください。
+2. 「今月」「今週末」「今日」と言われたら、今日の日付（${todayStr}）を基準に判断してください。
+3. 該当するイベントがない場合は、「あいにく条件に合うイベントは見当たりませんが、こちらのイベントはいかがでしょうか？」と代替案を1つ出してください。
+4. 回答は簡潔に、最大3つまでの提案に留めてください。
+5. 架空のイベントを捏造しないでください。
+`;
 
     const body = {
         contents: [
@@ -71,11 +93,7 @@ async function askGemini(userMessage) {
                 role: "user",
                 parts: [
                     {
-                        text:
-                            "以下はイベント一覧です。ユーザーの質問に基づいて、最適なイベントを提案してください。\n\n" +
-                            JSON.stringify(events, null, 2) +
-                            "\n\nユーザーの質問: " +
-                            userMessage
+                        text: `${systemPrompt}\n\nユーザーの質問: ${userMessage}`
                     }
                 ]
             }
@@ -91,14 +109,18 @@ async function askGemini(userMessage) {
 
         const data = await res.json();
 
-        const reply =
-            data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-            "すみません、うまく応答できませんでした。";
+        // Worker側でエラーが返ってきた場合の処理
+        if (data.error) {
+            console.error("Gemini API Error:", data.error);
+            return "すみません、ただいま混み合っております。少し時間を置いて再度お試しください。";
+        }
 
+        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "すみません、適切な回答が見つかりませんでした。";
         return reply;
+
     } catch (e) {
-        console.error(e);
-        return "エラーが発生しました。時間をおいて再度お試しください。";
+        console.error("Fetch Error:", e);
+        return "通信エラーが発生しました。接続状況を確認してください。";
     }
 }
 
@@ -109,8 +131,13 @@ async function sendMessage() {
     const text = aiInput.value.trim();
     if (!text) return;
 
+    // ユーザーのメッセージを表示
     addMessage(text, "user");
     aiInput.value = "";
+
+    // 「考え中...」の表示（任意）
+    const loadingMsg = "考え中...";
+    // addMessage(loadingMsg, "ai"); // 簡易的なローディング表示をしたい場合は有効化
 
     const reply = await askGemini(text);
     addMessage(reply, "ai");
@@ -122,6 +149,9 @@ if (aiSend) {
 
 if (aiInput) {
     aiInput.addEventListener("keypress", e => {
-        if (e.key === "Enter") sendMessage();
+        if (e.key === "Enter") {
+            e.preventDefault();
+            sendMessage();
+        }
     });
 }
