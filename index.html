@@ -142,5 +142,41 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
     <script type="module" src="js/main.js"></script>
+
+
+
+<!-- ============================
+      AI チャット UI（追加部分）
+============================= -->
+<div id="ai-chat-toggle" class="ai-chat-toggle">
+    <span class="ai-chat-toggle-icon">💬</span>
+    <span class="ai-chat-toggle-text">AIに相談</span>
+</div>
+
+<div id="ai-chat-window" class="ai-chat-window ai-chat-hidden">
+    <div class="ai-chat-header">
+        <div class="ai-chat-title">✨ イベント案内AI</div>
+        <button id="ai-chat-close" class="ai-chat-close">×</button>
+    </div>
+
+    <div id="ai-chat-messages" class="ai-chat-messages">
+        <div class="ai-chat-msg ai-chat-msg-ai">
+            こんにちは！イベント探しをお手伝いします。
+        </div>
+    </div>
+
+    <div class="ai-chat-input-area">
+        <input type="text" id="ai-chat-input" class="ai-chat-input" placeholder="今週末のおすすめは？">
+        <button id="ai-chat-send" class="ai-chat-send">送信</button>
+    </div>
+</div>
+
+
+
+
+
+
+
+
 </body>
 </html>
