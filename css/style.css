@@ -279,3 +279,40 @@ input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin
 .ai-chat-send:hover {
     background: #4527a0;
 }
+
+
+
+
+/* --- いいねボタン（追加分） --- */
+.like-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 15px; /* 評価の横に少し隙間を作る */
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    user-select: none;
+}
+
+.like-container:hover {
+    transform: scale(1.1);
+}
+
+.like-heart {
+    font-size: 1.2em;
+    color: #ccc; /* デフォルトはグレー */
+    transition: color 0.2s;
+}
+
+.like-container.is-liked .like-heart {
+    color: var(--accent); /* いいね済みの時は赤色 */
+}
+
+.like-count {
+    font-size: 0.9em;
+    font-weight: bold;
+    color: var(--gray);
+}
+
+
+
