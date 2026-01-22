@@ -3,176 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>イベント一覧 | 決定版</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>イベントプラットフォーム</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
 
     <header class="header">
-        <h1>イベント一覧</h1>
-        <button id="login-btn-header">ログイン / サインアップ</button>
+        <h1>EventHub</h1>
+        <button id="login-btn-header">ログイン / マイページ</button>
     </header>
 
     <nav class="category-nav">
-        <label class="radio-label"><input type="radio" name="category" value="all" checked><span>すべて</span></label>
-        <label class="radio-label"><input type="radio" name="category" value="matsuri"><span>祭り</span></label>
-        <label class="radio-label"><input type="radio" name="category" value="music"><span>音楽</span></label>
-        <label class="radio-label"><input type="radio" name="category" value="learn"><span>学び</span></label>
-        <label class="radio-label"><input type="radio" name="category" value="workshop"><span>ワークショップ</span></label>
-        <label class="radio-label"><input type="radio" name="category" value="sports"><span>スポーツ</span></label>
-        <label class="radio-label"><input type="radio" name="category" value="gourmet"><span>グルメ</span></label>
-        <label class="radio-label"><input type="radio" name="category" value="exhibition"><span>展示・芸術</span></label>
+        <label class="radio-label">
+            <input type="radio" name="category" value="all" checked>
+            <span>すべて</span>
+        </label>
+        <label class="radio-label">
+            <input type="radio" name="category" value="music">
+            <span>音楽</span>
+        </label>
+        <label class="radio-label">
+            <input type="radio" name="category" value="art">
+            <span>アート</span>
+        </label>
+        <label class="radio-label">
+            <input type="radio" name="category" value="tech">
+            <span>テック</span>
+        </label>
+        <label class="radio-label">
+            <input type="radio" name="category" value="food">
+            <span>フード</span>
+        </label>
     </nav>
+
     <div class="container">
-        <div class="main">
-            <section class="featured" id="featured-section" style="display:none;">
-                <div style="text-align:center; margin-bottom:12px;">
-                    <h2 style="display:inline-block; padding:8px 24px; background:white; border-radius:50px; color:#5e35b1; font-size:1.5em; box-shadow:0 5px 15px rgba(0,0,0,0.1);">
-                        おすすめイベント
-                    </h2>
-                </div>
-                
-                <div class="carousel-container">
-                    <button id="prev-slide-btn" class="carousel-control prev" aria-label="前のスライド">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6L8 12L14 18L15.41 16.59L10.83 12L15.41 7.41Z"/></svg>
-                    </button>
-                    <button id="next-slide-btn" class="carousel-control next" aria-label="次のスライド">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12L8.59 7.41L10 6L16 12L10 18L8.59 16.59Z"/></svg>
-                    </button>
-                    
-                    <div class="featured-grid" id="featured-grid">
-                        </div>
-                </div>
-            </section>
-
-            <div class="page-description-section">
-                <h2>イベント検索・一覧ページのご案内</h2>
-                <p>このページでは、現在開催予定、または近日開催されるすべてのイベントを検索・閲覧できます。多様なカテゴリーからあなたの興味に合ったイベントを見つけて、素敵な体験を予約しましょう！</p>
-                <p>サイドバーの**タグ**や**会場**、**主催者**フィルターを活用すると、より効率的に目的のイベントを見つけることができます。</p>
+        <main class="main">
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="キーワードで検索...">
+                <button id="search-btn">検索</button>
             </div>
-
-            <div class="page-description-section">            
-                <div class="tagembed-widget" style="width:100%;height:100%;overflow:auto;" data-widget-id="311215" data-website="1"></div><script src="https://widget.tagembed.com/embed.min.js" type="text/javascript"></script>      
-            </div>            
             
-            <section>
-                <h2 style="color:var(--primary); font-size:1.8em; margin:30px 0 20px;">開催予定イベント</h2>
-                <div class="event-grid" id="event-grid">
-                    <div class="loading">
-                        <svg viewBox="0 0 38 38" stroke="var(--primary)" style="width:48px;height:48px;">
-                            <g fill="none" stroke-width="4">
-                                <circle cx="19" cy="19" r="16" stroke-opacity=".3"/>
-                                <path d="M19 3 A16 16 0 0 1 19 35">
-                                    <animateTransform attributeName="transform" type="rotate" from="0 19 19" to="360 19 19" dur="1s" repeatCount="indefinite"/>
-                                </path>
-                            </g>
-                        </svg><br>読み込み中...
-                    </div>
-                </div>
-                <div id="load-more-trigger" class="load-more">
-                    <span>もっと見る</span>
+            <section class="featured">
+                <div class="carousel-container">
+                    <button class="carousel-control prev">&lt;</button>
+                    <div id="featured-grid" class="featured-grid">
+                        </div>
+                    <button class="carousel-control next">&gt;</button>
                 </div>
             </section>
-        </div>
+
+            <div id="event-list" class="event-grid">
+                </div>
+        </main>
 
         <aside class="sidebar">
             <div class="filter-group">
                 <h3>日付で絞り込み</h3>
-                <div id="calendar-container">
-                    <input type="text" id="calendar-input" placeholder="日付を選択" style="display:none;">
-                </div>
+                <input type="text" id="date-filter" placeholder="日付を選択">
+                <button id="clear-filters-btn">クリア</button>
             </div>
 
             <div class="filter-group">
-                <h3>検索</h3>
-                <div class="search-container">
-                    <input type="search" id="search-input" name="site_event_search_q" placeholder="キーワード..." autocomplete="off" data-lpignore="true" aria-label="イベントキーワード検索">
-                    <button id="search-btn">検索</button>
-                </div>
-                <button id="clear-filters-btn">条件をクリア</button>
-            </div>
-
-            <div class="filter-group" id="tags-filter" style="display:none;">
-                <h3>タグ</h3>
-                <div class="filter-tags" id="tags-container"></div>
-            </div>
-            <div class="filter-group" id="organizer-filter" style="display:none;">
-                <h3>主催者</h3>
-                <div class="filter-tags" id="organizer-container"></div>
-            </div>
-            <div class="filter-group" id="venue-filter" style="display:none;">
-                <h3>会場</h3>
-                <div class="filter-tags" id="venue-container"></div>
-            </div>
-
-            <div class="filter-group">
-                <h3>新着イベント</h3>
-                <ul class="new-events" id="new-events-list">読み込み中...</ul>
+                <h3>人気のタグ</h3>
+                <div id="tag-container" class="filter-tags">
+                    </div>
             </div>
         </aside>
     </div>
 
+    <section class="page-description-section">
+        <h2>EventHub について</h2>
+        <p>あなたの街で開催される最新のイベントを見つけたり、自分自身でイベントを登録・管理したりできるプラットフォームです。お気に入り登録や「いいね」でコミュニティを盛り上げましょう。</p>
+    </section>
+
     <div id="login-modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn">×</span>
-            <h2 style="text-align:center; color:var(--primary); margin-bottom:30px;">ログイン / サインアップ</h2>
+            <span class="close-btn">&times;</span>
+            <h2 style="text-align:center; color:var(--primary);">ログイン</h2>
             <div class="auth-buttons">
                 <button id="google-login-btn">Googleでログイン</button>
                 <button id="github-login-btn">GitHubでログイン</button>
+                <hr style="margin:20px 0; border:none; border-top:1px solid #eee;">
+                <input type="email" id="email-input" placeholder="メールアドレス">
+                <input type="password" id="password-input" placeholder="パスワード">
+                <button id="email-login-btn">メールでログイン</button>
+                <button id="email-signup-btn" style="background:none; color:var(--gray); border:1px solid #ddd;">新規アカウント作成</button>
             </div>
-            <hr style="margin:30px 0; border:0; border-top:1px solid #eee;">
-            <input type="email" id="email-input" placeholder="メールアドレス">
-            <input type="password" id="password-input" placeholder="パスワード（6文字以上）">
-            <div class="auth-buttons">
-                <button id="email-signup-btn">アカウント作成</button>
-                <button id="email-login-btn">ログイン</button>
-            </div>
+        </div>
+    </div>
+
+    <div id="ai-chat-toggle" class="ai-chat-toggle">
+        <span>✨ AI アシスタント</span>
+    </div>
+
+    <div id="ai-chat-window" class="ai-chat-window ai-chat-hidden">
+        <div class="ai-chat-header">
+            <span class="ai-chat-title">AI アシスタント</span>
+            <button id="ai-chat-close" class="ai-chat-close">&times;</button>
+        </div>
+        <div id="ai-chat-messages" class="ai-chat-messages">
+            <div class="ai-chat-msg ai-chat-msg-ai">こんにちは！何かお手伝いしましょうか？</div>
+        </div>
+        <div class="ai-chat-input-area">
+            <input type="text" id="ai-chat-input" class="ai-chat-input" placeholder="メッセージを入力...">
+            <button id="ai-chat-send" class="ai-chat-send">送信</button>
         </div>
     </div>
 
     <footer class="footer">
         <div class="footer-links">
-            <a href="#" target="_blank">プライバシーポリシー</a>
-            <a href="#" target="_blank">お問い合わせ</a>
+            <a href="#">利用規約</a>
+            <a href="#">プライバシーポリシー</a>
+            <a href="#">お問い合わせ</a>
         </div>
-        <p>&copy; 2024 Event List App</p>
+        <p>&copy; 2024 EventHub Inc. All rights reserved.</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
-    <script type="module" src="js/main.js"></script>
-
-
-
-<!-- ============================
-      AI チャット UI（追加部分）
-============================= -->
-<div id="ai-chat-toggle" class="ai-chat-toggle">
-    <span class="ai-chat-toggle-icon">💬</span>
-    <span class="ai-chat-toggle-text">AIに相談</span>
-</div>
-
-<div id="ai-chat-window" class="ai-chat-window ai-chat-hidden">
-    <div class="ai-chat-header">
-        <div class="ai-chat-title">✨ イベント案内AI</div>
-        <button id="ai-chat-close" class="ai-chat-close">×</button>
-    </div>
-
-    <div id="ai-chat-messages" class="ai-chat-messages">
-        <div class="ai-chat-msg ai-chat-msg-ai">
-            こんにちは！イベント探しをお手伝いします。
-        </div>
-    </div>
-
-    <div class="ai-chat-input-area">
-        <input type="text" id="ai-chat-input" class="ai-chat-input" placeholder="今週末のおすすめは？">
-        <button id="ai-chat-send" class="ai-chat-send">送信</button>
-    </div>
-</div>
-
-    <script src="js/gemini.js"></script>
-
-
+    
+    <script type="module" src="main.js"></script>
 </body>
 </html>
