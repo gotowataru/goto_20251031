@@ -10,12 +10,12 @@ import {
 
 // --- Firebase 設定 (ご自身のプロジェクト設定に書き換えてください) ---
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
+    authDomain: "goto6234.firebaseapp.com",
+    projectId: "goto6234",
+    storageBucket: "goto6234.firebaseapp.com",
+    messagingSenderId: "730149609843",
+    appId: "1:730149609843:web:d11237de52723fc45b2506"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -271,3 +271,4 @@ flatpickr("#calendar-input", {
         renderEvents(filtered);
     }
 });
+
