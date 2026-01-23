@@ -304,6 +304,7 @@ const response = await fetch(WORKER_URL, {
                         });
                         successCount++;
                     }
+                    await new Promise(r => setTimeout(r, 12000));
                 } catch (e) {
                     console.error(e);
                     log.textContent = `❌ エラー: ${event.name}`;
