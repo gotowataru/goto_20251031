@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>イベント管理ダッシュボード</title>
     <style>
-        /* スタイルは admin.html のものをベースに調整 */
+        /* 既存のスタイルを完全に維持 */
         :root { 
             --primary: #5e35b1; 
             --accent: #ff5252; 
@@ -41,7 +41,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
             padding: 20px; 
             position: relative;
-            border-left: 5px solid; /* ステータスで色付け */
+            border-left: 5px solid; 
         }
         .event-card[data-status="pending"] { border-left-color: var(--pending); }
         .event-card[data-status="approved"] { border-left-color: var(--approved); }
@@ -64,7 +64,15 @@
         .btn-edit { background: var(--primary); }
         .btn-notify { background: var(--info); }
         
-        /* モーダル（編集フォーム） */
+        /* AI管理セクションのスタイル追加 */
+        .ai-admin-panel {
+            background: #e3f2fd; padding: 20px; border-radius: 12px; margin-bottom: 30px; 
+            border: 1px solid var(--info); display: flex; flex-direction: column; gap: 10px;
+        }
+        .ai-status-row { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        #ai-status-log { font-size: 0.85em; color: #666; font-family: monospace; }
+
+        /* モーダル */
         .modal { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); overflow-y: auto; padding: 20px 0;}
         .modal-content { 
             background: white; margin: 5% auto; padding: 30px; border-radius: 12px; width: 90%; max-width: 800px; 
@@ -73,19 +81,27 @@
         .modal-close { position: absolute; top: 10px; right: 25px; font-size: 30px; font-weight: bold; cursor: pointer; color: #aaa; }
         .modal-close:hover { color: #333; }
         
-        /* フォーム要素 (admin.htmlのスタイルを再利用) */
         label { display: block; margin-top: 15px; margin-bottom: 5px; font-weight: bold; color: #555; }
         input[type="text"], input[type="date"], input[type="time"], input[type="number"], textarea, select {
             width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;
         }
         .admin-fields { border-left: 5px solid var(--warning); padding-left: 15px; background: #fffde7; margin-top: 15px; padding-top: 5px; }
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-
     </style>
 </head>
 <body>
     <div class="container">
         <h1>イベント管理ダッシュボード</h1>
+        
+        <div class="ai-admin-panel">
+            <h3 style="margin: 0; color: var(--info);">🤖 AIおすすめエンジン管理</h3>
+            <p style="font-size: 0.9em; margin: 5px 0; color: #555;">イベントの情報を数値化してAIがおすすめできるようにします。（未処理のイベントのみ実行）</p>
+            <div class="ai-status-row">
+                <button id="btn-sync-ai" class="action-btn btn-notify">AI一括数値化を実行</button>
+                <div id="ai-status-log">待機中...</div>
+            </div>
+        </div>
+
         <p style="text-align:center; color: var(--primary);">現在 <span id="event-count">0</span> 件のイベントが登録されています。</p>
 
         <div id="filter-tabs">
@@ -107,7 +123,6 @@
             <span class="modal-close">&times;</span>
             <h2>イベント編集 <span id="editing-event-name"></span></h2>
             <form id="edit-form">
-                
                 <div class="admin-fields">
                     <h3>イベント承認情報</h3>
                     <div class="grid-3">
@@ -127,16 +142,12 @@
                     <label for="modal-adminNotes">管理者メモ / 却下理由</label>
                     <textarea id="modal-adminNotes" placeholder="却下時の理由などを記入します。"></textarea>
                 </div>
-                
                 <hr>
-
                 <h3>基本情報</h3>
                 <label for="modal-name">イベント名</label>
                 <input type="text" id="modal-name" required>
-                
                 <label for="modal-summary">概要</label>
                 <textarea id="modal-summary"></textarea>
-
                 <div class="grid-2">
                     <div>
                         <label for="modal-date">開催日</label>
@@ -147,26 +158,20 @@
                         <select id="modal-category"></select>
                     </div>
                 </div>
-
                 <label for="modal-venue">開催場所</label>
                 <input type="text" id="modal-venue">
-                
                 <h3>コース情報</h3>
-                <div id="modal-courses-container">
-                    </div>
-
+                <div id="modal-courses-container"></div>
                 <button type="submit" class="action-btn" style="background: var(--success); width: 100%; margin-top: 20px;">変更を保存</button>
             </form>
         </div>
     </div>
-
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
         import { getFirestore, collection, query, getDocs, updateDoc, doc, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-        // --- Firebase 設定（要編集） ---
         const firebaseConfig = {
             apiKey: "AIzaSyDt69H-dBGMB4HANbwVj007vJ3yblEZdqE",
             authDomain: "goto6234.firebaseapp.com",
@@ -180,7 +185,9 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- DOM Elements ---
+        // --- 設定 ---
+        const WORKER_URL = "https://geminiapi.nattofromtheworld.workers.dev/";
+
         const eventsList = document.getElementById('events-list');
         const eventCount = document.getElementById('event-count');
         const modal = document.getElementById('edit-modal');
@@ -189,42 +196,25 @@
         const modalStatusSelect = document.getElementById('modal-status');
         
         let allEvents = [];
-        let currentFilter = 'pending';
+        let currentFilter = 'all'; // 管理画面の利便性のため初期値を'all'に変更
         let editingEventId = null;
 
-        const STATUS_MAP = {
-            pending: '申請中',
-            approved: '承認済み',
-            rejected: '却下'
-        };
+        const STATUS_MAP = { pending: '申請中', approved: '承認済み', rejected: '却下' };
         const CATEGORY_OPTIONS = [
-            { value: 'matsuri', label: '祭り' },
-            { value: 'music', label: '音楽' },
-            { value: 'learn', label: '学び' },
-            { value: 'workshop', label: 'ワークショップ' },
-            { value: 'sports', label: 'スポーツ' },
-            { value: 'gourmet', label: 'グルメ' },
+            { value: 'matsuri', label: '祭り' }, { value: 'music', label: '音楽' },
+            { value: 'learn', label: '学び' }, { value: 'workshop', label: 'ワークショップ' },
+            { value: 'sports', label: 'スポーツ' }, { value: 'gourmet', label: 'グルメ' },
             { value: 'exhibition', label: '展示・芸術' }
         ];
 
         // --- 1. データ取得と描画 ---
 
-        /**
-         * 全イベントをFirestoreから取得
-         */
         const fetchAllEvents = async () => {
             eventsList.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:var(--primary);">イベントデータを取得中...</p>';
             try {
-                // シンプルに全件取得（管理ページのため）
                 const q = query(collection(db, 'events'));
                 const snap = await getDocs(q);
-
-                allEvents = snap.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-
-                // 初期フィルタリングと描画
+                allEvents = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderEvents(currentFilter);
             } catch (error) {
                 console.error("Error fetching events:", error);
@@ -232,27 +222,20 @@
             }
         };
 
-        /**
-         * フィルターに基づいてイベント一覧を描画する
-         */
         const renderEvents = (filterStatus) => {
-            const filtered = allEvents.filter(e => 
-                filterStatus === 'all' || (e.status || 'pending') === filterStatus
-            );
-
+            const filtered = allEvents.filter(e => filterStatus === 'all' || (e.status || 'pending') === filterStatus);
             eventCount.textContent = allEvents.length;
             eventsList.innerHTML = '';
 
             if (filtered.length === 0) {
-                eventsList.innerHTML = `<p style="grid-column:1/-1; text-align:center; font-size:1.2em;">${STATUS_MAP[filterStatus] || '全ての'}イベントはありません。</p>`;
+                eventsList.innerHTML = `<p style="grid-column:1/-1; text-align:center; font-size:1.2em;">該当するイベントはありません。</p>`;
                 return;
             }
 
             filtered.forEach(event => {
                 const status = event.status || 'pending';
-                const statusText = STATUS_MAP[status];
-                const adminNotesPreview = event.adminNotes ? `(メモ: ${event.adminNotes.substring(0, 30)}...)` : '';
-
+                const hasEmbedding = event.embedding ? '✅' : '❌';
+                
                 let actions = '';
                 if (status === 'pending') {
                     actions += `<button class="action-btn btn-approve" onclick="updateStatus('${event.id}', 'approved')">承認</button>`;
@@ -262,19 +245,16 @@
                 } else if (status === 'rejected') {
                     actions += `<button class="action-btn btn-approve" onclick="updateStatus('${event.id}', 'approved')">承認に変更</button>`;
                 }
-                // 通知機能はCloud Functionsが必要なため、プレースホルダーとして
-                actions += `<button class="action-btn btn-notify" onclick="alert('通知機能はCloud Functionsが必要です。')">メール通知</button>`;
                 actions += `<button class="action-btn btn-edit" onclick="openEditModal('${event.id}')">編集</button>`;
-
 
                 eventsList.innerHTML += `
                     <div class="event-card" data-status="${status}">
                         <h3 class="card-title">${event.name}</h3>
                         <div class="card-meta">
-                            <p><strong>ステータス:</strong> <span class="card-status" style="color:var(--${status});">${statusText}</span></p>
-                            <p><strong>登録者:</strong> ${event.submittedBy}</p>
+                            <p><strong>AI数値化:</strong> ${hasEmbedding}</p>
+                            <p><strong>ステータス:</strong> <span class="card-status" style="color:var(--${status});">${STATUS_MAP[status]}</span></p>
+                            <p><strong>登録者:</strong> ${event.submittedBy?.substring(0,8)}...</p>
                             <p><strong>開催日:</strong> ${event.date || '未定'}</p>
-                            <p><strong>コース数:</strong> ${event.courses?.length || 0} ${adminNotesPreview}</p>
                         </div>
                         <div class="card-actions">${actions}</div>
                     </div>
@@ -282,88 +262,100 @@
             });
         };
 
-        // --- 2. ステータス変更 (承認/却下) ---
+        // --- [追加] AI一括数値化ロジック ---
+        const syncAIEmbeddings = async () => {
+            const btn = document.getElementById('btn-sync-ai');
+            const log = document.getElementById('ai-status-log');
+            
+            const targets = allEvents.filter(e => !e.embedding);
+            
+            if (targets.length === 0) {
+                alert("未処理のイベントはありません。すべて数値化済みです。");
+                return;
+            }
 
-        /**
-         * イベントのステータスを更新する
-         */
+            if (!confirm(`${targets.length} 件を数値化しますか？`)) return;
+
+            btn.disabled = true;
+            btn.style.opacity = "0.5";
+            let successCount = 0;
+
+            for (const event of targets) {
+                try {
+                    log.textContent = `処理中: ${event.name}`;
+                    const textToEmbed = `${event.name} ${event.summary || ""} ${event.category || ""}`;
+
+                    const response = await fetch(WORKER_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ task: "embedding", text: textToEmbed })
+                    });
+
+                    const result = await response.json();
+                    const embeddingValues = result.embedding?.values;
+
+                    if (embeddingValues) {
+                        await updateDoc(doc(db, 'events', event.id), {
+                            embedding: embeddingValues,
+                            embeddingUpdatedAt: serverTimestamp()
+                        });
+                        successCount++;
+                    }
+                } catch (e) {
+                    console.error(e);
+                    log.textContent = `❌ エラー: ${event.name}`;
+                    break;
+                }
+            }
+
+            btn.disabled = false;
+            btn.style.opacity = "1";
+            log.textContent = `✅ 完了: ${successCount} 件を数値化しました。`;
+            fetchAllEvents();
+        };
+        document.getElementById('btn-sync-ai').addEventListener('click', syncAIEmbeddings);
+
+        // --- 2. ステータス変更 ---
         window.updateStatus = async (eventId, newStatus) => {
-            if (!confirm(`イベントID ${eventId} を「${STATUS_MAP[newStatus]}」に変更しますか？`)) return;
-
-            const docRef = doc(db, 'events', eventId);
-            const updateData = { status: newStatus };
-
-            if (newStatus === 'approved') {
-                updateData.approvedAt = serverTimestamp();
-            } else if (newStatus === 'pending' || newStatus === 'rejected') {
-                updateData.approvedAt = null;
-            }
-            // 却下の場合はメモも推奨されるが、ここでは簡易化のためupdateDocを呼び出す
-
+            if (!confirm(`「${STATUS_MAP[newStatus]}」に変更しますか？`)) return;
             try {
-                await updateDoc(docRef, updateData);
-                alert(`ステータスを「${STATUS_MAP[newStatus]}」に更新しました。`);
-                // データを再取得して表示を更新
+                const updateData = { status: newStatus };
+                if (newStatus === 'approved') updateData.approvedAt = serverTimestamp();
+                await updateDoc(doc(db, 'events', eventId), updateData);
                 fetchAllEvents();
-            } catch (error) {
-                console.error("Error updating status:", error);
-                alert('ステータス更新に失敗しました。');
-            }
+            } catch (e) { alert('更新失敗'); }
         };
 
-        // --- 3. 編集モーダルと更新 ---
-
-        /**
-         * 編集モーダルを開く
-         */
+        // --- 3. 編集モーダル ---
         window.openEditModal = (eventId, initialStatus = null) => {
             const event = allEvents.find(e => e.id === eventId);
             if (!event) return;
-
             editingEventId = eventId;
             document.getElementById('editing-event-name').textContent = ` - ${event.name}`;
-
-            // ステータスとカテゴリの選択肢を設定
-            modalStatusSelect.innerHTML = Object.entries(STATUS_MAP).map(([val, label]) => 
-                `<option value="${val}">${label}</option>`
-            ).join('');
-            document.getElementById('modal-category').innerHTML = CATEGORY_OPTIONS.map(c => 
-                `<option value="${c.value}">${c.label}</option>`
-            ).join('');
             
-            // フォームにデータをロード
+            modalStatusSelect.innerHTML = Object.entries(STATUS_MAP).map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
+            document.getElementById('modal-category').innerHTML = CATEGORY_OPTIONS.map(c => `<option value="${c.value}">${c.label}</option>`).join('');
+            
             document.getElementById('modal-name').value = event.name || '';
             document.getElementById('modal-summary').value = event.summary || '';
             document.getElementById('modal-date').value = event.date || '';
             document.getElementById('modal-category').value = event.category || '';
             document.getElementById('modal-venue').value = event.venue || '';
-
-            // 管理者フィールド
             document.getElementById('modal-status').value = initialStatus || event.status || 'pending';
             document.getElementById('modal-submittedBy').value = event.submittedBy || 'N/A';
             document.getElementById('modal-adminNotes').value = event.adminNotes || '';
             document.getElementById('modal-approvedAt').value = event.approvedAt ? event.approvedAt.toDate().toLocaleString() : '未承認';
             
-            // コース情報の表示（簡易版）
-            modalCoursesContainer.innerHTML = (event.courses || []).map((c, i) => `
+            modalCoursesContainer.innerHTML = (event.courses || []).map(c => `
                 <div style="border:1px dashed #ccc; padding:10px; margin-bottom:10px;">
                     <strong>${c.courseName}</strong> (${c.price}円)
-                    <p style="margin:5px 0 0; font-size:0.9em; color:#666;">定員: ${c.capacity || '制限なし'}</p>
                 </div>
             `).join('') || '<p>コース情報なし</p>';
-
-
             modal.style.display = 'block';
         };
 
-        /**
-         * モーダル内のフォーム送信（編集データ保存）
-         */
         modalForm.onsubmit = async (e) => {
             e.preventDefault();
-            const originalEvent = allEvents.find(e => e.id === editingEventId);
-            if (!originalEvent) return;
-
             const newStatus = document.getElementById('modal-status').value;
             const updateData = {
                 name: document.getElementById('modal-name').value,
@@ -373,31 +365,15 @@
                 venue: document.getElementById('modal-venue').value,
                 status: newStatus,
                 adminNotes: document.getElementById('modal-adminNotes').value,
-                // コース編集は複雑なためここでは省略し、管理者はFirestore直接編集を推奨
             };
-
-            // 承認状態が変更された場合の approvedAt 処理
-            if (newStatus === 'approved' && originalEvent.status !== 'approved') {
-                updateData.approvedAt = serverTimestamp();
-            } else if (newStatus !== 'approved') {
-                updateData.approvedAt = null;
-            }
-
             try {
                 await updateDoc(doc(db, 'events', editingEventId), updateData);
-                alert('イベントの編集内容を保存しました。');
                 modal.style.display = 'none';
                 fetchAllEvents();
-            } catch (error) {
-                console.error("Error saving edit:", error);
-                alert('編集内容の保存に失敗しました。');
-            }
+            } catch (e) { alert('保存失敗'); }
         };
 
-
-        // --- 4. 初期化とイベントリスナー ---
-
-        // フィルタリングタブのセットアップ
+        // --- 4. 初期化 ---
         document.querySelectorAll('.status-tab').forEach(tab => {
             tab.onclick = (e) => {
                 document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
@@ -407,20 +383,12 @@
             };
         });
 
-        // モーダルクローズ処理
         document.querySelector('.modal-close').onclick = () => { modal.style.display = 'none'; };
-        modal.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
+        window.onclick = (e) => { if(e.target === modal) modal.style.display = 'none'; };
 
-
-        // 認証チェックとデータロード
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // ここで管理者権限チェックを入れるのが理想的ですが、学習目的のため省略します
-                fetchAllEvents();
-            } else {
-                alert('このページは管理者専用です。ログインしてください。');
-                location.href = 'index.html'; // ログインページなどにリダイレクト
-            }
+            if (user) fetchAllEvents();
+            else location.href = 'index.html';
         });
     </script>
 </body>
