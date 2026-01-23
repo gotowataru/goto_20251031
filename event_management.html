@@ -186,7 +186,7 @@
         const db = getFirestore(app);
 
         // --- 設定 ---
-        const WORKER_URL = "https://geminiapi.nattofromtheworld.workers.dev/";
+        const WORKER_URL = "https://geminiapi.nattofromtheworld.workers.dev";
 
         const eventsList = document.getElementById('events-list');
         const eventCount = document.getElementById('event-count');
@@ -285,11 +285,14 @@
                     log.textContent = `処理中: ${event.name}`;
                     const textToEmbed = `${event.name} ${event.summary || ""} ${event.category || ""}`;
 
-                    const response = await fetch(WORKER_URL, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ task: "embedding", text: textToEmbed })
-                    });
+const response = await fetch(WORKER_URL, {
+    method: "POST",
+    headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json" 
+    },
+    body: JSON.stringify({ task: "embedding", text: textToEmbed })
+});
 
                     const result = await response.json();
                     const embeddingValues = result.embedding?.values;
